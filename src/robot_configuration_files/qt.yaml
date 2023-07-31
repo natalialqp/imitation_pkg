@@ -1,0 +1,38 @@
+name: "QTrobot"
+DOF-head: 2
+DOF-right-arm: 3
+DOF-left-arm: 3
+
+distances-head:
+  head-yaw: [0, 0, 0.338]
+  head-pitch: [0, 0, 0.0962]
+  camera: [0.094, 0, 0.162]
+
+angles-head:
+  head-yaw: [0, 0, 0]
+  head-pitch: [0, 0, 0]
+  camera: [-1.5708, 0, -1.5708]
+
+distances-left-arm:
+  shoulder-pitch: [0, 0.08, 0.396]
+  shoulder-roll: [0, 0.0445, 0]
+  elbow: [0, 0.07708, 0]
+  hand: [0, 0.184, 0]
+
+angles-left-arm:
+  shoulder-pitch: [0, 0, 0]
+  shoulder-roll: [-1.0472, 0, 0]
+  elbow: [-0.5235, 0, 0]
+  hand: [0, 0, 0]
+
+distances-right-arm:
+  shoulder-pitch: [0, -0.08, 0.396]
+  shoulder-roll: [0, 0.0445, 0]
+  elbow: [0, 0.07708, 0]
+  hand: [0, 0.184, 0]
+
+angles-right-arm:
+  shoulder-pitch: [3.1416, 0, 0]
+  shoulder-roll: [1.0472, 0, 0]
+  elbow: [0.5235, 0, 0]
+  hand: [0, 0, 0]
