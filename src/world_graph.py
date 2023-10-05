@@ -1,8 +1,12 @@
+from array import array
 import pprint
 from collections import defaultdict
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
+import json
+import ast
 
 class Graph(object):
     def __init__(self):
@@ -22,13 +26,31 @@ class Graph(object):
         self.G.add_edge(u, v)
 
     def add_edges(self, edges):
-        for i in edges:
+        for i in tqdm(edges):
             u, v = tuple(i[0]), tuple(i[1])  # Convert ndarrays to tuples
             self.G.add_edge(u, v)
 
     def has_edge(self, u, v):
         u, v = tuple(u), tuple(v)
         return self.G.has_edge(u, v)
+
+    # def save_graph_to_file(self, name):
+    #     nx.write_gml(self.G, name + ".gml", stringizer = str) #stringizer = str
+
+    # def read_graph_from_file(self, name):
+    #     self.G = nx.read_gml(name + ".gml") #destringizer = list
+
+    def save_graph_to_file(self, name):
+        nx.write_graphml_lxml(self.G, name + ".net")
+
+    def read_graph_from_file(self, name):
+        aux_graph = nx.Graph()
+        aux_graph = nx.read_graphml(name + ".net")
+
+        for node in tqdm(aux_graph.nodes()):
+            self.G.add_node(ast.literal_eval(node))
+        for edges in tqdm(aux_graph.edges()):
+            self.G.add_edge(ast.literal_eval(edges[0]), ast.literal_eval(edges[1]))
 
     def search(self, initial_node, goal_node, name):
         if name == "A*":
@@ -37,6 +59,9 @@ class Graph(object):
 
     def get_nodes(self):
         return self.G.nodes()
+
+    def get_edges(self):
+        return self.G.edges()
 
     def plot_graph(self, trajectory = []):
         # Create the 3D figure
@@ -70,7 +95,7 @@ class Graph(object):
             # ax.text(midpoint[0], midpoint[1], midpoint[2], f"Length: {length:.2f}", ha='center', va='center')
 
         def _format_axes(ax):
-            """Visualization options for the 3D axes."""
+            """Visualization options for the 3D axes"""
             # Turn gridlines on
             ax.grid(True)
             # Set axes labels

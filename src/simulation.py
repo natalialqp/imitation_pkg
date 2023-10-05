@@ -4,30 +4,39 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 import pandas as pd
 import robot
+import csv
 from matplotlib.widgets import Slider
+import numpy as np
+from tensorflow import keras
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
-human_joints_head = ['JOINT_LEFT_COLLAR', 'JOINT_NECK', 'JOINT_HEAD']
-human_joints_left = ['JOINT_LEFT_COLLAR', 'JOINT_LEFT_SHOULDER', 'JOINT_LEFT_ELBOW', 'JOINT_LEFT_WRIST', 'JOINT_LEFT_HAND']
+robot_head_dimensions = np.array([0, 0.0962])
+robot_arm_dimensions = np.array([0.08, 0.0445, 0.07708, 0.184])
+
+human_joints_head  = ['JOINT_LEFT_COLLAR', 'JOINT_NECK', 'JOINT_HEAD']
+human_joints_left  = ['JOINT_LEFT_COLLAR', 'JOINT_LEFT_SHOULDER', 'JOINT_LEFT_ELBOW', 'JOINT_LEFT_WRIST', 'JOINT_LEFT_HAND']
 human_joints_right = ['JOINT_LEFT_COLLAR', 'JOINT_RIGHT_SHOULDER', 'JOINT_RIGHT_ELBOW', 'JOINT_RIGHT_WRIST', 'JOINT_RIGHT_HAND']
-robot_head_dimensions = np.array([0.04, 0.04])
-robot_arm_dimensions = np.array([0.08, 0.12, 0.18, 0.04])
 
 def cartesian_to_spherical(cartesian_points):
     # Convert Cartesian coordinates to spherical coordinates
-    r = np.linalg.norm(cartesian_points, axis=1)  # Radial distance
-    theta = np.arccos(cartesian_points[:, 2] / r)  # Inclination angle
-    phi = np.arctan2(cartesian_points[:, 1], cartesian_points[:, 0])  # Azimuth angle
+    r     = np.linalg.norm(cartesian_points, axis=1)                    # Radial distance
+    theta = np.arccos(cartesian_points[:, 2] / r)                       # Inclination angle
+    phi   = np.arctan2(cartesian_points[:, 1], cartesian_points[:, 0])  # Azimuth angle
 
     # Set of points in spherical coordinates
-    spherical_points = np.column_stack((r, theta, phi))
-    return spherical_points
+    # spherical_points = np.column_stack((r, theta, phi))
+    # return spherical_points
+    return theta, phi
 
-def spherical_to_cartesian(spherical_points):
-    r = spherical_points[:, 0]  # Radial distance
-    theta = spherical_points[:, 1]  # Inclination angle
-    phi = spherical_points[:, 2]  # Azimuth angle
+def spherical_to_cartesian(spherical_points, robot):
+    r     = spherical_points[:, 0]      # Radial distance
+    theta = spherical_points[:, 1]      # Inclination angle
+    phi   = spherical_points[:, 2]      # Azimuth angle
+    # l,r,h = robot.forward_kinematics()
 
     x = r * np.sin(theta) * np.cos(phi)
     y = r * np.sin(theta) * np.sin(phi)
@@ -38,25 +47,76 @@ def spherical_to_cartesian(spherical_points):
     return cartesian_points
 
 def human_to_robot(points, isArm):
+    #Calculate the n-th discrete difference along the given axis
     vectors = np.diff(points, axis=0)
     spherical_points = cartesian_to_spherical(vectors)
     if isArm:
         spherical_points[:, 0] = robot_arm_dimensions
     else:
         spherical_points[:, 0] = robot_head_dimensions
-    coordinates = spherical_to_cartesian(np.vstack((np.array([0, 0, 0]), spherical_points)))
+    coordinates = spherical_to_cartesian(np.vstack((np.array([0, 0, 0]), spherical_points)), robot)
+    #Return the cumulative sum of the elements along a given axis
     return np.cumsum(coordinates, axis=0)
 
-def robot_embodiment(points1, points2, points3):
-    points4 = human_to_robot(points1, True)
-    points5 = human_to_robot(points2, True)
-    points6 = human_to_robot(points3, False)
-    return points4, points5, points6
+def extract_spherical_angles_from_human(points1, points2, points3):
+    left_theta, left_phi = cartesian_to_spherical(np.diff(points1, axis=0))
+    right_theta, right_phi = cartesian_to_spherical(np.diff(points2, axis=0))
+    head_theta, head_phi = cartesian_to_spherical(np.diff(points3, axis=0))
+    return left_theta, left_phi, right_theta, right_phi, head_theta, head_phi
+
+# def robot_embodiment(robot, action, user):
+
+#     # left_shoulder_pitch -> 0
+#     # left_shoulder_roll --> 1
+#     # left_elbow_roll -----> 2
+#     # right_shoulder_pitch-> 3
+#     # right_shoulder_roll -> 4
+#     # right_elbow_roll ----> 5
+#     # head_yaw ------------> 6
+#     # head_pitch-----------> 7
+
+#     angles = np.array([np.deg2rad(-90), np.deg2rad(-20.3), np.deg2rad(-10.7),
+#                        np.deg2rad(-90), np.deg2rad(-40.9), np.deg2rad(-45.4),
+#                        np.deg2rad(0), np.deg2rad(-0)])
+#     #16 -mixer
+#     # angles = np.array([-0.9101365, -0.5816182, -1.3170639, 0.522737, -0.64128196, -1.2126011, -0.13765207,  0.10746284])
+#     #16 - pressure cookers
+#     # angles = np.array([-0.0620994, -1.0886317, -1.0191336, 0.0456534, -0.9713295 , -0.8338959, 0.00057178,  0.04962267])
+
+#     # save_mapping_csv("./data/robot_angles", action, user, left_theta, left_phi, head_theta, right_theta, right_phi, head_phi, angles)
+#     l, r, h = robot.forward_kinematics(angles)
+#     return matrix_array_to_list_list(l), matrix_array_to_list_list(r), matrix_array_to_list_list(h)
+
+def robot_embodiment(robot, angles_left, angles_right, angles_head):
+
+    # left_shoulder_pitch -> 0
+    # left_shoulder_roll --> 1
+    # left_elbow_roll -----> 2
+    # right_shoulder_pitch-> 3
+    # right_shoulder_roll -> 4
+    # right_elbow_roll ----> 5
+    # head_yaw ------------> 6
+    # head_pitch-----------> 7
+
+    angles = np.concatenate((angles_left, angles_right, angles_head), axis=None)
+    l, r, h = robot.forward_kinematics(angles)
+    return matrix_array_to_list_list(l), matrix_array_to_list_list(r), matrix_array_to_list_list(h)
+
+def matrix_array_to_list_list(vec):
+    new_list = []
+    for i in vec:
+        new_list.append(list(i))
+    return np.array(new_list)
 
 def vectorise_string(vec):
     aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
     data = np.array(aux_data.split())
     return list(data[0:3].astype(float))
+
+def vectorise_spherical_data(vec):
+    aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
+    data = np.array(aux_data.split())
+    return list(data[0:4].astype(float))
 
 def read_csv_combined(df, action, user):
     left_side = []
@@ -77,6 +137,37 @@ def read_csv_combined(df, action, user):
             head.append(aux_head.copy())
     return np.array(left_side), np.array(right_side), np.array(head)
 
+def read_training_data(file_name):
+
+    df = read_file(file_name)
+    theta_left = np.array([vectorise_spherical_data(i) for i in df['left_arm_human_theta']])
+    theta_right = np.array([vectorise_spherical_data(i) for i in df['right_arm_human_theta']])
+    theta_head = np.array([vectorise_spherical_data(i) for i in df['head_human_theta']])
+    phi_left = np.array([vectorise_spherical_data(i) for i in df['left_arm_human_phi']])
+    phi_right = np.array([vectorise_spherical_data(i) for i in df['right_arm_human_phi']])
+    phi_head = np.array([vectorise_spherical_data(i) for i in df['head_human_phi']])
+    left_arm_robot = np.array([vectorise_spherical_data(i) for i in df['left_arm_robot']])
+    right_arm_robot = np.array([vectorise_spherical_data(i) for i in df['right_arm_robot']])
+    head_robot = np.array([vectorise_spherical_data(i) for i in df['head_robot']])
+
+    return theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot
+
+def save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra):
+
+    df = pd.read_csv(file_name + ".csv")
+    for i in range(len(df)):
+        if action == df['action'][i] and user == df['participant_id'][i]:
+            df['left_arm_human_theta'][i] = str(lht)
+            df['right_arm_human_theta'][i] = str(rht)
+            df['head_human_theta'][i] = str(hht)
+            df['left_arm_human_phi'][i] = str(lhp)
+            df['right_arm_human_phi'][i] = str(rhp)
+            df['head_human_phi'][i] = str(hhp)
+            df['left_arm_robot'][i] = str(ra[0:3])
+            df['right_arm_robot'][i] = str(ra[3:6])
+            df['head_robot'][i] = str(ra[6:8])
+        df.to_csv(file_name + ".csv")
+
 def create_3d_plot():
     fig = plt.figure(figsize=(12, 5))
     ax1 = fig.add_subplot(121, projection='3d')
@@ -87,19 +178,19 @@ def create_3d_plot():
     ax1.set_ylabel('Y')
     ax1.set_zlabel('Z')
     ax1.set_xlim([1, 3])
-    ax1.set_ylim([-0.8, 0.8])
-    ax1.set_zlim([-0.8, 0.8])
+    ax1.set_ylim([-1, 1])
+    ax1.set_zlim([-1, 1])
 
     ax2.set_xlabel('X')
     ax2.set_ylabel('Y')
     ax2.set_zlabel('Z')
-    ax2.set_xlim([-0.3, 0.3])
-    ax2.set_ylim([-0.3, 0.3])
-    ax2.set_zlim([-0.3, 0.3])
+    ax2.set_xlim([-0.5, 0.5])
+    ax2.set_ylim([-0.5, 0.5])
+    ax2.set_zlim([0, 1])
 
     return fig, ax1, ax2
 
-def plot_animation_3d(point_clouds_list):
+def plot_animation_3d(point_clouds_list, base):
     if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
         raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
 
@@ -153,6 +244,7 @@ def plot_animation_3d(point_clouds_list):
     # Add a slider to control the animation
     slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
     slider = Slider(slider_ax, 'Frame', 0, len(point_clouds_list) - 1, valinit=0, valstep=1)
+    ax2.scatter(base[0], base[1], base[2], marker="o")
 
     def update_animation(val):
         frame = int(slider.val)
@@ -160,22 +252,186 @@ def plot_animation_3d(point_clouds_list):
         fig.canvas.draw_idle()
 
     slider.on_changed(update_animation)
-
     # Show the animation
     plt.show()
 
 def read_file(name):
     return pd.read_csv('./data/' + name + '.csv')
 
+def train_keras(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
+    num_joints_left_arm = 3
+    num_joints_right_arm = 3
+    num_joints_head = 2
+
+    # Define the number of human joint angles for each body part
+    num_angles_per_part = 20
+
+    # Create a single neural network model with multiple output branches
+    input_layer = keras.layers.Input(shape=(num_angles_per_part,))  # Total number of input angles for all body parts
+
+    # Shared layers for feature extraction
+    shared_layer1 = keras.layers.Dense(128, activation='relu')(input_layer)
+    shared_layer2 = keras.layers.Dense(128, activation='relu')(shared_layer1)
+
+    # Output branches for left arm, right arm, and head
+    left_arm_output = keras.layers.Dense(num_joints_left_arm)(shared_layer2)
+    right_arm_output = keras.layers.Dense(num_joints_right_arm)(shared_layer2)
+    head_output = keras.layers.Dense(num_joints_head)(shared_layer2)
+
+    # Define the model with multiple outputs
+    model = keras.models.Model(inputs=input_layer, outputs=[left_arm_output, right_arm_output, head_output])
+
+    # Compile the model with multiple outputs and appropriate loss functions
+    model.compile(optimizer='adam', loss='mean_squared_error', loss_weights=[1.0, 1.0, 1.0])
+    # Prepare training data
+    input_data = np.concatenate((theta_left, phi_left, theta_right, phi_right, theta_head, phi_head), axis=1)
+    output_data = [
+        left_arm_robot.reshape(-1, num_joints_left_arm),
+        right_arm_robot.reshape(-1, num_joints_right_arm),
+        head_robot.reshape(-1, num_joints_head)
+    ]
+    # Train the model using the combined training data for all body parts
+    history = model.fit(input_data, output_data, epochs = num_epochs, validation_split = 0.2)
+
+    validation_inputs = input_data[-int(input_data.shape[0] * 0.2):]
+    validation_outputs = model.predict(validation_inputs)
+
+    # print("VALIDATION INPUT:")
+    # print(validation_inputs)
+    # print("PREDICTION: ")
+    # print(validation_outputs)
+
+    # Plot the loss over epochs
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    return history
+
+def train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
+
+    # Create a custom PyTorch model class
+    class MultiOutputModel(nn.Module):
+        def __init__(self):
+            super(MultiOutputModel, self).__init__()
+            self.shared_layer1 = nn.Linear(20, 128)
+            self.shared_layer2 = nn.Linear(128, 128)
+            self.left_arm_layer = nn.Linear(128, 3)
+            self.right_arm_layer = nn.Linear(128, 3)
+            self.head_layer = nn.Linear(128, 2)
+
+        def forward(self, x):
+            x = torch.relu(self.shared_layer1(x))
+            x = torch.relu(self.shared_layer2(x))
+            left_arm_output = self.left_arm_layer(x)
+            right_arm_output = self.right_arm_layer(x)
+            head_output = self.head_layer(x)
+            return left_arm_output, right_arm_output, head_output
+
+    # Instantiate the model
+    model = MultiOutputModel()
+
+    # Define the optimizer and loss function
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    criterion = nn.MSELoss()
+
+    # Prepare training data as PyTorch tensors
+    input_data = torch.Tensor(np.concatenate((theta_left, phi_left, theta_right, phi_right, theta_head, phi_head), axis=1))
+    output_data_left = torch.Tensor(left_arm_robot)
+    output_data_right = torch.Tensor(right_arm_robot)
+    output_data_head = torch.Tensor(head_robot)
+
+    # Training loop
+    training_losses = []
+    num_epochs = 1000  # Adjust as needed
+    for epoch in range(num_epochs):
+        # Forward pass
+        left_arm_pred, right_arm_pred, head_pred = model(input_data)
+
+        # Calculate loss for each output branch
+        loss_left = criterion(left_arm_pred, output_data_left)
+        loss_right = criterion(right_arm_pred, output_data_right)
+        loss_head = criterion(head_pred, output_data_head)
+
+        # Total loss as a combination of individual losses
+        total_loss = loss_left + loss_right + loss_head
+
+        # Backpropagation and optimization
+        optimizer.zero_grad()
+        total_loss.backward()
+        optimizer.step()
+        training_losses.append(total_loss.item())
+
+        if (epoch + 1) % 100 == 0:
+            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss.item()}')
+
+    # Plot the training loss
+    plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    return model
+
+def predict_pytorch(model, left_input, right_input, head_input):
+    theta_left, phi_left, theta_right, phi_right, theta_head, phi_head = extract_spherical_angles_from_human(left_input, right_input, head_input)
+    input_data = torch.Tensor(np.concatenate((theta_left, phi_left, theta_right, phi_right, theta_head, phi_head), axis=None))
+
+    with torch.no_grad():
+        left_arm_pred, right_arm_pred, head_pred = model(input_data)
+
+    # Convert the predictions to numpy arrays
+    left_arm_pred = left_arm_pred.numpy()
+    right_arm_pred = right_arm_pred.numpy()
+    head_pred = head_pred.numpy()
+    return left_arm_pred, right_arm_pred, head_pred
+
+def test_keras(model, test_input_data, test_output_data):
+    test_loss = model.evaluate(test_input_data, test_output_data)
+
 if __name__ == "__main__":
+    file_path = "./robot_configuration_files/qt.yaml"
+    qt = robot.Robot()
+    qt.import_robot(file_path)
+    base = qt.baseDistance
 
+    # df = read_file("combined_actions")
+    # actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate',
+    #            'dinner_plate', 'knife', 'fork', 'salt_shaker',
+    #            'sugar_bowl', 'mixer', 'pressure_cooker']
+
+    # action = "teapot"
+    # user = 3
+    # users = np.arange(1, 21, 1)
+    # left_side, right_side, head = read_csv_combined(df, action, user)
+
+
+    # for i in range(len(left_side)):
+    #     points4, points5, points6 = robot_embodiment(left_side[i], right_side[i], head[i], qt, action, user)
+    #     robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
+    # plot_animation_3d(robot_pose, base)
+
+    #NN TRAINING
+    file_name = "robot_angles"
+    theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = read_training_data(file_name)
+    model = train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+
+    #NN TESTING
     df = read_file("combined_actions")
-    actions = ['teacup', 'teapot']
-    users = np.arange(1, 21, 1)
-    left_side, right_side, head = read_csv_combined(df, "salt_shaker", 2)
-
+    action = "pressure_cooker"
+    user = 5
     robot_pose = []
+    left_side, right_side, head = read_csv_combined(df, action, user)
+
     for i in range(len(left_side)):
-        points4, points5, points6 = robot_embodiment(left_side[i], right_side[i], head[i])
+        angles_left, angles_right, angles_head = predict_pytorch(model, left_side[i], right_side[i], head[i])
+        points4, points5, points6 = robot_embodiment(qt, angles_left, angles_right, angles_head)
         robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
-    plot_animation_3d(robot_pose)
+    plot_animation_3d(robot_pose, base)
+
+    #NN TESTING
+    # test(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 10)

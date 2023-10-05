@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>tutorial_qt_subscribe</name>
+  <name>imitation_pkg</name>
   <version>0.0.0</version>
   <description>Read QTrobot data with ROS Subscribe</description>
 
