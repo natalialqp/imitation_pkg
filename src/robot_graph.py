@@ -19,10 +19,10 @@ class Graph(object):
             attr = self.set_attribute(node_label)
             self.add_one_node(node_label, attr)
 
-    def set_attribute(self, node):
-        keyList = np.arange(0, self.n_dependecies, 1)
-        joint_dic = dict(zip(keyList, [None]*len(keyList)))
-        attrs = {str(node): { "value": node, "is_busy": False, "joint_dependency": joint_dic}}
+    def set_attribute(self, node, angles):
+        keyList = np.arange(1, self.n_dependecies + 1, 1)
+        dependendies = {keyList[i]: angles[i] for i in range(len(keyList))}
+        attrs = {str(node): { "value": node, "is_busy": True, "joint_dependency": dependendies}}
         return attrs
 
     def add_one_node(self, node, attr):
@@ -42,6 +42,9 @@ class Graph(object):
         u, v = tuple(u), tuple(v)
         return self.G.has_edge(u, v)
 
+    def save_file(self, name):
+        nx.write_gml(self.G, name + ".gml.gz", stringizer = list)
+
     def search(self, initial_node, goal_node, name):
         if name == "A*":
             path = nx.astar_path(self.G, initial_node, goal_node)
@@ -49,6 +52,17 @@ class Graph(object):
 
     def get_nodes(self):
         return self.G.nodes()
+
+    def get_edges(self):
+        return self.G.edges()
+
+    def print_graph(self):
+        print("Node Attributes:")
+        for node, attributes in self.G.nodes(data = True):
+            print("Node:", node, "Attributes:", attributes)
+        print("Edge Attributes:")
+        for u, v, attributes in self.G.edges(data = True):
+            print("Edge:", u, "-", v, "Attributes:", attributes)
 
     def plot_graph(self, trajectory = []):
         # Create the 3D figure
