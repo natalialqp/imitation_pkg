@@ -16,6 +16,9 @@ class Robot(object):
         self.leftArmDistance = []
         self.rightArmDistance = []
         self.headDistance = []
+        self.physical_limits_left = []
+        self.physical_limits_right = []
+        self.physical_limits_head = []
         self.robotDict = {}
 
     def read_yaml_file(self, file_path):
@@ -35,6 +38,9 @@ class Robot(object):
         self.headDistance = data["distances-head"]
         self.robotDict = data["robot-dict"]
         self.robotAgularDict = data["robot-angular-dict"]
+        self.physical_limits_left = data["real-angles-left-arm"]
+        self.physical_limits_right = data["real-angles-right-arm"]
+        self.physical_limits_head = data["real-angles-head"]
 
     def forward_kinematics(self, angles):
         '''
@@ -77,6 +83,7 @@ class Robot(object):
 
         headAngles["head-yaw"] = self.headAngles["head-yaw"] + np.array([0, 0, angles[6]])
         headAngles["head-pitch"] = self.headAngles["head-pitch"] + np.array([0, angles[7], 0])
+        headAngles["collar"] = self.headAngles["collar"]
         headAngles["camera"] = self.headAngles["camera"]
 
         for key in self.leftArmDistance:
@@ -85,7 +92,6 @@ class Robot(object):
 
         for key in self.headDistance:
             HT_head.append(a.get_homogeneous_transform(headAngles[key], self.headDistance[key]))
-            print(key)
 
         chain_leftArm.append(HT_leftArm[0])
         chain_rightArm.append(HT_rightArm[0])
@@ -140,7 +146,6 @@ class Robot(object):
         right_distances = [np.linalg.norm(self.rightArmDistance[i]) for i in self.rightArmDistance]
         head_distances = [np.linalg.norm(self.headDistance[i]) for i in self.headDistance]
         #delete the first element to return the vectors
-        print(left_distances, right_distances, head_distances)
         return left_distances, right_distances, head_distances
 
 if __name__ == "__main__":
