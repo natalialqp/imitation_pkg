@@ -11,6 +11,7 @@ from tensorflow import keras
 import torch
 import torch.nn as nn
 import torch.optim as optim
+plt.rcParams.update({'font.size': 16})
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
@@ -174,16 +175,16 @@ def create_3d_plot():
     ax2 = fig.add_subplot(122, projection='3d')
 
     # Set the axis labels and limits for both subplots (adjust as needed)
-    ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_zlabel('Z')
+    ax1.set_xlabel('X', fontsize=18)
+    ax1.set_ylabel('Y', fontsize=18)
+    ax1.set_zlabel('Z', fontsize=18)
     ax1.set_xlim([1, 3])
     ax1.set_ylim([-1, 1])
     ax1.set_zlim([-1, 1])
 
-    ax2.set_xlabel('X')
-    ax2.set_ylabel('Y')
-    ax2.set_zlabel('Z')
+    ax2.set_xlabel('X', fontsize=18)
+    ax2.set_ylabel('Y', fontsize=18)
+    ax2.set_zlabel('Z', fontsize=18)
     ax2.set_xlim([-0.5, 0.5])
     ax2.set_ylim([-0.5, 0.5])
     ax2.set_zlim([0, 1])
@@ -208,8 +209,8 @@ def plot_animation_3d(point_clouds_list, base):
         points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
 
         # Set the titles for each subplot
-        ax1.set_title('Human')
-        ax2.set_title('Robot')
+        ax1.set_title('Human', fontsize=20)
+        ax2.set_title('Robot', fontsize=20)
 
         # Update line plots in both subplots
         for i in range(len(points1) - 1):
@@ -257,59 +258,6 @@ def plot_animation_3d(point_clouds_list, base):
 
 def read_file(name):
     return pd.read_csv('./data/' + name + '.csv')
-
-def train_keras(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
-    num_joints_left_arm = 3
-    num_joints_right_arm = 3
-    num_joints_head = 2
-
-    # Define the number of human joint angles for each body part
-    num_angles_per_part = 20
-
-    # Create a single neural network model with multiple output branches
-    input_layer = keras.layers.Input(shape=(num_angles_per_part,))  # Total number of input angles for all body parts
-
-    # Shared layers for feature extraction
-    shared_layer1 = keras.layers.Dense(128, activation='relu')(input_layer)
-    shared_layer2 = keras.layers.Dense(128, activation='relu')(shared_layer1)
-
-    # Output branches for left arm, right arm, and head
-    left_arm_output = keras.layers.Dense(num_joints_left_arm)(shared_layer2)
-    right_arm_output = keras.layers.Dense(num_joints_right_arm)(shared_layer2)
-    head_output = keras.layers.Dense(num_joints_head)(shared_layer2)
-
-    # Define the model with multiple outputs
-    model = keras.models.Model(inputs=input_layer, outputs=[left_arm_output, right_arm_output, head_output])
-
-    # Compile the model with multiple outputs and appropriate loss functions
-    model.compile(optimizer='adam', loss='mean_squared_error', loss_weights=[1.0, 1.0, 1.0])
-    # Prepare training data
-    input_data = np.concatenate((theta_left, phi_left, theta_right, phi_right, theta_head, phi_head), axis=1)
-    output_data = [
-        left_arm_robot.reshape(-1, num_joints_left_arm),
-        right_arm_robot.reshape(-1, num_joints_right_arm),
-        head_robot.reshape(-1, num_joints_head)
-    ]
-    # Train the model using the combined training data for all body parts
-    history = model.fit(input_data, output_data, epochs = num_epochs, validation_split = 0.2)
-
-    validation_inputs = input_data[-int(input_data.shape[0] * 0.2):]
-    validation_outputs = model.predict(validation_inputs)
-
-    # print("VALIDATION INPUT:")
-    # print(validation_inputs)
-    # print("PREDICTION: ")
-    # print(validation_outputs)
-
-    # Plot the loss over epochs
-    plt.plot(history.history['loss'], label='Training Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.grid()
-    plt.show()
-    return history
 
 def train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
 
@@ -370,8 +318,8 @@ def train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_
 
     # Plot the training loss
     plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
+    plt.xlabel('Epoch', fontsize=18)
+    plt.ylabel('Loss', fontsize=18)
     plt.legend()
     plt.grid()
     plt.show()
@@ -422,7 +370,7 @@ if __name__ == "__main__":
 
     #NN TESTING
     df = read_file("combined_actions")
-    action = "pressure_cooker"
+    action = "teapot"
     user = 5
     robot_pose = []
     left_side, right_side, head = read_csv_combined(df, action, user)

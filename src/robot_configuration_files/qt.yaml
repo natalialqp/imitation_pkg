@@ -9,11 +9,14 @@ base:
 
 distances-head:
   head-yaw: [0, 0, 0.338]
-  head-pitch: [0, 0, 0.0962]
+  collar: [0, 0, 0.058]
+  head-pitch: [0, 0, 0.0382]
+  #head-pitch: [0, 0, 0.0962]
   camera: [0.094, 0, 0.162]
 
 angles-head:
   head-yaw: [0, 0, 0]
+  collar: [0, 0, 0]
   head-pitch: [0, 0, 0]
   camera: [-1.5708, 0, -1.5708]
 
@@ -45,6 +48,22 @@ angles-right-arm:
   elbow: [0, 0, 0]
   hand: [-1.5708, 0, 1.5708]
 
+#from https://docs.luxai.com/docs/v1/modules/motors [min, max] in degrees
+
+real-angles-left-arm:
+  shoulder-pitch: [-140, 140]
+  shoulder-roll: [-75, 7]
+  elbow: [-90, -7]
+
+real-angles-right-arm:
+  shoulder-pitch: [-140, 140]
+  shoulder-roll: [-75, 7]
+  elbow: [-90, -7]
+
+real-angles-head:
+  head-yaw: [-90, 90]
+  head-pitch: [-15, 25]
+
 robot-dict:
   jointLeft_0: [0, 0, 0]
   jointLeft_1: [0, 0, 0]
@@ -66,13 +85,10 @@ robot-angular-dict:
   jointLeft_0: [0, 0, 0]
   jointLeft_1: [0, 0, 0]
   jointLeft_2: [0, 0, 0]
-  jointLeft_3: [0, 0, 0]
 
   jointRight_0: [0, 0, 0]
   jointRight_1: [0, 0, 0]
   jointRight_2: [0, 0, 0]
-  jointRight_3: [0, 0, 0]
 
   jointHead_0: [0, 0, 0]
   jointHead_1: [0, 0, 0]
-  jointHead_2: [0, 0, 0]

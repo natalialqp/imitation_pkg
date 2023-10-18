@@ -11,6 +11,7 @@ import json
 import simulate_position
 from tqdm import tqdm
 from scipy.spatial import cKDTree
+plt.rcParams.update({'font.size': 18})
 
 def calculateEdgeLengths(connections):
     edge_lengths = np.zeros((len(connections),))
@@ -42,6 +43,7 @@ def findEdges(graph, length):
     edges = []
     max_dist = np.sqrt(3) * length
     combinations = itertools.combinations(graph.get_nodes(), 2)
+
     for i in combinations:
         if np.linalg.norm(np.array(i[0]) - np.array(i[1])) <= max_dist:
             edges.append(i)
@@ -49,11 +51,28 @@ def findEdges(graph, length):
 
 def findEdgesOptimized(graph, length):
     nodes = graph.get_nodes()
-    points = np.array(nodes)  # Convert nodes to a NumPy array
-    max_dist = np.sqrt(3) * length
+    points = np.array(nodes)
     tree = cKDTree(points)
+    max_dist = np.sqrt(3) * length
     edges = []
     for i, point in tqdm(enumerate(points)):
+        # Find neighbors within the maximum distance
+        neighbors_indices = tree.query_ball_point(point, max_dist)
+        for neighbor_index in neighbors_indices:
+            if neighbor_index > i:
+                if i < len(nodes) and neighbor_index < len(nodes):
+                    edges.append((points[i], points[neighbor_index]))
+                else:
+                    print("Invalid indices:", i, neighbor_index)
+    return edges
+
+def find_edges_optimized_robot(graph, length):
+    nodes = graph.get_nodes()
+    points = [graph.get_node_attr(node, "value") for node in nodes]
+    tree = cKDTree(points)
+    max_dist = np.sqrt(3) * length
+    edges = []
+    for i, point in enumerate(points):
         # Find neighbors within the maximum distance
         neighbors_indices = tree.query_ball_point(point, max_dist)
         for neighbor_index in neighbors_indices:
@@ -101,21 +120,25 @@ def findRobotWorld(demonstration, length, world):
     robotWorld.add_edges(edges)
     return robotWorld
 
-def findJointsGraph(points, length, world, joint_dic, joint_angles):
+def findJointsGraph(cartesian_points, length, world, robot, joint_angles):
     kdtree = KDTree(world.get_nodes())
-    for key in points:
-        node = find_closest_point(points[key], kdtree)
-        dependencies = slice_dict(joint_angles, key.split('_'))
-        att = joint_dic[key].set_attribute(node, dependencies)
-        joint_dic[key].add_one_node(node, att)
-        edges = findEdges(joint_dic[key], length)
-        joint_dic[key].add_edges(edges)
-    return joint_dic
+    for key in cartesian_points:
+        if "0" in key or "1" in key:
+            node = cartesian_points[key]
+            dependencies = []
+        else:
+            node = find_closest_point(cartesian_points[key], kdtree)
+            dependencies = slice_dict(joint_angles, key.split('_'))
+        att = robot[key].set_attribute(node, dependencies)
+        robot[key].add_one_node(node, att)
+        edges = find_edges_optimized_robot(robot[key], length)
+        robot[key].add_edges(edges)
+    return robot
 
 def slice_dict(dict, details):
     sub_list = []
     for i in dict:
-        if details[0] in i and len(sub_list) <= int(details[1]):
+        if details[0] in i and len(sub_list) <= int(details[1]) - 2:
             sub_list.append(dict[i])
     return sub_list
 
@@ -144,33 +167,6 @@ def pathPlanning(demonstration, robotWorld):
         path.extend(sub_path)
         prev_node = node
     return path
-
-def createWorldTetrahedrons(lowEdge, highEdge, length, height):
-    graph_world = world_graph.Graph()
-    vertices, connections = calculateTetrahedron(lowEdge, length)
-    graph_world.add_nodes(vertices)
-    graph_world.add_edges(connections)
-    combinations = vertices
-    i = 0
-    while i < 10:
-        combinations.append(list(itertools.combinations(graph_world.nodes, 3)))
-    graph_world.plot_graph()
-
-def calculateTetrahedron(point, length):
-    # Calculate the remaining three vertices based on the given point and length
-    vertices = np.zeros((4, 3))
-    connections = np.zeros((6, 2, 3))
-    vertices[0] = point
-    vertices[1] = point + np.array([length, 0, 0])
-    vertices[2] = point + np.array([length/2, length * np.sqrt(3) / 2, 0])
-    vertices[3] = point + np.array([length/2, length * np.sqrt(3) / 6, length * np.sqrt(6) / 3])
-    connections[0] = (vertices[0], vertices[1])
-    connections[1] = (vertices[1], vertices[2])
-    connections[2] = (vertices[2], vertices[0])
-    connections[3] = (vertices[0], vertices[3])
-    connections[4] = (vertices[1], vertices[3])
-    connections[5] = (vertices[2], vertices[3])
-    return vertices, connections
 
 def simulateMapping():
     zdata = 5 * np.random.random(100)
@@ -209,7 +205,6 @@ def printRobotGraphs(robot):
     for key in robot:
         print(key, ": ")
         robot[key].print_graph()
-        print()
 
 def readTxtFile(file_path):
     with open(file_path) as f:
@@ -239,17 +234,32 @@ def forward_kinematics_n_frames(robot, joint_angles):
         head.append(pos_head)
     return left, right, head
 
+def read_bubbling(path_name):
+    points = readTxtFile("./data/" + path_name)
+    keys = list(points)
+    joint_angles = points[keys[0]]
+    for count in range(1, len(keys)):
+        joint_angles = np.hstack((joint_angles, points[keys[count]]))
+    return np.deg2rad(joint_angles)
+
+def learn_environment(robot_graphs, graph_world, cartesian_points, joint_angles_dict):
+    for i in range(len(joint_angles_dict)):
+        robot_graphs = findJointsGraph(cartesian_points[i], length, graph_world, robot_graphs, joint_angles_dict[i])
+    return robot_graphs
+
 if __name__ == "__main__":
 
     # Define parameter of the world and create one with cubic structure
-    length = 0.02
+    length = 0.012
     height = np.sqrt(2/3) * length
     lowEdge = np.array([-1, -1, 0])
     highEdge = np.array([1, 1, 1])
-    # graph_world = createWorldCubes(lowEdge, highEdge, length)
-    # graph_world.save_graph_to_file("test")
-    graph_world = world_graph.Graph()
-    graph_world.read_graph_from_file("test")
+    babbing_path = "self_exploration_qt_100.txt"
+
+    graph_world = createWorldCubes(lowEdge, highEdge, length)
+    graph_world.save_graph_to_file("test")
+    # graph_world = world_graph.Graph()
+    # graph_world.read_graph_from_file("test")
     # graph_world.plot_graph()
 
     #Read robot configuration from the .yaml filerobot_graphs
@@ -257,21 +267,23 @@ if __name__ == "__main__":
     qt = robot.Robot()
     qt.import_robot(file_path)
     robot_graphs = createRobotGraphs(qt)
-    frames = readTxtFile("./data/angles.txt")
-    joint_angles = divideFrames(frames)
 
+    #reading an action and reproducing
+    # frames = readTxtFile("./data/angles.txt")
+    # joint_angles = divideFrames(frames)
+
+    joint_angles = read_bubbling(babbing_path)
     pos_left, pos_right, pos_head = forward_kinematics_n_frames(qt, joint_angles)
     s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
-    s.animate()
+    # s.animate()
 
-    points = qt.pos_mat_to_robot_mat_dict(pos_left, pos_right, pos_head)
+    cartesian_points = qt.pos_mat_to_robot_mat_dict(pos_left, pos_right, pos_head)
     joint_angles_dict = qt.angular_mat_to_mat_dict(joint_angles)
-    for i in range(len(joint_angles_dict)):
-        joint_dict = findJointsGraph(points[i], length, graph_world, robot_graphs, joint_angles_dict[i])
 
-    printRobotGraphs(robot_graphs)
-
+    robot_world = learn_environment(robot_graphs, graph_world, cartesian_points, joint_angles_dict)
+    for key in robot_world:
+        robot_world[key].plot_graph(key)
     #Simulate trajectory and store nodes in robot graph
-    # robot_world.plot_graph(np.asarray(path))
+    # generated_trajectory = simulateTrajectory()
     # robot_world.plot_graph(generated_trajectory)
     # plotPath(generated_trajectory, np.asarray(path))
