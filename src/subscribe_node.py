@@ -35,17 +35,18 @@ class SelfExploration(object):
                 self.joint_state_sub = rospy.Subscriber('/qt_robot/joints/state', JointState, self.qt_joint_state_cb)
                 while self.current_ang_pos_arm[2] == 0:
                     waiting += 1
-                random_move = self.random_distribution(delta_angle)
-                # rospy.loginfo("RANDOM MOVE: ")
-                # rospy.loginfo(random_move)
-
+                # random_move = self.random_distribution(delta_angle)
+                random_move = self.random_angles(delta_angle)
+                rospy.loginfo("STATE ANGLES")
                 if "head" in key:
-                    new_ang_pos_head = np.array(self.current_ang_pos_head) + random_move
+                    # new_ang_pos_head = np.array(self.current_ang_pos_head) + random_move
+                    new_ang_pos_head = random_move
                     added = self.add_config(new_ang_pos_head)
                     if added:
                         self.current_ang_pos_head = new_ang_pos_head.copy()
                 else:
-                    new_ang_pos_arm = np.array(self.current_ang_pos_arm) + random_move
+                    # new_ang_pos_arm = np.array(self.current_ang_pos_arm) + random_move
+                    new_ang_pos_arm = random_move
                     added = self.add_config(new_ang_pos_arm)
                     if added:
                         self.current_ang_pos_arm = new_ang_pos_arm.copy()
@@ -84,15 +85,15 @@ class SelfExploration(object):
         if 'head' in self.key:
             self.current_ang_pos_head = [joint_state_msg.position[0], joint_state_msg.position[1]]
             self.current_tor_head = [joint_state_msg.effort[0], joint_state_msg.effort[1]]
-            # rospy.loginfo(self.current_ang_pos_head)
+            rospy.loginfo(self.current_ang_pos_head)
         elif 'left' in self.key:
             self.current_ang_pos_arm = [joint_state_msg.position[3], joint_state_msg.position[4], joint_state_msg.position[2]]
             self.current_tor_arm = [joint_state_msg.effort[3], joint_state_msg.effort[4], joint_state_msg.effort[2]]
-            # rospy.loginfo(self.current_ang_pos_arm)
+            rospy.loginfo(self.current_ang_pos_arm)
         elif 'right' in self.key:
             self.current_ang_pos_arm = [joint_state_msg.position[6], joint_state_msg.position[7], joint_state_msg.position[5]]
             self.current_tor_arm = [joint_state_msg.effort[6], joint_state_msg.effort[7], joint_state_msg.effort[5]]
-            # rospy.loginfo(self.current_ang_pos_arm)
+            rospy.loginfo(self.current_ang_pos_arm)
 
     def check_torque(self):
         #torque for HeadPitch (+) torque after force applied
@@ -157,7 +158,7 @@ class SelfExploration(object):
             zeros = [0] * 2
             zeros[rand] = sign * delta_angle
             if collision and "Pitch" in joint_list:
-                zeros = np.abs(zeros)
+                zeros = -np.abs(zeros)
 
         elif "left" in self.key or "right" in self.key:
             zeros = [0] * 3
@@ -167,6 +168,31 @@ class SelfExploration(object):
                 if "Roll" in joint_list:
                     rand = np.random.randint(1, 3)
                     zeros[rand] = sign * delta_angle
+                    zeros = np.abs(zeros)
+                elif "Pitch+" in joint_list:
+                    zeros = np.abs(zeros)
+                elif "Pitch-" in joint_list:
+                    zeros = -np.abs(zeros)
+        return np.array(zeros)
+
+
+    def random_angles(self, delta_angle):
+        collision, joint_list = self.check_torque()
+        zeros = []
+
+        if "head" in self.key:
+            limits = self.rob.physical_limits_head
+            for key in limits:
+                zeros.append(random.randrange(limits[key][0], limits[key][1] + delta_angle, delta_angle))
+            if collision and "Pitch" in joint_list:
+                zeros = -np.abs(zeros)
+
+        elif "left" in self.key or "right" in self.key:
+            limits = self.rob.physical_limits_left
+            for key in limits:
+                zeros.append(random.randrange(limits[key][0], limits[key][1] + delta_angle, delta_angle))
+            if collision:
+                if "Roll" in joint_list:
                     zeros = np.abs(zeros)
                 elif "Pitch+" in joint_list:
                     zeros = np.abs(zeros)
@@ -198,7 +224,7 @@ class SelfExploration(object):
                     ref_left = Float64MultiArray()
                     ref_left.data = [self.current_ang_pos_arm[0], self.current_ang_pos_arm[1], self.current_ang_pos_arm[2]]
                     self_explorator.left_pub.publish(ref_left)
-                rospy.sleep(1)
+                rospy.sleep(2)
             except rospy.ROSInterruptException:
                 rospy.logerr("could not publish motor command!")
             rospy.loginfo("motor command published")
@@ -220,14 +246,15 @@ class SelfExploration(object):
         rospy.loginfo("motor command published")
 
 if __name__ == '__main__':
-    rospy.init_node('Self-exploration')
+    rospy.init_node('self_exploration')
     rospy.loginfo("started!")
+
     directory = os.getcwd()
     robot_name = 'qt'
     file_path = directory  + "/robot_configuration_files/" + robot_name + ".yaml"
 
     delta_angle = 10
-    amount_of_points = 10
+    amount_of_points = 100
     self_explorator = SelfExploration()
     self_explorator.import_robot(file_path)
     self_explorator.execute_online(delta_angle, amount_of_points)
