@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 import json
 import ast
+plt.rcParams.update({'font.size': 20})
 
 class Graph(object):
     def __init__(self):
@@ -100,10 +101,11 @@ class Graph(object):
             # Turn gridlines on
             ax.grid(True)
             # Set axes labels
-            ax.set_xlabel("X")
-            ax.set_ylabel("Y")
-            ax.set_zlabel("Z")
+            ax.set_xlabel("\n X [m]", linespacing=3.2)
+            ax.set_ylabel("\n Y [m]", linespacing=3.2)
+            ax.set_zlabel("\n Z [m]", linespacing=3.2)
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.show()
+        plt.savefig("world_small.pdf", format="pdf")
+        # plt.show()

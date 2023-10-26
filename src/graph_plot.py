@@ -234,33 +234,46 @@ def forward_kinematics_n_frames(robot, joint_angles):
         head.append(pos_head)
     return left, right, head
 
-def read_bubbling(path_name):
+def read_babbling(path_name):
     points = readTxtFile("./data/" + path_name)
     keys = list(points)
     joint_angles = points[keys[0]]
     for count in range(1, len(keys)):
         joint_angles = np.hstack((joint_angles, points[keys[count]]))
-    return np.deg2rad(joint_angles)
+    return joint_angles
 
 def learn_environment(robot_graphs, graph_world, cartesian_points, joint_angles_dict):
     for i in range(len(joint_angles_dict)):
         robot_graphs = findJointsGraph(cartesian_points[i], length, graph_world, robot_graphs, joint_angles_dict[i])
     return robot_graphs
 
+def angle_interpolation(joint_angles_list):
+    new_joint_angles_list = []
+    for count in range(len(joint_angles_list) - 1):
+        diff = joint_angles_list[count + 1] - joint_angles_list[count]
+        iterations = np.max(np.abs(diff))
+        delta = diff / iterations
+        actual_angle = joint_angles_list[count]
+        # print(actual_angle, joint_angles_list[count + 1])
+        for i in range(int(iterations)):
+            new_joint_angles_list.append(actual_angle)
+            actual_angle += delta
+    return np.array(new_joint_angles_list)
+
 if __name__ == "__main__":
 
     # Define parameter of the world and create one with cubic structure
     length = 0.012
     height = np.sqrt(2/3) * length
-    lowEdge = np.array([-1, -1, 0])
+    lowEdge = np.array([-1, -1, 0]) # -1, -1, 0
     highEdge = np.array([1, 1, 1])
-    babbing_path = "self_exploration_qt_100.txt"
+    babbing_path = "self_exploration_qt_10.txt"
 
     graph_world = createWorldCubes(lowEdge, highEdge, length)
-    graph_world.save_graph_to_file("test")
+    # graph_world.save_graph_to_file("test")
     # graph_world = world_graph.Graph()
     # graph_world.read_graph_from_file("test")
-    # graph_world.plot_graph()
+    graph_world.plot_graph()
 
     #Read robot configuration from the .yaml filerobot_graphs
     file_path = "./robot_configuration_files/qt.yaml"
@@ -272,17 +285,20 @@ if __name__ == "__main__":
     # frames = readTxtFile("./data/angles.txt")
     # joint_angles = divideFrames(frames)
 
-    joint_angles = read_bubbling(babbing_path)
-    pos_left, pos_right, pos_head = forward_kinematics_n_frames(qt, joint_angles)
-    s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
+    joint_angles = read_babbling(babbing_path)
+    new_list = angle_interpolation(joint_angles)
+    # print(len(new_list))
+    pos_left, pos_right, pos_head = forward_kinematics_n_frames(qt, new_list)
+    # s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
     # s.animate()
 
     cartesian_points = qt.pos_mat_to_robot_mat_dict(pos_left, pos_right, pos_head)
-    joint_angles_dict = qt.angular_mat_to_mat_dict(joint_angles)
+    joint_angles_dict = qt.angular_mat_to_mat_dict(new_list)
 
     robot_world = learn_environment(robot_graphs, graph_world, cartesian_points, joint_angles_dict)
     for key in robot_world:
         robot_world[key].plot_graph(key)
+
     #Simulate trajectory and store nodes in robot graph
     # generated_trajectory = simulateTrajectory()
     # robot_world.plot_graph(generated_trajectory)

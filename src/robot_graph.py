@@ -3,6 +3,7 @@ from collections import defaultdict
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+plt.rcParams.update({'font.size': 20})
 
 class Graph(object):
     def __init__(self, n_dependecies):
@@ -112,9 +113,9 @@ class Graph(object):
             ax.grid(True)
             # Set axes labels
             ax.set_title(key)
-            ax.set_xlabel("X")
-            ax.set_ylabel("Y")
-            ax.set_zlabel("Z")
+            ax.set_xlabel("\n X [m]", linespacing=3.2)
+            ax.set_ylabel("\n Y [m]", linespacing=3.2)
+            ax.set_zlabel("\n Z [m]", linespacing=3.2)
 
         _format_axes(ax)
         fig.tight_layout()
