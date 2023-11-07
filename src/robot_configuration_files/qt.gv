@@ -1,0 +1,38 @@
+digraph G {
+node [shape=box];
+"base_link" [label="base_link"];
+"HeadYaw_link" [label="HeadYaw_link"];
+"HeadPitch_link" [label="HeadPitch_link"];
+"Camera_link" [label="Camera_link"];
+"LeftShoulderPitch_link" [label="LeftShoulderPitch_link"];
+"LeftShoulderRoll_link" [label="LeftShoulderRoll_link"];
+"LeftElbowRoll_link" [label="LeftElbowRoll_link"];
+"LeftHand_link" [label="LeftHand_link"];
+"RightShoulderPitch_link" [label="RightShoulderPitch_link"];
+"RightShoulderRoll_link" [label="RightShoulderRoll_link"];
+"RightElbowRoll_link" [label="RightElbowRoll_link"];
+"RightHand_link" [label="RightHand_link"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"base_link" -> "HeadYaw" [label="xyz: 0 0 0.338 \nrpy: 0 -0 0"]
+"HeadYaw" -> "HeadYaw_link"
+"HeadYaw_link" -> "HeadPitch" [label="xyz: 0 0 0.0962 \nrpy: 0 -0 0"]
+"HeadPitch" -> "HeadPitch_link"
+"HeadPitch_link" -> "Camera" [label="xyz: 0.094 0 0.162 \nrpy: -1.5708 -0 -1.5708"]
+"Camera" -> "Camera_link"
+"base_link" -> "LeftShoulderPitch" [label="xyz: 0 0.08 0.396 \nrpy: 0 -0 0"]
+"LeftShoulderPitch" -> "LeftShoulderPitch_link"
+"LeftShoulderPitch_link" -> "LeftShoulderRoll" [label="xyz: 0 0.0445 0 \nrpy: 0 -1.5708 0"]
+"LeftShoulderRoll" -> "LeftShoulderRoll_link"
+"LeftShoulderRoll_link" -> "LeftElbowRoll" [label="xyz: 0 0.07708 0 \nrpy: 0 -0 0"]
+"LeftElbowRoll" -> "LeftElbowRoll_link"
+"LeftElbowRoll_link" -> "LeftHand" [label="xyz: 0 0.184 0 \nrpy: -1.5708 -0 1.5708"]
+"LeftHand" -> "LeftHand_link"
+"base_link" -> "RightShoulderPitch" [label="xyz: 0 -0.08 0.396 \nrpy: 3.14159 -0 0"]
+"RightShoulderPitch" -> "RightShoulderPitch_link"
+"RightShoulderPitch_link" -> "RightShoulderRoll" [label="xyz: 0 0.0445 0 \nrpy: 0 -1.5708 0"]
+"RightShoulderRoll" -> "RightShoulderRoll_link"
+"RightShoulderRoll_link" -> "RightElbowRoll" [label="xyz: 0 0.07708 0 \nrpy: 0 -0 0"]
+"RightElbowRoll" -> "RightElbowRoll_link"
+"RightElbowRoll_link" -> "RightHand" [label="xyz: 0 0.184 0 \nrpy: -1.5708 -0 1.5708"]
+"RightHand" -> "RightHand_link"
+}

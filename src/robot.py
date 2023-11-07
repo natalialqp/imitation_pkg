@@ -1,8 +1,8 @@
 import numpy as np
 import yaml
 from homogeneous_transformation import HT
-import math
 import simulate_position
+from scipy.spatial.transform import Rotation as R
 
 class Robot(object):
 
@@ -42,7 +42,7 @@ class Robot(object):
         self.physical_limits_right = data["real-angles-right-arm"]
         self.physical_limits_head = data["real-angles-head"]
 
-    def forward_kinematics(self, angles):
+    def forward_kinematics_qt(self, angles):
         '''
         This function receives an angle configuration and calculates the spatial position of the end effector and the elbow
         left_shoulder_pitch -> 0
@@ -70,7 +70,8 @@ class Robot(object):
         pos_head = []
 
         leftArmAngles["collar"] = self.leftArmAngles["collar"]
-        leftArmAngles["elbow"] = self.leftArmAngles["elbow"] - np.array([-angles[2], 0, 0])
+        leftArmAngles["elbow"] = self.leftArmAngles["elbow"] + np.array([angles[2], 0, 0])
+        # leftArmAngles["elbow"] = self.leftArmAngles["elbow"] - np.array([-angles[2], 0, 0])
         leftArmAngles["shoulder-roll"] = self.leftArmAngles["shoulder-roll"] + np.array([angles[1], 0, 0])
         leftArmAngles["shoulder-pitch"] = self.leftArmAngles["shoulder-pitch"] + np.array([0, angles[0], 0])
         leftArmAngles["hand"] = self.leftArmAngles["hand"]
@@ -85,6 +86,167 @@ class Robot(object):
         headAngles["head-pitch"] = self.headAngles["head-pitch"] + np.array([0, angles[7], 0])
         headAngles["collar"] = self.headAngles["collar"]
         headAngles["camera"] = self.headAngles["camera"]
+
+        for key in self.leftArmDistance:
+            HT_leftArm.append(a.get_homogeneous_transform(leftArmAngles[key], self.leftArmDistance[key]))
+            HT_rightArm.append(a.get_homogeneous_transform(rightArmAngles[key], self.rightArmDistance[key]))
+
+        for key in self.headDistance:
+            HT_head.append(a.get_homogeneous_transform(headAngles[key], self.headDistance[key]))
+
+        chain_leftArm.append(HT_leftArm[0])
+        chain_rightArm.append(HT_rightArm[0])
+        chain_head.append(HT_head[0])
+
+        for i in range(len(self.leftArmDistance) - 1):
+            chain_leftArm.append(np.dot(chain_leftArm[i], HT_leftArm[i + 1]))
+            chain_rightArm.append(np.dot(chain_rightArm[i], HT_rightArm[i + 1]))
+
+        for i in range(len(self.headDistance) - 1):
+            chain_head.append(np.dot(chain_head[i], HT_head[i + 1]))
+
+        for i in range(0, len(chain_leftArm)):
+            pos_leftArm.append(a.get_translation(chain_leftArm[i]))
+            pos_rightArm.append(a.get_translation(chain_rightArm[i]))
+
+        for i in range(0, len(chain_head)):
+            pos_head.append(a.get_translation(chain_head[i]))
+
+        return pos_leftArm, pos_rightArm, pos_head
+
+    def forward_kinematics_nao(self, angles):
+        '''
+        This function receives an angle configuration and calculates the spatial position of the end effector and the elbow
+        left_shoulder_pitch --> 0
+        left_shoulder_roll ---> 1
+        left_elbow_yaw -------> 2
+        left_elbow_roll ------> 3
+        left_wrist-yaw -------> 4
+        right_shoulder_pitch -> 5
+        right_shoulder_roll --> 6
+        right_elbow_yaw ------> 7
+        right_elbow_roll -----> 8
+        right_wrist-yaw ------> 9
+        head_yaw ------------> 10
+        head_pitch-----------> 11
+        Returns the position of all joints of both arms from the closest joint to the base to the end-effector at the end
+        '''
+        a = HT()
+        HT_leftArm = []
+        HT_rightArm = []
+        HT_head = []
+        chain_leftArm = []
+        chain_rightArm = []
+        chain_head = []
+        leftArmAngles = {}
+        rightArmAngles = {}
+        headAngles = {}
+        pos_leftArm = []
+        pos_rightArm = []
+        pos_head = []
+
+        leftArmAngles["torso"] = self.leftArmAngles["torso"]
+        leftArmAngles["shoulder-pitch"] = self.leftArmAngles["shoulder-pitch"] + np.array([0, angles[0], 0])
+        leftArmAngles["shoulder-roll"] = self.leftArmAngles["shoulder-roll"] + np.array([0, 0, angles[1]])
+        leftArmAngles["elbow-yaw"] = self.leftArmAngles["elbow-yaw"] + np.array([angles[2], 0, 0])
+        leftArmAngles["elbow-roll"] = self.leftArmAngles["elbow-roll"] + np.array([0, 0, angles[3]])
+        leftArmAngles["wrist-yaw"] = self.leftArmAngles["wrist-yaw"] + np.array([angles[4], 0, 0])
+        leftArmAngles["hand"] = self.leftArmAngles["hand"]
+
+        rightArmAngles["torso"] = self.rightArmAngles["torso"]
+        rightArmAngles["shoulder-pitch"] = self.rightArmAngles["shoulder-pitch"] + np.array([0, angles[5], 0])
+        rightArmAngles["shoulder-roll"] = self.rightArmAngles["shoulder-roll"] + np.array([0, 0, angles[6]])
+        rightArmAngles["elbow-yaw"] = self.rightArmAngles["elbow-yaw"] + np.array([-angles[7], 0, 0])
+        rightArmAngles["elbow-roll"] = self.rightArmAngles["elbow-roll"] + np.array([0, 0, angles[8]])
+        rightArmAngles["wrist-yaw"] = self.rightArmAngles["wrist-yaw"] + np.array([-angles[9], 0, 0])
+        rightArmAngles["hand"] = self.rightArmAngles["hand"]
+
+        headAngles["torso"] = self.headAngles["torso"]
+        headAngles["head-yaw"] = self.headAngles["head-yaw"] + np.array([0, 0, angles[10]])
+        headAngles["head-pitch"] = self.headAngles["head-pitch"] + np.array([0, angles[11], 0])
+        headAngles["camera-top"] = self.headAngles["camera-top"]
+
+        for key in self.leftArmDistance:
+            HT_leftArm.append(a.get_homogeneous_transform(leftArmAngles[key], self.leftArmDistance[key]))
+            HT_rightArm.append(a.get_homogeneous_transform(rightArmAngles[key], self.rightArmDistance[key]))
+
+        for key in self.headDistance:
+            HT_head.append(a.get_homogeneous_transform(headAngles[key], self.headDistance[key]))
+
+        chain_leftArm.append(HT_leftArm[0])
+        chain_rightArm.append(HT_rightArm[0])
+        chain_head.append(HT_head[0])
+
+        for i in range(len(self.leftArmDistance) - 1):
+            chain_leftArm.append(np.dot(chain_leftArm[i], HT_leftArm[i + 1]))
+            chain_rightArm.append(np.dot(chain_rightArm[i], HT_rightArm[i + 1]))
+
+        for i in range(len(self.headDistance) - 1):
+            chain_head.append(np.dot(chain_head[i], HT_head[i + 1]))
+
+        for i in range(0, len(chain_leftArm)):
+            pos_leftArm.append(a.get_translation(chain_leftArm[i]))
+            pos_rightArm.append(a.get_translation(chain_rightArm[i]))
+
+        for i in range(0, len(chain_head)):
+            pos_head.append(a.get_translation(chain_head[i]))
+
+        return pos_leftArm, pos_rightArm, pos_head
+
+    def forward_kinematics_kinova(self, angles):
+        '''
+        This function receives an angle configuration and calculates the spatial position of the end effector and the elbow
+        left_shoulder_pitch --> 0
+        left_shoulder_roll ---> 1
+        left_elbow_yaw -------> 2
+        left_elbow_roll ------> 3
+        left_wrist-yaw -------> 4
+        right_shoulder_pitch -> 5
+        right_shoulder_roll --> 6
+        right_elbow_yaw ------> 7
+        right_elbow_roll -----> 8
+        right_wrist-yaw ------> 9
+        head_yaw ------------> 10
+        head_pitch-----------> 11
+        Returns the position of all joints of both arms from the closest joint to the base to the end-effector at the end
+        '''
+        a = HT()
+        HT_leftArm = []
+        HT_rightArm = []
+        HT_head = []
+        chain_leftArm = []
+        chain_rightArm = []
+        chain_head = []
+        leftArmAngles = {}
+        rightArmAngles = {}
+        headAngles = {}
+        pos_leftArm = []
+        pos_rightArm = []
+        pos_head = []
+
+        leftArmAngles["torso"] = self.leftArmAngles["torso"]
+        leftArmAngles["base"] = self.leftArmAngles["base"]
+        leftArmAngles["shoulder_link"] = self.leftArmAngles["shoulder_link"] + np.array([0, 0, angles[0]])
+        leftArmAngles["half_arm_1_link"] = self.leftArmAngles["half_arm_1_link"] + np.array([0, angles[1], 0]) #check
+        leftArmAngles["half_arm_2_link"] = self.leftArmAngles["half_arm_2_link"] + np.array([0, angles[2], 0])
+        leftArmAngles["forearm_link"] = self.leftArmAngles["forearm_link"] + np.array([0, 0, angles[3]])       #check
+        leftArmAngles["spherical_wrist_1_link"] = self.leftArmAngles["spherical_wrist_1_link"] + np.array([0, angles[4], 0])
+        leftArmAngles["spherical_wrist_2_link"] = self.leftArmAngles["spherical_wrist_2_link"] + np.array([0, angles[5], 0]) #check
+        leftArmAngles["bracelet_link"] = self.leftArmAngles["bracelet_link"] - np.array([0, angles[6], 0])
+        leftArmAngles["end_effector_link"] = self.leftArmAngles["end_effector_link"]
+
+        rightArmAngles["torso"] = self.rightArmAngles["torso"]
+        rightArmAngles["base"] = self.rightArmAngles["base"]
+        rightArmAngles["shoulder_link"] = self.rightArmAngles["shoulder_link"] + np.array([0, 0, angles[7]])
+        rightArmAngles["half_arm_1_link"] = self.rightArmAngles["half_arm_1_link"] + np.array([0, angles[8], 0]) #check
+        rightArmAngles["half_arm_2_link"] = self.rightArmAngles["half_arm_2_link"] + np.array([0, angles[9], 0])
+        rightArmAngles["forearm_link"] = self.rightArmAngles["forearm_link"] + np.array([0, 0, angles[10]])       #check
+        rightArmAngles["spherical_wrist_1_link"] = self.rightArmAngles["spherical_wrist_1_link"] + np.array([0,  angles[11], 0])
+        rightArmAngles["spherical_wrist_2_link"] = self.rightArmAngles["spherical_wrist_2_link"] + np.array([0, angles[12], 0]) #check
+        rightArmAngles["bracelet_link"] = self.rightArmAngles["bracelet_link"] + np.array([0, angles[13], 0])
+        rightArmAngles["end_effector_link"] = self.rightArmAngles["end_effector_link"]
+
+        headAngles["torso"] = self.headAngles["torso"]
 
         for key in self.leftArmDistance:
             HT_leftArm.append(a.get_homogeneous_transform(leftArmAngles[key], self.leftArmDistance[key]))
@@ -149,12 +311,12 @@ class Robot(object):
         return left_distances, right_distances, head_distances
 
 if __name__ == "__main__":
-    file_path = "./robot_configuration_files/qt.yaml"
+    file_path = "./robot_configuration_files/gen3.yaml"
     qt = Robot()
     qt.import_robot(file_path)
     # angles = np.array([ 1.52367249, -1.29154365, -0.2268928, -1.54636169, -1.41022609, -0.14137168, 0.03839724, 0.00523599])
     #default
-    angles = np.array([np.deg2rad(90.3), np.deg2rad(-57.3), np.deg2rad(-34.8), np.deg2rad(-90), np.deg2rad(-57.7), np.deg2rad(-34.2), np.deg2rad(0), np.deg2rad(2.2)])
+    # angles = np.array([np.deg2rad(90.3), np.deg2rad(-57.3), np.deg2rad(-34.8), np.deg2rad(-90), np.deg2rad(-57.7), np.deg2rad(-34.2), np.deg2rad(0), np.deg2rad(2.2)])
     #left front
     # angles = np.array([np.deg2rad(10.7), np.deg2rad(-74.3), np.deg2rad(-6.5), np.deg2rad(-92), np.deg2rad(-78.5), np.deg2rad(-22.4), np.deg2rad(0), np.deg2rad(2.2)])
     #head
@@ -163,11 +325,43 @@ if __name__ == "__main__":
     # angles = np.array([np.deg2rad(-100), np.deg2rad(-12), np.deg2rad(-4.2), np.deg2rad(107.9), np.deg2rad(-12.7), np.deg2rad(-4.8), np.deg2rad(0), np.deg2rad(2.2)])
     # #belly
     # angles = np.array([np.deg2rad(39.1), np.deg2rad(-67.4), np.deg2rad(-74), np.deg2rad(-39.4), np.deg2rad(-60.9), np.deg2rad(-77.9), np.deg2rad(0), np.deg2rad(2.2)])
-    angles = np.array([np.deg2rad(-74.3), np.deg2rad(-45.3), np.deg2rad(-70.7), np.deg2rad(74), np.deg2rad(-44.9), np.deg2rad(-69.4), np.deg2rad(0), np.deg2rad(2.2)])
+    # angles = np.array([np.deg2rad(-74.3), np.deg2rad(-45.3), np.deg2rad(-70.7), np.deg2rad(74), np.deg2rad(-44.9), np.deg2rad(-69.4), np.deg2rad(0), np.deg2rad(2.2)])
 
-    pos_left, pos_right, pos_head = qt.forward_kinematics(angles)
-    print("LEFT: ", pos_left)
-    print("RIGHT: ", pos_right)
-    print("HEAD: ", pos_head)
-    s = simulate_position.RobotSimulation([pos_left], [pos_right], [pos_head])
+    # nao angles
+    # angles = np.array([np.deg2rad(-90), np.deg2rad(50), np.deg2rad(-0), np.deg2rad(-88), np.deg2rad(-100),
+                    #    np.deg2rad(-90), np.deg2rad(-50), np.deg2rad(-0), np.deg2rad(88), np.deg2rad(-100),
+                    #    np.deg2rad(0), np.deg2rad(0)])
+
+    le = np.array([
+        [0.17101007, -0.03015369, 0.98480775],
+        [0.5629971, -0.81728662, -0.1227878],
+        [0.80857271, 0.57544186, -0.1227878]])
+
+    ri = np.array([
+        [0.15405787, -0.02716456, 0.98768834],
+        [-0.71221313, -0.69591499, 0.09194987],
+        [0.68484935, -0.71761021, -0.12655814]])
+
+    r = R.from_matrix(ri)
+    l = R.from_matrix(le)
+    # qt.leftArmAngles["base"] = l.as_euler('xyz', degrees=False)
+    # qt.rightArmAngles["base"] = r.as_euler('xyz', degrees=False)
+
+    left = []
+    right = []
+    head = []
+    for i in range(0, 370, 10):
+        angles = np.array([np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
+            np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
+
+            np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
+            np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
+
+        pos_left, pos_right, pos_head = qt.forward_kinematics_kinova(angles)
+        left.append(pos_left)
+        right.append(pos_right)
+        head.append(pos_head)
+
+    # s = simulate_position.RobotSimulation([pos_left], [pos_right], [pos_head])
+    s = simulate_position.RobotSimulation(left, right, head)
     s.animate()

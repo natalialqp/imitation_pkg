@@ -70,31 +70,31 @@ class HT(object):
         T = np.vstack((T, np.array([0., 0., 0., 1.])))
         return T
 
-    @staticmethod
-    def cam_frame_to_base_frame(element, is_vector):
-        '''
-        This function performs the get_homogeneous transformation for an element from camera frame to base frame
-        Input:
-        element -> vector or point
-        is_vector -> bool
+    # @staticmethod
+    # def cam_frame_to_base_frame(element, is_vector):
+    #     '''
+    #     This function performs the get_homogeneous transformation for an element from camera frame to base frame
+    #     Input:
+    #     element -> vector or point
+    #     is_vector -> bool
 
-        Output:
-        position_base_link -> resultantant transformation
-        '''
-        if is_vector:
-            element.append(1)
-        else:
-            if element.shape == (3, 3):
-                t = np.array([0., 0., 0.,])[np.newaxis].T
-                element = np.hstack((element, t))
-                element = np.vstack((element, np.array([0., 0., 0., 1.])))
-        cam_base_link_translation = [0.094, 0., 0.5962]
-        cam_base_link_rot = [np.pi/2, 0., np.pi/2]
-        cam_base_link_tf = HT.get_homogeneous_transform(cam_base_link_rot, cam_base_link_translation)
-        position_base_link = cam_base_link_tf.dot(element)
-        if is_vector:
-            position_base_link = position_base_link.flatten()[0:3]
-        return position_base_link
+    #     Output:
+    #     position_base_link -> resultantant transformation
+    #     '''
+    #     if is_vector:
+    #         element.append(1)
+    #     else:
+    #         if element.shape == (3, 3):
+    #             t = np.array([0., 0., 0.,])[np.newaxis].T
+    #             element = np.hstack((element, t))
+    #             element = np.vstack((element, np.array([0., 0., 0., 1.])))
+    #     cam_base_link_translation = [0.094, 0., 0.5962]
+    #     cam_base_link_rot = [np.pi/2, 0., np.pi/2]
+    #     cam_base_link_tf = HT.get_homogeneous_transform(cam_base_link_rot, cam_base_link_translation)
+    #     position_base_link = cam_base_link_tf.dot(element)
+    #     if is_vector:
+    #         position_base_link = position_base_link.flatten()[0:3]
+    #     return position_base_link
 
     @staticmethod
     def get_translation(matrix):

@@ -1,8 +1,9 @@
-import pprint
-from collections import defaultdict
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
+import ast
+
 plt.rcParams.update({'font.size': 20})
 
 class Graph(object):
@@ -24,7 +25,7 @@ class Graph(object):
     def set_attribute(self, node, angles):
         new_node = [0.0 if x == -0.0 else x for x in node]
         keyList = np.arange(1, self.n_dependecies, 1)
-        dependendies = {keyList[i]: angles[i] for i in range(len(keyList))}
+        dependendies = {"angle_" + str(keyList[i]): round(angles[i], 2) for i in range(len(keyList))}
         attrs = {str(np.array(new_node)): { "value": new_node, "occupied": False, "joint_dependency": dependendies}}
         return attrs
 
@@ -55,8 +56,23 @@ class Graph(object):
             path = nx.astar_path(self.G, initial_node, goal_node)
         return path
 
+    def shortest_path(self, initial_node, goal_node):
+        path = nx.shortest_path(self.G, str(initial_node), str(goal_node))
+        return path
+
+    def has_node(self, node):
+        path = self.G.has_node(node)
+        return path
+
     def get_nodes(self):
         return self.G.nodes()
+
+    def get_nodes_values(self):
+        nodes = self.G.nodes()
+        vec_nodes = []
+        for node in nodes:
+            vec_nodes.append(self.get_node_attr(node, "value"))
+        return vec_nodes
 
     def get_edges(self):
         return self.G.edges()
@@ -68,6 +84,14 @@ class Graph(object):
         print("List of edges:")
         for u, v, attributes in self.G.edges(data = True):
             print("Edge:", u, "-", v, "Attributes:", attributes)
+
+    def save_graph_to_file(self, name):
+        nx.write_gml(self.G, "./data/graphs/" + name + ".gml")
+        # nx.write_graphml_lxml(self.G, "./data/graphs/" + name + ".net")
+
+    def read_graph_from_file(self, name):
+        aux_graph = nx.read_gml("./data/graphs/" + name + ".gml")
+        self.G = aux_graph
 
     def vectorise_string(self, vec):
         aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
@@ -89,7 +113,7 @@ class Graph(object):
         # Plot the nodes
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
             xyz_rounded = tuple(round(coord, 3) for coord in self.get_node_attr(xyz, "value"))
-            ax.scatter(*xyz_rounded, s=100, ec="w")
+            ax.scatter(*xyz_rounded, s=100, ec="w", cmap='Greens')
             # ax.text(*xyz_rounded, f"Node: {xyz_rounded}", ha="center", va="center")
 
         # Plot the edges
@@ -119,4 +143,5 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
+        # plt.savefig(key + ".pdf", format="pdf")
         plt.show()
