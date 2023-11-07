@@ -1,17 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 import pandas as pd
 import robot
-import csv
 from matplotlib.widgets import Slider
 import numpy as np
-from tensorflow import keras
 import torch
 import torch.nn as nn
 import torch.optim as optim
-plt.rcParams.update({'font.size': 16})
+from sklearn.model_selection import train_test_split
+
+plt.rcParams.update({'font.size': 20})
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
@@ -24,11 +23,12 @@ human_joints_right = ['JOINT_RIGHT_COLLAR', 'JOINT_RIGHT_SHOULDER', 'JOINT_RIGHT
 
 class Prediction(object):
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, name):
 
         self.robot = robot.Robot()
         self.robot.import_robot(file_path)
         self.base = self.robot.baseDistance
+        self.robotName = name
 
     def cartesian_to_spherical(self, cartesian_points):
         # Convert Cartesian coordinates to spherical coordinates
@@ -85,8 +85,12 @@ class Prediction(object):
         # head_pitch-----------> 7
 
         angles = np.concatenate((angles_left, angles_right, angles_head), axis=None)
-        l, r, h = self.robot.forward_kinematics(angles)
-
+        if self.robotName == "qt":
+            l, r, h = self.robot.forward_kinematics_qt(angles)
+        elif self.robotName == "nao":
+            l, r, h = self.robot.forward_kinematics_nao(angles)
+        elif self.robotName == "gen3":
+            l, r, h = self.robot.forward_kinematics_kinova(angles)
         return self.matrix_array_to_list_list(l), self.matrix_array_to_list_list(r), self.matrix_array_to_list_list(h)
 
     def matrix_array_to_list_list(self, vec):
@@ -161,16 +165,16 @@ class Prediction(object):
         ax2 = fig.add_subplot(122, projection='3d')
 
         # Set the axis labels and limits for both subplots (adjust as needed)
-        ax1.set_xlabel('X', fontsize=18)
-        ax1.set_ylabel('Y', fontsize=18)
-        ax1.set_zlabel('Z', fontsize=18)
+        ax1.set_xlabel("\n X [m]", linespacing=3.2)
+        ax1.set_ylabel("\n Y [m]", linespacing=3.2)
+        ax1.set_zlabel("\n Z [m]", linespacing=3.2)
         ax1.set_xlim([1, 3])
         ax1.set_ylim([-1, 1])
         ax1.set_zlim([-1, 1])
 
-        ax2.set_xlabel('X', fontsize=18)
-        ax2.set_ylabel('Y', fontsize=18)
-        ax2.set_zlabel('Z', fontsize=18)
+        ax2.set_xlabel("\n X [m]", linespacing=3.2)
+        ax2.set_ylabel("\n Y [m]", linespacing=3.2)
+        ax2.set_zlabel("\n Z [m]", linespacing=3.2)
         ax2.set_xlim([-0.5, 0.5])
         ax2.set_ylim([-0.5, 0.5])
         ax2.set_zlim([0, 1])
@@ -251,15 +255,15 @@ class Prediction(object):
         class MultiOutputModel(nn.Module):
             def __init__(self):
                 super(MultiOutputModel, self).__init__()
-                self.shared_layer1 = nn.Linear(20, 128)
-                self.shared_layer2 = nn.Linear(128, 128)
-                self.left_arm_layer = nn.Linear(128, 3)
-                self.right_arm_layer = nn.Linear(128, 3)
-                self.head_layer = nn.Linear(128, 2)
+                self.shared_layer1 = nn.Linear(20, 16)
+                # self.shared_layer2 = nn.Linear(128, 128)
+                self.left_arm_layer = nn.Linear(16, 3)
+                self.right_arm_layer = nn.Linear(16, 3)
+                self.head_layer = nn.Linear(16, 2)
 
             def forward(self, x):
                 x = torch.relu(self.shared_layer1(x))
-                x = torch.relu(self.shared_layer2(x))
+                # x = torch.relu(self.shared_layer2(x))
                 left_arm_output = self.left_arm_layer(x)
                 right_arm_output = self.right_arm_layer(x)
                 head_output = self.head_layer(x)
@@ -280,15 +284,19 @@ class Prediction(object):
 
         # Training loop
         training_losses = []
-        num_epochs = 1000  # Adjust as needed
+        validation_losses = []
+        num_epochs = 1000
+        train_input_data, val_input_data, train_output_data_left, val_output_data_left, train_output_data_right, val_output_data_right, train_output_data_head, val_output_data_head = train_test_split(
+        input_data, output_data_left, output_data_right, output_data_head, test_size=0.2, random_state=50)
+
         for epoch in range(num_epochs):
             # Forward pass
-            left_arm_pred, right_arm_pred, head_pred = model(input_data)
+            left_arm_pred, right_arm_pred, head_pred = model(train_input_data)
 
             # Calculate loss for each output branch
-            loss_left = criterion(left_arm_pred, output_data_left)
-            loss_right = criterion(right_arm_pred, output_data_right)
-            loss_head = criterion(head_pred, output_data_head)
+            loss_left = criterion(left_arm_pred, train_output_data_left)
+            loss_right = criterion(right_arm_pred, train_output_data_right)
+            loss_head = criterion(head_pred, train_output_data_head)
 
             # Total loss as a combination of individual losses
             total_loss = loss_left + loss_right + loss_head
@@ -301,12 +309,29 @@ class Prediction(object):
 
             if (epoch + 1) % 100 == 0:
                 print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss.item()}')
-        self.model = model
 
+         # For validation, use separate validation data
+            with torch.no_grad():  # Disable gradient computation for validation
+                val_left_arm_pred, val_right_arm_pred, val_head_pred = model(val_input_data)
+
+                # Calculate validation loss for each output branch
+                val_loss_left = criterion(val_left_arm_pred, val_output_data_left)
+                val_loss_right = criterion(val_right_arm_pred, val_output_data_right)
+                val_loss_head = criterion(val_head_pred, val_output_data_head)
+
+                # Total validation loss as a combination of individual losses
+                total_val_loss = val_loss_left + val_loss_right + val_loss_head
+                validation_losses.append(total_val_loss.item())
+
+                if (epoch + 1) % 100 == 0:
+                    print(f'Epoch [{epoch + 1}/{num_epochs}], Validation Loss: {total_val_loss.item()}')
+
+        self.model = model
         # Plot the training loss
         plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
-        plt.xlabel('Epoch', fontsize=18)
-        plt.ylabel('Loss', fontsize=18)
+        plt.plot(range(1, num_epochs + 1), validation_losses, label='Validation Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
         plt.legend()
         plt.grid()
         plt.show()
@@ -337,43 +362,41 @@ class Prediction(object):
         return left_arm_pred, right_arm_pred, head_pred
 
 if __name__ == "__main__":
+    robotName = "nao"
+    file_path = "./robot_configuration_files/"+ robotName + ".yaml"
+    pose_predictor = Prediction(file_path, robotName)
 
-    file_path = "./robot_configuration_files/qt.yaml"
-    pose_predictor = Prediction(file_path)
-
-    # df = read_file("combined_actions")
-    # actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate',
-    #            'dinner_plate', 'knife', 'fork', 'salt_shaker',
-    #            'sugar_bowl', 'mixer', 'pressure_cooker']
-
-    # action = "teapot"
-    # user = 3
-    # users = np.arange(1, 21, 1)
-    # left_side, right_side, head = read_csv_combined(df, action, user)
-
-
-    # for i in range(len(left_side)):
-    #     points4, points5, points6 = robot_embodiment(left_side[i], right_side[i], head[i], qt, action, user)
-    #     robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
-    # plot_animation_3d(robot_pose, base)
-
-    #NN TRAINING
-    file_name = "robot_angles"
-    theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-    pose_predictor.train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
-
-    #NN TESTING
     df = pose_predictor.read_file("combined_actions")
-    action = "spoon"
-    user = 5
+    actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate',
+               'dinner_plate', 'knife', 'fork', 'salt_shaker',
+               'sugar_bowl', 'mixer', 'pressure_cooker']
+
     robot_pose = []
+    action = "teapot"
+    user = 3
+    users = np.arange(1, 21, 1)
     left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
 
+
     for i in range(len(left_side)):
-        angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
-        points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
+        points4, points5, points6 = pose_predictor.robot_embodiment(left_side[i], right_side[i], head[i])
         robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
     pose_predictor.plot_animation_3d(robot_pose)
 
+    #NN TRAINING
+    # file_name = "robot_angles"
+    # theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
+    # pose_predictor.train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+
     #NN TESTING
-    # test(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 10)
+    # df = pose_predictor.read_file("combined_actions")
+    # action = "spoon"
+    # user = 5
+    # robot_pose = []
+    # left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
+
+    # for i in range(len(left_side)):
+    #     angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
+    #     points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
+    #     robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
+    # pose_predictor.plot_animation_3d(robot_pose)

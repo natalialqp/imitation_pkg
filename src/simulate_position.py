@@ -7,7 +7,7 @@ class RobotSimulation:
         self.list1 = list1
         self.list2 = list2
         self.list3 = list3
-        self.base = [[(0., 0., 0)]] * len(list3)
+        self.base = [[(0., 0., 0)]] * len(list1)
         self.num_frames = len(list1)
         self.max_range = None
 

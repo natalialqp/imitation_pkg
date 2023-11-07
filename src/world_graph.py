@@ -1,11 +1,7 @@
-from array import array
-import pprint
-from collections import defaultdict
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-import json
 import ast
 plt.rcParams.update({'font.size': 20})
 
@@ -43,7 +39,7 @@ class Graph(object):
     #     self.G = nx.read_gml(name + ".gml") #destringizer = list
 
     def save_graph_to_file(self, name):
-        nx.write_graphml_lxml(self.G, name + ".net")
+        nx.write_graphml_lxml(self.G, "./data/graphs/" + name + ".net")
 
     def read_graph_from_file(self, name):
         aux_graph = nx.Graph()
