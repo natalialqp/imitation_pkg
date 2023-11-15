@@ -150,13 +150,13 @@ def slice_dict(dict, details):
 def createRobotGraphs(robot):
     joint_dic = {}
     for i in range(len(robot.leftArmAngles)):
-        joint_dic["jointLeft_" + str(i)] = robot_graph.Graph(i)
+        joint_dic["jointLeft_" + str(i)] = robot_graph.Graph(i, "jointLeft_" + str(i))
 
     for i in range(len(robot.rightArmAngles)):
-        joint_dic["jointRight_" + str(i)] = robot_graph.Graph(i)
+        joint_dic["jointRight_" + str(i)] = robot_graph.Graph(i, "jointRight_" + str(i))
 
     for i in range(len(robot.headAngles)):
-        joint_dic["jointHead_" + str(i)] = robot_graph.Graph(i)
+        joint_dic["jointHead_" + str(i)] = robot_graph.Graph(i, "jointHead_" + str(i))
     return joint_dic
 
 def pathPlanning(demonstration, robotWorld):
@@ -430,7 +430,7 @@ if __name__ == "__main__":
             robot_graphs[key].read_graph_from_file(key)
             # generated_trajectory = simulateTrajectory()
             generated_trajectory = personalised_random_points(robot_graphs[key], length)
-            # robot_graphs[key].plot_graph(key, generated_trajectory)
+            # robot_graphs[key].plot_graph(generated_trajectory)
             # tra = approximateTrajectory(generated_trajectory, robot_graphs[key])
             # plotPath(key, generated_trajectory, np.asarray(tra))
             if robot_graphs[key].number_of_nodes() > 1:

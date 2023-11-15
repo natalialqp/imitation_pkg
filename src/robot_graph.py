@@ -9,10 +9,11 @@ import xml.etree.ElementTree as ET
 plt.rcParams.update({'font.size': 20})
 
 class Graph(object):
-    def __init__(self, n_dependecies):
+    def __init__(self, n_dependecies, key):
         self.G = nx.Graph()
         self.n_dependecies = n_dependecies
         self.objects_in_world = {}
+        self.key = key
 
     def get_node_attr(self, node, attr):
         # new_node = self.list_to_string(node)
@@ -192,7 +193,7 @@ class Graph(object):
         data = np.array(aux_data.split())
         return list(data[0:3].astype(float))
 
-    def plot_graph(self, key, trajectory = []):
+    def plot_graph(self, trajectory = []):
         # Create the 3D figure
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
@@ -230,7 +231,7 @@ class Graph(object):
             # Turn gridlines on
             ax.grid(True)
             # Set axes labels
-            ax.set_title(key)
+            ax.set_title(self.key)
             ax.set_xlabel("\n X [m]", linespacing=3.2)
             ax.set_ylabel("\n Y [m]", linespacing=3.2)
             ax.set_zlabel("\n Z [m]", linespacing=3.2)
