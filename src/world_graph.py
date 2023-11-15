@@ -16,8 +16,13 @@ class Graph(object):
 
     def add_one_node(self, node):
          # Convert ndarray to tuple
-        new_node = np.array([0. if x == -0.0 else x for x in node])
+        new_node = self.list_to_string(node)
         self.G.add_node(tuple(new_node))
+
+    def list_to_string(self, vec):
+        modified_vector = [0.0 if value in {0, 0., -0., -0.0, -0} else value for value in vec]
+        # vector_str = '[' + ', '.join(map(str, modified_vector)) + ']'
+        return modified_vector
 
     def add_one_edge(self, edge):
         u, v = tuple(edge[0]), tuple(edge[1])  # Convert ndarrays to tuples
@@ -32,18 +37,24 @@ class Graph(object):
         u, v = tuple(u), tuple(v)
         return self.G.has_edge(u, v)
 
-    # def save_graph_to_file(self, name):
-    #     nx.write_gml(self.G, name + ".gml", stringizer = str) #stringizer = str
+    def read_object_from_file(self, name):
+        aux_graph = nx.Graph()
+        aux_graph = nx.read_graphml("./data/objects/" + name + ".net")
 
-    # def read_graph_from_file(self, name):
-    #     self.G = nx.read_gml(name + ".gml") #destringizer = list
+        for node in tqdm(aux_graph.nodes()):
+            self.G.add_node(ast.literal_eval(node))
+        for edges in tqdm(aux_graph.edges()):
+            self.G.add_edge(ast.literal_eval(edges[0]), ast.literal_eval(edges[1]))
+
+    def save_object_to_file(self, name):
+        nx.write_graphml_lxml(self.G, "./data/objects/" + name + ".net")
 
     def save_graph_to_file(self, name):
         nx.write_graphml_lxml(self.G, "./data/graphs/" + name + ".net")
 
     def read_graph_from_file(self, name):
         aux_graph = nx.Graph()
-        aux_graph = nx.read_graphml(name + ".net")
+        aux_graph = nx.read_graphml("./data/graphs/" + name + ".net")
 
         for node in tqdm(aux_graph.nodes()):
             self.G.add_node(ast.literal_eval(node))
@@ -75,7 +86,7 @@ class Graph(object):
 
         # Plot the nodes
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
-            xyz_rounded = tuple(round(coord, 4) for coord in xyz)
+            xyz_rounded = tuple(round(coord, 3) for coord in xyz)
             ax.scatter(*xyz_rounded, s=100, ec="w")
             # ax.text(*xyz_rounded, f"Node: {xyz_rounded}", ha="center", va="center")
 
@@ -103,5 +114,5 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.savefig("world_small.pdf", format="pdf")
-        # plt.show()
+        # plt.savefig("world_small.pdf", format="pdf")
+        plt.show()

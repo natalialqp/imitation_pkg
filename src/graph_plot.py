@@ -1,4 +1,5 @@
 from cmath import sqrt
+from tkinter import Grid
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
@@ -12,6 +13,9 @@ import pandas as pd
 from tqdm import tqdm
 from scipy.spatial import cKDTree
 import random
+from sklearn.metrics import mean_squared_error
+import copy
+
 plt.rcParams.update({'font.size': 18})
 
 def calculateEdgeLengths(connections):
@@ -130,8 +134,8 @@ def findJointsGraph(cartesian_points, length, world, robot, joint_angles):
         else:
             node = find_closest_point(cartesian_points[key], kdtree)
             dependencies = slice_dict(joint_angles, key.split('_'))
-        att = robot[key].set_attribute(node, dependencies)
-        robot[key].add_one_node(node, att)
+        robot[key].set_attribute(node, dependencies)
+        # robot[key].add_one_node(node, att)  # delete the str to use with gml
         edges = find_edges_optimized_robot(robot[key], length)
         robot[key].add_edges(edges)
     return robot
@@ -172,17 +176,53 @@ def pathPlanning(demonstration, robotWorld):
 def path_planning(demonstration, robotWorld):
     kdtree = KDTree(robotWorld.get_nodes_values())
     path = []
+    path_for_error = []
     demonstration = list(demonstration)
     prev_node = find_closest_point(demonstration.pop(0), kdtree)
     path.append(tuple(prev_node))
     for i in demonstration:
         node = find_closest_point(i, kdtree)
-        sub_path = robotWorld.shortest_path(prev_node, node)
-        sub_path.pop(0)
-        sub_path = [robotWorld.get_node_attr(i, "value") for i in sub_path]
-        path.extend(sub_path)
+        if robotWorld.has_path(prev_node, node):
+            sub_path = robotWorld.shortest_path(prev_node, node)
+            sub_path.pop(0)
+            sub_path = [robotWorld.get_node_attr(i, "value") for i in sub_path]
+            path.extend(sub_path)
+        else:
+            path.extend([node])
         prev_node = node
-    return path
+        path_for_error.append(tuple(prev_node))
+    MSE, RMSE = error_calculation(demonstration, path_for_error)
+    return path, MSE, RMSE
+
+def plot_error(Dict):
+    # Extracting data for plotting
+    joints = list(Dict.keys())
+    values_MSE = [sub_dict["MSE"] for sub_dict in Dict.values()]
+    values_RMSE = [sub_dict["RMSE"] for sub_dict in Dict.values()]
+
+    # Plotting
+    bar_width = 0.35
+    index = range(len(joints))
+
+    fig, ax = plt.subplots()
+    bar1 = ax.bar(index, values_MSE, bar_width, label='MSE')
+    bar2 = ax.bar([i + bar_width for i in index], values_RMSE, bar_width, label='RMSE')
+
+    # Adding labels and title
+    ax.set_xlabel('Joints')
+    ax.set_ylabel('Error')
+    ax.set_title('Values of MSE and RMSE for each Joint')
+    ax.set_xticks([i + bar_width/2 for i in index])
+    ax.set_xticklabels(joints,  rotation=0, ha='center')
+    ax.legend()
+    plt.grid()
+    # Show the plot
+    plt.show()
+
+def error_calculation(y_true, y_pred):
+    RMSE = mean_squared_error(y_true, y_pred, squared = False)
+    MSE = mean_squared_error(y_true, y_pred, squared = True)
+    return MSE, RMSE
 
 def simulateTrajectory():
     zdata = 0.01 * np.random.random(20)
@@ -205,25 +245,15 @@ def personalised_random_points(robot_joint_graph, length):
     vector = [[random.uniform(df[0].min() - length, df[0].max() + length),
     random.uniform(df[1].min() - length, df[1].max() + length),
     random.uniform(df[2].min() - length, df[2].max() + length)] for i in range(amount_points)]
+    # vector = []
+    # for i in range(amount_points):
+    #     zdata = random.uniform(df[2].min() - length, df[2].max() + length)
+    #     xdata = np.sin(zdata) * 2 * df[0].max()
+    #     ydata = np.cos(zdata) * 2 * df[1].max()
+    #     vector.append([xdata, ydata, zdata])
     return np.array(vector)
 
 def plotPath(key, demonstration, path):
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection="3d")
-    # xdem = demonstration[:, 0]
-    # ydem = demonstration[:, 1]
-    # zdem = demonstration[:, 2]
-    # xpath = path[:, 0]
-    # ypath = path[:, 1]
-    # zpath = path[:, 2]
-    # ax.scatter3D(xdem, ydem, zdem, c='green')
-    # ax.scatter3D(xpath, ypath, zpath, c='red')
-    # ax.set_title(key)
-    # ax.set_xlabel("\n X [m]", linespacing=3.2)
-    # ax.set_ylabel("\n Y [m]", linespacing=3.2)
-    # ax.set_zlabel("\n Z [m]", linespacing=3.2)
-    # plt.show()
-
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     xdem = demonstration[:, 0]
@@ -272,13 +302,18 @@ def divideFrames(data):
         new_data = np.hstack((new_data, np.array(frame)))
     return new_data[:,1:]
 
-def forward_kinematics_n_frames(robot, joint_angles):
+def forward_kinematics_n_frames(name, robot, joint_angles):
     left = []
     right = []
     head = []
     for frame in joint_angles:
         frame = np.array(frame)
-        pos_left, pos_right, pos_head = robot.forward_kinematics(frame)
+        if name == "qt":
+            pos_left, pos_right, pos_head = robot.forward_kinematics_qt(frame)
+        elif name == "nao":
+            pos_left, pos_right, pos_head = robot.forward_kinematics_nao(frame)
+        elif name == "gen3":
+            pos_left, pos_right, pos_head = robot.forward_kinematics_kinova(frame)
         left.append(pos_left)
         right.append(pos_right)
         head.append(pos_head)
@@ -310,9 +345,22 @@ def angle_interpolation(joint_angles_list):
             actual_angle += delta
     return np.array(new_joint_angles_list)
 
+def list_to_string(vec):
+        modified_vector = [0.0 if value in {0, 0., -0., -0.0, -0} else value for value in vec]
+        vector_str = '[' + ', '.join(map(str, modified_vector)) + ']'
+        return vector_str
+
+def find_object_in_world(world, new_object):
+    kdtree = cKDTree(world.get_nodes())
+    object_nodes = []
+    for node in new_object.get_nodes():
+        object_nodes.append(list_to_string(find_closest_point(node, kdtree)))
+    return object_nodes
+
 if __name__ == "__main__":
 
-    flag = "read-graphs"
+    flag = "object-in-robot-graph"
+    # flag = "explore-world"
 
     #Read robot configuration from the .yaml filerobot_graphs
     file_path = "./robot_configuration_files/qt.yaml"
@@ -328,22 +376,48 @@ if __name__ == "__main__":
         highEdge = np.array([1, 1, 1])
         graph_world = createWorldCubes(lowEdge, highEdge, length)
         # graph_world.save_graph_to_file("test")
+        name = 'qt'
         # graph_world = world_graph.Graph()
         # graph_world.read_graph_from_file("test")
         # graph_world.plot_graph()
+        print("BEFORE READ BABBLING")
         babbing_path = "self_exploration_qt_100.txt"
         joint_angles = read_babbling(babbing_path)
         new_list = angle_interpolation(joint_angles)
-        pos_left, pos_right, pos_head = forward_kinematics_n_frames(qt, new_list)
+        pos_left, pos_right, pos_head = forward_kinematics_n_frames(name, qt, new_list)
+        print("AFTER FK")
         # s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
-        # s.animate()
-
+        # # s.animate()
         cartesian_points = qt.pos_mat_to_robot_mat_dict(pos_left, pos_right, pos_head)
         joint_angles_dict = qt.angular_mat_to_mat_dict(new_list)
         robot_world = learn_environment(robot_graphs, graph_world, cartesian_points, joint_angles_dict)
+        print("BEFORE SAVING THE GRAPHS")
         for key in tqdm(robot_world):
             robot_world[key].save_graph_to_file(key)
             robot_world[key].read_graph_from_file(key)
+
+    elif flag == "create-object":
+        lowEdge = np.array([-0.05, 0.0, 0.04]) # -1, -1, 0
+        highEdge = np.array([0.04, 0.03, 0.09])
+        # lowEdge = np.array([-1, -1, 0]) # -1, -1, 0
+        # highEdge = np.array([1, 1, 1])
+        object = world_graph.Graph()
+        object.save_object_to_file("object_2")
+        # object.read_object_from_file("object_1")
+        object.plot_graph()
+
+    elif flag == "object-in-robot-graph":
+        lowEdge = np.array([-1, -1, 0]) # -1, -1, 0
+        highEdge = np.array([1, 1, 1])
+        graph_world = createWorldCubes(lowEdge, highEdge, length)
+        object = world_graph.Graph()
+        object.read_object_from_file("object_1")
+        object_nodes = find_object_in_world(graph_world, object)
+        for key in robot_graphs:
+            robot_graphs[key].read_graph_from_file(key)
+            print(key)
+            robot_graphs[key].new_object_in_world(object_nodes, "object_1")
+            robot_graphs[key].remove_object_from_world("object_1")
 
     elif flag == "reproduce-action":
         #reading an action and reproducing
@@ -351,14 +425,18 @@ if __name__ == "__main__":
         joint_angles = divideFrames(frames)
 
     elif flag == "read-graphs":
+        dict_error = {}
         for key in robot_graphs:
             robot_graphs[key].read_graph_from_file(key)
             # generated_trajectory = simulateTrajectory()
             generated_trajectory = personalised_random_points(robot_graphs[key], length)
-            robot_graphs[key].plot_graph(key, generated_trajectory)
-            tra = path_planning(generated_trajectory, robot_graphs[key])
+            # robot_graphs[key].plot_graph(key, generated_trajectory)
             # tra = approximateTrajectory(generated_trajectory, robot_graphs[key])
-            plotPath(key, generated_trajectory, np.asarray(tra))
+            # plotPath(key, generated_trajectory, np.asarray(tra))
+            if robot_graphs[key].number_of_nodes() > 1:
+                tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
+                dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
+        plot_error(dict_error)
 
     #Simulate trajectory and store nodes in robot graph
     # generated_trajectory = simulateTrajectory()

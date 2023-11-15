@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graph>
+  <node id="[-0.016, -0.052, 0.396]" value= "[-0.016 -0.052  0.396]" occupied="False" joint_dependency="{'angle_1': -78.78, 'angle_2': -71.95}"/>
+  <node id="[-0.016, -0.196, 0.432]" value= "[-0.016 -0.196  0.432]" occupied="False" joint_dependency="{'angle_1': -85.99, 'angle_2': -69.64}"/>
+  <node id="[0.068, -0.16, 0.396]" value= "[ 0.068 -0.16   0.396]" occupied="False" joint_dependency="{'angle_1': -75.4, 'angle_2': -70.14}"/>
+  <node id="[-0.016, -0.064, 0.36]" value= "[-0.016 -0.064  0.36 ]" occupied="False" joint_dependency="{'angle_1': -77.2, 'angle_2': -71.7}"/>
+  <node id="[0.044, -0.076, 0.432]" value= "[ 0.044 -0.076  0.432]" occupied="False" joint_dependency="{'angle_1': -77.9, 'angle_2': -73.0}"/>
+  <node id="[0.008, -0.124, 0.324]" value= "[ 0.008 -0.124  0.324]" occupied="False" joint_dependency="{'angle_1': -73.71, 'angle_2': -73.95}"/>
+  <node id="[-0.016, -0.124, 0.468]" value= "[-0.016 -0.124  0.468]" occupied="False" joint_dependency="{'angle_1': -76.86, 'angle_2': -73.82}"/>
+  <node id="[0.008, -0.052, 0.396]" value= "[ 0.008 -0.052  0.396]" occupied="False" joint_dependency="{'angle_1': -71.78, 'angle_2': -72.35}"/>
+  <node id="[-0.004, -0.052, 0.42]" value= "[-0.004 -0.052  0.42 ]" occupied="False" joint_dependency="{'angle_1': -64.47, 'angle_2': -72.6}"/>
+  <node id="[0.056, -0.184, 0.36]" value= "[ 0.056 -0.184  0.36 ]" occupied="False" joint_dependency="{'angle_1': -79.15, 'angle_2': -74.54}"/>
+  <node id="[-0.016, -0.196, 0.396]" value= "[-0.016 -0.196  0.396]" occupied="False" joint_dependency="{'angle_1': -78.51, 'angle_2': -69.37}"/>
+  <node id="[-0.016, -0.172, 0.336]" value= "[-0.016 -0.172  0.336]" occupied="False" joint_dependency="{'angle_1': -77.2, 'angle_2': -70.0}"/>
+  <node id="[0.032, -0.064, 0.408]" value= "[ 0.032 -0.064  0.408]" occupied="False" joint_dependency="{'angle_1': -78.15, 'angle_2': -66.48}"/>
+  <node id="[0.056, -0.172, 0.384]" value= "[ 0.056 -0.172  0.384]" occupied="False" joint_dependency="{'angle_1': -72.56, 'angle_2': -74.4}"/>
+  <node id="[-0.004, -0.1, 0.324]" value= "[-0.004 -0.1    0.324]" occupied="False" joint_dependency="{'angle_1': -73.8, 'angle_2': -67.21}"/>
+  <node id="[-0.04, -0.076, 0.444]" value= "[-0.04  -0.076  0.444]" occupied="False" joint_dependency="{'angle_1': -69.9, 'angle_2': -66.8}"/>
+  <node id="[0.044, -0.184, 0.42]" value= "[ 0.044 -0.184  0.42 ]" occupied="False" joint_dependency="{'angle_1': -71.7, 'angle_2': -68.4}"/>
+  <node id="[-0.016, -0.124, 0.324]" value= "[-0.016 -0.124  0.324]" occupied="False" joint_dependency="{'angle_1': -73.95, 'angle_2': -73.83}"/>
+  <node id="[-0.04, -0.124, 0.456]" value= "[-0.04  -0.124  0.456]" occupied="False" joint_dependency="{'angle_1': -76.36, 'angle_2': -73.8}"/>
+  <node id="[-0.004, -0.052, 0.396]" value= "[-0.004 -0.052  0.396]" occupied="False" joint_dependency="{'angle_1': -78.9, 'angle_2': -72.22}"/>
+  <node id="[0.02, -0.052, 0.408]" value= "[ 0.02  -0.052  0.408]" occupied="False" joint_dependency="{'angle_1': -77.87, 'angle_2': -72.56}"/>
+  <node id="[-0.016, -0.052, 0.384]" value= "[-0.016 -0.052  0.384]" occupied="False" joint_dependency="{'angle_1': -80.8, 'angle_2': -66.3}"/>
+  <node id="[0.032, -0.1, 0.324]" value= "[ 0.032 -0.1    0.324]" occupied="False" joint_dependency="{'angle_1': -79.74, 'angle_2': -73.5}"/>
+  <node id="[0.02, -0.136, 0.468]" value= "[ 0.02  -0.136  0.468]" occupied="False" joint_dependency="{'angle_1': -80.37, 'angle_2': -70.6}"/>
+  <node id="[-0.064, -0.088, 0.432]" value= "[-0.064 -0.088  0.432]" occupied="False" joint_dependency="{'angle_1': -85.41, 'angle_2': -71.2}"/>
+  <node id="[0.008, -0.184, 0.336]" value= "[ 0.008 -0.184  0.336]" occupied="False" joint_dependency="{'angle_1': -86.3, 'angle_2': -68.3}"/>
+  <node id="[0.056, -0.148, 0.336]" value= "[ 0.056 -0.148  0.336]" occupied="False" joint_dependency="{'angle_1': -85.73, 'angle_2': -67.82}"/>
+  <node id="[0.056, -0.1, 0.444]" value= "[ 0.056 -0.1    0.444]" occupied="False" joint_dependency="{'angle_1': -81.0, 'angle_2': -71.0}"/>
+  <node id="[-0.016, -0.052, 0.42]" value= "[-0.016 -0.052  0.42 ]" occupied="False" joint_dependency="{'angle_1': -86.0, 'angle_2': -71.86}"/>
+  <node id="[-0.064, -0.136, 0.348]" value= "[-0.064 -0.136  0.348]" occupied="False" joint_dependency="{'angle_1': -87.25, 'angle_2': -74.09}"/>
+  <node id="[0.044, -0.064, 0.432]" value= "[ 0.044 -0.064  0.432]" occupied="False" joint_dependency="{'angle_1': -87.3, 'angle_2': -71.6}"/>
+  <node id="[-0.016, -0.196, 0.384]" value= "[-0.016 -0.196  0.384]" occupied="False" joint_dependency="{'angle_1': -78.39, 'angle_2': -69.43}"/>
+  <node id="[-0.028, -0.124, 0.324]" value= "[-0.028 -0.124  0.324]" occupied="False" joint_dependency="{'angle_1': -86.73, 'angle_2': -67.44}"/>
+  <node id="[0.056, -0.184, 0.42]" value= "[ 0.056 -0.184  0.42 ]" occupied="False" joint_dependency="{'angle_1': -90.7, 'angle_2': -68.27}"/>
+  <node id="[0.008, -0.184, 0.432]" value= "[ 0.008 -0.184  0.432]" occupied="False" joint_dependency="{'angle_1': -86.58, 'angle_2': -69.6}"/>
+  <node id="[0.068, -0.1, 0.384]" value= "[ 0.068 -0.1    0.384]" occupied="False" joint_dependency="{'angle_1': -81.7, 'angle_2': -71.0}"/>
+  <node id="[-0.076, -0.1, 0.372]" value= "[-0.076 -0.1    0.372]" occupied="False" joint_dependency="{'angle_1': -87.58, 'angle_2': -73.55}"/>
+  <node id="[-0.004, -0.052, 0.384]" value= "[-0.004 -0.052  0.384]" occupied="False" joint_dependency="{'angle_1': -82.6, 'angle_2': -72.17}"/>
+  <node id="[0.068, -0.088, 0.42]" value= "[ 0.068 -0.088  0.42 ]" occupied="False" joint_dependency="{'angle_1': -81.36, 'angle_2': -71.09}"/>
+  <node id="[-0.052, -0.076, 0.396]" value= "[-0.052 -0.076  0.396]" occupied="False" joint_dependency="{'angle_1': -81.8, 'angle_2': -66.7}"/>
+  <node id="[-0.004, -0.196, 0.384]" value= "[-0.004 -0.196  0.384]" occupied="False" joint_dependency="{'angle_1': -85.73, 'angle_2': -69.08}"/>
+  <node id="[-0.064, -0.1, 0.444]" value= "[-0.064 -0.1    0.444]" occupied="False" joint_dependency="{'angle_1': -72.97, 'angle_2': -70.97}"/>
+  <node id="[-0.004, -0.196, 0.36]" value= "[-0.004 -0.196  0.36 ]" occupied="False" joint_dependency="{'angle_1': -80.1, 'angle_2': -68.6}"/>
+  <node id="[0.008, -0.064, 0.432]" value= "[ 0.008 -0.064  0.432]" occupied="False" joint_dependency="{'angle_1': -86.8, 'angle_2': -71.75}"/>
+  <node id="[-0.04, -0.184, 0.396]" value= "[-0.04  -0.184  0.396]" occupied="False" joint_dependency="{'angle_1': -88.0, 'angle_2': -74.9}"/>
+  <node id="[0.056, -0.136, 0.348]" value= "[ 0.056 -0.136  0.348]" occupied="False" joint_dependency="{'angle_1': -85.41, 'angle_2': -74.0}"/>
+  <node id="[-0.004, -0.184, 0.348]" value= "[-0.004 -0.184  0.348]" occupied="False" joint_dependency="{'angle_1': -83.34, 'angle_2': -69.8}"/>
+  <node id="[0.068, -0.088, 0.408]" value= "[ 0.068 -0.088  0.408]" occupied="False" joint_dependency="{'angle_1': -87.83, 'angle_2': -71.09}"/>
+  <node id="[-0.004, -0.196, 0.396]" value= "[-0.004 -0.196  0.396]" occupied="False" joint_dependency="{'angle_1': -81.1, 'angle_2': -69.12}"/>
+  <node id="[-0.052, -0.076, 0.444]" value= "[-0.052 -0.076  0.444]" occupied="False" joint_dependency="{'angle_1': -88.6, 'angle_2': -67.0}"/>
+  <node id="[-0.004, -0.172, 0.336]" value= "[-0.004 -0.172  0.336]" occupied="False" joint_dependency="{'angle_1': -83.3, 'angle_2': -70.0}"/>
+  <node id="[0.068, -0.148, 0.384]" value= "[ 0.068 -0.148  0.384]" occupied="False" joint_dependency="{'angle_1': -88.1, 'angle_2': -70.4}"/>
+  <node id="[-0.028, -0.124, 0.468]" value= "[-0.028 -0.124  0.468]" occupied="False" joint_dependency="{'angle_1': -86.0, 'angle_2': -70.74}"/>
+  <node id="[-0.028, -0.196, 0.396]" value= "[-0.028 -0.196  0.396]" occupied="False" joint_dependency="{'angle_1': -81.8, 'angle_2': -68.76}"/>
+  <node id="[0.02, -0.052, 0.42]" value= "[ 0.02  -0.052  0.42 ]" occupied="False" joint_dependency="{'angle_1': -87.0, 'angle_2': -71.84}"/>
+  <node id="[0.056, -0.112, 0.336]" value= "[ 0.056 -0.112  0.336]" occupied="False" joint_dependency="{'angle_1': -85.7, 'angle_2': -73.6}"/>
+  <node id="[0.008, -0.196, 0.42]" value= "[ 0.008 -0.196  0.42 ]" occupied="False" joint_dependency="{'angle_1': -86.65, 'angle_2': -69.5}"/>
+  <node id="[0.008, -0.064, 0.444]" value= "[ 0.008 -0.064  0.444]" occupied="False" joint_dependency="{'angle_1': -86.7, 'angle_2': -71.65}"/>
+  <node id="[0.056, -0.076, 0.384]" value= "[ 0.056 -0.076  0.384]" occupied="False" joint_dependency="{'angle_1': -91.33, 'angle_2': -73.2}"/>
+  <node id="[-0.016, -0.16, 0.324]" value= "[-0.016 -0.16   0.324]" occupied="False" joint_dependency="{'angle_1': -86.7, 'angle_2': -74.28}"/>
+  <node id="[-0.04, -0.076, 0.336]" value= "[-0.04  -0.076  0.336]" occupied="False" joint_dependency="{'angle_1': -86.98, 'angle_2': -73.26}"/>
+  <node id="[-0.076, -0.136, 0.42]" value= "[-0.076 -0.136  0.42 ]" occupied="False" joint_dependency="{'angle_1': -82.0, 'angle_2': -74.0}"/>
+  <node id="[-0.028, -0.184, 0.42]" value= "[-0.028 -0.184  0.42 ]" occupied="False" joint_dependency="{'angle_1': -82.37, 'angle_2': -74.83}"/>
+  <node id="[0.02, -0.196, 0.372]" value= "[ 0.02  -0.196  0.372]" occupied="False" joint_dependency="{'angle_1': -79.53, 'angle_2': -74.9}"/>
+  <node id="[-0.076, -0.148, 0.372]" value= "[-0.076 -0.148  0.372]" occupied="False" joint_dependency="{'angle_1': -78.21, 'angle_2': -70.36}"/>
+  <node id="[0.032, -0.184, 0.36]" value= "[ 0.032 -0.184  0.36 ]" occupied="False" joint_dependency="{'angle_1': -79.43, 'angle_2': -68.41}"/>
+  <node id="[-0.052, -0.184, 0.384]" value= "[-0.052 -0.184  0.384]" occupied="False" joint_dependency="{'angle_1': -72.13, 'angle_2': -69.81}"/>
+  <node id="[-0.052, -0.1, 0.444]" value= "[-0.052 -0.1    0.444]" occupied="False" joint_dependency="{'angle_1': -85.67, 'angle_2': -70.95}"/>
+  <node id="[0.056, -0.1, 0.336]" value= "[ 0.056 -0.1    0.336]" occupied="False" joint_dependency="{'angle_1': -85.7, 'angle_2': -67.28}"/>
+  <node id="[0.008, -0.196, 0.408]" value= "[ 0.008 -0.196  0.408]" occupied="False" joint_dependency="{'angle_1': -80.7, 'angle_2': -69.4}"/>
+  <node id="[0.032, -0.136, 0.324]" value= "[ 0.032 -0.136  0.324]" occupied="False" joint_dependency="{'angle_1': -76.64, 'angle_2': -70.66}"/>
+  <node id="[-0.016, -0.064, 0.348]" value= "[-0.016 -0.064  0.348]" occupied="False" joint_dependency="{'angle_1': -77.17, 'angle_2': -71.66}"/>
+  <node id="[-0.016, -0.184, 0.336]" value= "[-0.016 -0.184  0.336]" occupied="False" joint_dependency="{'angle_1': -74.2, 'angle_2': -74.6}"/>
+  <node id="[-0.016, -0.136, 0.468]" value= "[-0.016 -0.136  0.468]" occupied="False" joint_dependency="{'angle_1': -70.62, 'angle_2': -74.05}"/>
+  <node id="[-0.028, -0.052, 0.408]" value= "[-0.028 -0.052  0.408]" occupied="False" joint_dependency="{'angle_1': -69.63, 'angle_2': -72.66}"/>
+  <node id="[0.032, -0.172, 0.348]" value= "[ 0.032 -0.172  0.348]" occupied="False" joint_dependency="{'angle_1': -70.1, 'angle_2': -69.99}"/>
+  <node id="[-0.028, -0.052, 0.384]" value= "[-0.028 -0.052  0.384]" occupied="False" joint_dependency="{'angle_1': -71.95, 'angle_2': -71.89}"/>
+  <node id="[-0.064, -0.172, 0.396]" value= "[-0.064 -0.172  0.396]" occupied="False" joint_dependency="{'angle_1': -72.29, 'angle_2': -69.98}"/>
+  <node id="[0.08, -0.124, 0.384]" value= "[ 0.08  -0.124  0.384]" occupied="False" joint_dependency="{'angle_1': -66.16, 'angle_2': -73.95}"/>
+  <node id="[0.032, -0.196, 0.372]" value= "[ 0.032 -0.196  0.372]" occupied="False" joint_dependency="{'angle_1': -73.0, 'angle_2': -74.89}"/>
+  <node id="[0.056, -0.184, 0.384]" value= "[ 0.056 -0.184  0.384]" occupied="False" joint_dependency="{'angle_1': -66.1, 'angle_2': -74.62}"/>
+  <node id="[0.032, -0.088, 0.336]" value= "[ 0.032 -0.088  0.336]" occupied="False" joint_dependency="{'angle_1': -60.8, 'angle_2': -73.3}"/>
+  <node id="[-0.064, -0.124, 0.348]" value= "[-0.064 -0.124  0.348]" occupied="False" joint_dependency="{'angle_1': -68.4, 'angle_2': -73.8}"/>
+  <node id="[0.008, -0.052, 0.384]" value= "[ 0.008 -0.052  0.384]" occupied="False" joint_dependency="{'angle_1': -70.24, 'angle_2': -72.04}"/>
+  <node id="[-0.016, -0.196, 0.372]" value= "[-0.016 -0.196  0.372]" occupied="False" joint_dependency="{'angle_1': -74.3, 'angle_2': -68.73}"/>
+  <edge source="[-0.016, -0.052, 0.396]" target="[-0.004, -0.052, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.396]" target="[-0.016, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.396]" target="[-0.004, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.396]" target="[-0.028, -0.052, 0.408]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.396]" target="[-0.028, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[0.068, -0.16, 0.396]" target="[0.056, -0.172, 0.384]" weight="1" occupied="False"/>
+  <edge source="[0.068, -0.16, 0.396]" target="[0.068, -0.148, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.064, 0.36]" target="[-0.016, -0.064, 0.348]" weight="1" occupied="False"/>
+  <edge source="[0.044, -0.076, 0.432]" target="[0.044, -0.064, 0.432]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.124, 0.468]" target="[-0.028, -0.124, 0.468]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.124, 0.468]" target="[-0.016, -0.136, 0.468]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.052, 0.396]" target="[-0.004, -0.052, 0.396]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.052, 0.396]" target="[0.02, -0.052, 0.408]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.052, 0.396]" target="[-0.004, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.052, 0.396]" target="[0.008, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.052, 0.42]" target="[-0.016, -0.052, 0.42]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.396]" target="[-0.016, -0.196, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.396]" target="[-0.004, -0.196, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.396]" target="[-0.004, -0.196, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.396]" target="[-0.028, -0.196, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.172, 0.336]" target="[-0.004, -0.184, 0.348]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.172, 0.336]" target="[-0.004, -0.172, 0.336]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.172, 0.336]" target="[-0.016, -0.16, 0.324]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.172, 0.336]" target="[-0.016, -0.184, 0.336]" weight="1" occupied="False"/>
+  <edge source="[0.032, -0.064, 0.408]" target="[0.02, -0.052, 0.408]" weight="1" occupied="False"/>
+  <edge source="[0.056, -0.172, 0.384]" target="[0.056, -0.184, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.04, -0.076, 0.444]" target="[-0.052, -0.076, 0.444]" weight="1" occupied="False"/>
+  <edge source="[0.044, -0.184, 0.42]" target="[0.056, -0.184, 0.42]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.124, 0.324]" target="[-0.028, -0.124, 0.324]" weight="1" occupied="False"/>
+  <edge source="[-0.04, -0.124, 0.456]" target="[-0.028, -0.124, 0.468]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.052, 0.396]" target="[-0.016, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.052, 0.396]" target="[-0.004, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.052, 0.396]" target="[0.008, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[0.02, -0.052, 0.408]" target="[0.02, -0.052, 0.42]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.384]" target="[-0.004, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.384]" target="[-0.028, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[0.032, -0.1, 0.324]" target="[0.032, -0.088, 0.336]" weight="1" occupied="False"/>
+  <edge source="[-0.064, -0.088, 0.432]" target="[-0.064, -0.1, 0.444]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.184, 0.336]" target="[-0.004, -0.184, 0.348]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.184, 0.336]" target="[-0.004, -0.172, 0.336]" weight="1" occupied="False"/>
+  <edge source="[0.056, -0.148, 0.336]" target="[0.056, -0.136, 0.348]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.052, 0.42]" target="[-0.028, -0.052, 0.408]" weight="1" occupied="False"/>
+  <edge source="[-0.064, -0.136, 0.348]" target="[-0.064, -0.124, 0.348]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.384]" target="[-0.004, -0.196, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.384]" target="[-0.004, -0.196, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.384]" target="[-0.028, -0.196, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.016, -0.196, 0.384]" target="[-0.016, -0.196, 0.372]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.184, 0.432]" target="[0.008, -0.196, 0.42]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.052, 0.384]" target="[0.008, -0.052, 0.384]" weight="1" occupied="False"/>
+  <edge source="[0.068, -0.088, 0.42]" target="[0.068, -0.088, 0.408]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.196, 0.384]" target="[-0.004, -0.196, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.196, 0.384]" target="[-0.016, -0.196, 0.372]" weight="1" occupied="False"/>
+  <edge source="[-0.064, -0.1, 0.444]" target="[-0.052, -0.1, 0.444]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.196, 0.36]" target="[-0.004, -0.184, 0.348]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.196, 0.36]" target="[-0.016, -0.196, 0.372]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.064, 0.432]" target="[0.008, -0.064, 0.444]" weight="1" occupied="False"/>
+  <edge source="[-0.04, -0.184, 0.396]" target="[-0.028, -0.196, 0.396]" weight="1" occupied="False"/>
+  <edge source="[-0.04, -0.184, 0.396]" target="[-0.052, -0.184, 0.384]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.184, 0.348]" target="[-0.004, -0.172, 0.336]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.184, 0.348]" target="[-0.016, -0.184, 0.336]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.196, 0.396]" target="[0.008, -0.196, 0.408]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.172, 0.336]" target="[-0.016, -0.16, 0.324]" weight="1" occupied="False"/>
+  <edge source="[-0.004, -0.172, 0.336]" target="[-0.016, -0.184, 0.336]" weight="1" occupied="False"/>
+  <edge source="[-0.028, -0.124, 0.468]" target="[-0.016, -0.136, 0.468]" weight="1" occupied="False"/>
+  <edge source="[0.056, -0.112, 0.336]" target="[0.056, -0.1, 0.336]" weight="1" occupied="False"/>
+  <edge source="[0.008, -0.196, 0.42]" target="[0.008, -0.196, 0.408]" weight="1" occupied="False"/>
+  <edge source="[0.02, -0.196, 0.372]" target="[0.032, -0.196, 0.372]" weight="1" occupied="False"/>
+  <edge source="[0.032, -0.184, 0.36]" target="[0.032, -0.172, 0.348]" weight="1" occupied="False"/>
+  <edge source="[0.032, -0.184, 0.36]" target="[0.032, -0.196, 0.372]" weight="1" occupied="False"/>
+</graph>
