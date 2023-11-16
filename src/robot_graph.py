@@ -160,7 +160,7 @@ class Graph(object):
 
     def parse_node(self, element):
         node_id = element.get('id')
-        value = element.get('value')
+        value = self.vectorise_string(element.get('value'))
         occupied = element.get('occupied')
         joint_dependency = element.get('joint_dependency')
         return node_id, {'value': value, 'occupied': occupied, 'joint_dependency': joint_dependency}
