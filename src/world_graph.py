@@ -16,6 +16,7 @@ class Graph(object):
 
     def add_one_node(self, node):
          # Convert ndarray to tuple
+<<<<<<< HEAD
         new_node = self.list_to_string(node)
         self.G.add_node(tuple(new_node))
 
@@ -24,6 +25,11 @@ class Graph(object):
         # vector_str = '[' + ', '.join(map(str, modified_vector)) + ']'
         return modified_vector
 
+=======
+        new_node = np.array([0. if x == -0.0 else x for x in node])
+        self.G.add_node(tuple(new_node))
+
+>>>>>>> 27a3fc396c7d4000f2162cd03163457f79f82175
     def add_one_edge(self, edge):
         u, v = tuple(edge[0]), tuple(edge[1])  # Convert ndarrays to tuples
         self.G.add_edge(u, v)
