@@ -44,21 +44,11 @@ def isInsideWorld(lowEdge, highEdge, point):
     else:
         return False
 
-def findEdges(graph, length):
-    edges = []
-    max_dist = np.sqrt(3) * length
-    combinations = itertools.combinations(graph.get_nodes(), 2)
-
-    for i in combinations:
-        if np.linalg.norm(np.array(i[0]) - np.array(i[1])) <= max_dist:
-            edges.append(i)
-    return edges
-
 def findEdgesOptimized(graph, length):
     nodes = graph.get_nodes()
     points = np.array(nodes)
     tree = cKDTree(points)
-    max_dist = np.sqrt(3) * length
+    max_dist = 2 * length #np.sqrt(3) * length
     edges = []
     for i, point in tqdm(enumerate(points)):
         # Find neighbors within the maximum distance
@@ -75,7 +65,7 @@ def find_edges_optimized_robot(graph, length):
     nodes = graph.get_nodes()
     points = [graph.get_node_attr(node, "value") for node in nodes]
     tree = cKDTree(points)
-    max_dist = np.sqrt(3) * length
+    max_dist = 2 * length #np.sqrt(3) * length
     edges = []
     for i, point in enumerate(points):
         # Find neighbors within the maximum distance
@@ -224,12 +214,6 @@ def error_calculation(y_true, y_pred):
     MSE = mean_squared_error(y_true, y_pred, squared = True)
     return MSE, RMSE
 
-def simulateTrajectory():
-    zdata = 0.01 * np.random.random(20)
-    xdata = np.sin(zdata) + 0.01 * np.random.randn(20)
-    ydata = np.cos(zdata) + 0.01 * np.random.randn(20)
-    return np.column_stack((xdata, ydata, zdata))
-
 def approximateTrajectory(demonstration, robot_joint_graph):
     kdtree = KDTree(robot_joint_graph.get_nodes_values())
     trajectory = []
@@ -238,22 +222,18 @@ def approximateTrajectory(demonstration, robot_joint_graph):
         trajectory.append(node)
     return trajectory
 
-def personalised_random_points(robot_joint_graph, length):
-    amount_points = 10
+def personalised_random_points(robot_joint_graph):
+    amount_points = 20
     kdtree = robot_joint_graph.get_nodes_values()
     df = pd.DataFrame(kdtree)
-    vector = [[random.uniform(df[0].min() - length, df[0].max() + length),
-    random.uniform(df[1].min() - length, df[1].max() + length),
-    random.uniform(df[2].min() - length, df[2].max() + length)] for i in range(amount_points)]
-    # vector = []
-    # for i in range(amount_points):
-    #     zdata = random.uniform(df[2].min() - length, df[2].max() + length)
-    #     xdata = np.sin(zdata) * 2 * df[0].max()
-    #     ydata = np.cos(zdata) * 2 * df[1].max()
-    #     vector.append([xdata, ydata, zdata])
-    return np.array(vector)
+    zdata = np.linspace(df[2].min(), df[2].max(), amount_points)
+    xdata = np.average(df[0]) + (df[0].max() - df[0].min()) * np.sin(25 * zdata) /3
+    ydata = np.average(df[1]) + (df[1].max() - df[1].min()) * np.cos(25 * zdata) /3
+    vector = np.hstack((xdata, ydata, zdata))
+    vector = np.reshape(vector, (amount_points, 3), order='F')
+    return vector
 
-def plotPath(key, demonstration, path):
+def plotPath(key, demonstration, path, candidates = []):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     xdem = demonstration[:, 0]
@@ -266,17 +246,22 @@ def plotPath(key, demonstration, path):
     # Scatter plots for the points
     ax.scatter3D(xdem, ydem, zdem, c='green', label='Demonstration')
     ax.scatter3D(xpath, ypath, zpath, c='red', label='Path')
+    if len(candidates):
+        xdata = candidates[:, 0]
+        ydata = candidates[:, 1]
+        zdata = candidates[:, 2]
+        ax.scatter3D(xdata, ydata, zdata, c='blue', label='Candidates')
 
     # Plot edges between the points
     for i in range(len(xdem) - 1):
-        ax.plot([xdem[i], xdem[i+1]], [ydem[i], ydem[i+1]], [zdem[i], zdem[i+1]], c='blue')
+        ax.plot([xdem[i], xdem[i+1]], [ydem[i], ydem[i+1]], [zdem[i], zdem[i+1]], c='grey')
     for i in range(len(xpath) - 1):
         ax.plot([xpath[i], xpath[i+1]], [ypath[i], ypath[i+1]], [zpath[i], zpath[i+1]], c='lightblue')
 
     ax.set_title(key)
-    ax.set_xlabel("\n X [m]", linespacing=3.2)
-    ax.set_ylabel("\n Y [m]", linespacing=3.2)
-    ax.set_zlabel("\n Z [m]", linespacing=3.2)
+    ax.set_xlabel("\n X [mm]", linespacing=3.2)
+    ax.set_ylabel("\n Y [mm]", linespacing=3.2)
+    ax.set_zlabel("\n Z [mm]", linespacing=3.2)
 
     ax.legend()  # Show the legend
     plt.show()
@@ -307,16 +292,16 @@ def forward_kinematics_n_frames(name, robot, joint_angles):
     right = []
     head = []
     for frame in joint_angles:
-        frame = np.array(frame)
+        frame = np.radians(np.array(frame))
         if name == "qt":
             pos_left, pos_right, pos_head = robot.forward_kinematics_qt(frame)
         elif name == "nao":
             pos_left, pos_right, pos_head = robot.forward_kinematics_nao(frame)
         elif name == "gen3":
             pos_left, pos_right, pos_head = robot.forward_kinematics_kinova(frame)
-        left.append(pos_left)
-        right.append(pos_right)
-        head.append(pos_head)
+        left.append(copy.copy(pos_left))
+        right.append(copy.copy(pos_right))
+        head.append(copy.copy(pos_head))
     return left, right, head
 
 def read_babbling(path_name):
@@ -339,10 +324,10 @@ def angle_interpolation(joint_angles_list):
         iterations = np.max(np.abs(diff))
         delta = diff / iterations
         actual_angle = joint_angles_list[count]
-        # print(actual_angle, joint_angles_list[count + 1])
         for i in range(int(iterations)):
-            new_joint_angles_list.append(actual_angle)
+            new_joint_angles_list.append(copy.copy(actual_angle))
             actual_angle += delta
+    new_joint_angles_list.append(joint_angles_list[-1])
     return np.array(new_joint_angles_list)
 
 def list_to_string(vec):
@@ -357,33 +342,41 @@ def find_object_in_world(world, new_object):
         object_nodes.append(list_to_string(find_closest_point(node, kdtree)))
     return object_nodes
 
+def find_trajectory_in_world(world, tra):
+    kdtree = cKDTree(world.get_nodes())
+    world_nodes = []
+    for node in tra:
+        world_nodes.append(find_closest_point(node, kdtree))
+    return world_nodes
+
 if __name__ == "__main__":
 
-    flag = "object-in-robot-graph"
+    flag = "path-planning"
     # flag = "explore-world"
+    # flag = "object-in-robot-graph"
 
     #Read robot configuration from the .yaml filerobot_graphs
     file_path = "./robot_configuration_files/qt.yaml"
     qt = robot.Robot()
     qt.import_robot(file_path)
     robot_graphs = createRobotGraphs(qt)
-    length = 0.012
-    height = np.sqrt(2/3) * length
+    length = 10
+    # height = np.sqrt(2/3) * length
 
     if flag == "explore-world":
         # Define parameter of the world and create one with cubic structure
-        lowEdge = np.array([-1, -1, 0]) # -1, -1, 0
-        highEdge = np.array([1, 1, 1])
+        lowEdge = np.array([-450, -450, 100]) # -1, -1, 0
+        highEdge = np.array([450, 450, 700])
         graph_world = createWorldCubes(lowEdge, highEdge, length)
         # graph_world.save_graph_to_file("test")
         name = 'qt'
         # graph_world = world_graph.Graph()
         # graph_world.read_graph_from_file("test")
         # graph_world.plot_graph()
-        print("BEFORE READ BABBLING")
         babbing_path = "self_exploration_qt_100.txt"
         joint_angles = read_babbling(babbing_path)
         new_list = angle_interpolation(joint_angles)
+        print("AFTER INTERPOLATION")
         pos_left, pos_right, pos_head = forward_kinematics_n_frames(name, qt, new_list)
         print("AFTER FK")
         # s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
@@ -395,20 +388,19 @@ if __name__ == "__main__":
         for key in tqdm(robot_world):
             robot_world[key].save_graph_to_file(key)
             robot_world[key].read_graph_from_file(key)
+            robot_world[key].plot_graph()
 
     elif flag == "create-object":
-        lowEdge = np.array([-0.05, 0.0, 0.04]) # -1, -1, 0
-        highEdge = np.array([0.04, 0.03, 0.09])
-        # lowEdge = np.array([-1, -1, 0]) # -1, -1, 0
-        # highEdge = np.array([1, 1, 1])
-        object = world_graph.Graph()
-        object.save_object_to_file("object_2")
+        lowEdge = np.array([-60, 100, 140])
+        highEdge = np.array([50, 170, 160])
+        object = createWorldCubes(lowEdge, highEdge, length)
+        object.save_object_to_file("object_1")
         # object.read_object_from_file("object_1")
         object.plot_graph()
 
     elif flag == "object-in-robot-graph":
-        lowEdge = np.array([-1, -1, 0]) # -1, -1, 0
-        highEdge = np.array([1, 1, 1])
+        lowEdge = np.array([-450, -450, 100])
+        highEdge = np.array([450, 450, 700])
         graph_world = createWorldCubes(lowEdge, highEdge, length)
         object = world_graph.Graph()
         object.read_object_from_file("object_1")
@@ -424,21 +416,23 @@ if __name__ == "__main__":
         frames = readTxtFile("./data/angles.txt")
         joint_angles = divideFrames(frames)
 
-    elif flag == "read-graphs":
+    elif flag == "path-planning":
         dict_error = {}
+        lowEdge = np.array([-450, -450, 100])
+        highEdge = np.array([450, 450, 700])
+        graph_world = createWorldCubes(lowEdge, highEdge, length)
+
         for key in robot_graphs:
             robot_graphs[key].read_graph_from_file(key)
-            # generated_trajectory = simulateTrajectory()
-            generated_trajectory = personalised_random_points(robot_graphs[key], length)
+            generated_trajectory = personalised_random_points(robot_graphs[key])
             # robot_graphs[key].plot_graph(generated_trajectory)
             # tra = approximateTrajectory(generated_trajectory, robot_graphs[key])
-            # plotPath(key, generated_trajectory, np.asarray(tra))
+            new_tra = find_trajectory_in_world(graph_world, generated_trajectory)
             if robot_graphs[key].number_of_nodes() > 1:
-                tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
-                dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
-        plot_error(dict_error)
-
-    #Simulate trajectory and store nodes in robot graph
-    # generated_trajectory = simulateTrajectory()
-    # robot_world.plot_graph(generated_trajectory)
-    # plotPath(generated_trajectory, np.asarray(path))
+                print(key)
+                candidate_nodes = robot_graphs[key].find_trajectory_shared_nodes(new_tra)
+                neighbors_candidates = robot_graphs[key].find_neighbors_candidates(candidate_nodes)
+                # plotPath(key, generated_trajectory, np.asarray(new_tra), np.asarray(candidate_nodes))
+        #         tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
+        #         dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
+        # plot_error(dict_error)

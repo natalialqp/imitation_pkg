@@ -311,7 +311,7 @@ class Robot(object):
         return left_distances, right_distances, head_distances
 
 if __name__ == "__main__":
-    file_path = "./robot_configuration_files/gen3.yaml"
+    file_path = "./robot_configuration_files/qt.yaml"
     qt = Robot()
     qt.import_robot(file_path)
     # angles = np.array([ 1.52367249, -1.29154365, -0.2268928, -1.54636169, -1.41022609, -0.14137168, 0.03839724, 0.00523599])
@@ -351,16 +351,23 @@ if __name__ == "__main__":
     right = []
     head = []
     for i in range(0, 370, 10):
-        angles = np.array([np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
-            np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
+        # angles = np.array([np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
+        #     np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
 
-            np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
-            np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
+        #     np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
+        #     np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
+        # angles = np.array([np.deg2rad(-90), np.deg2rad(50), np.deg2rad(-0), np.deg2rad(-88), np.deg2rad(-100),
+        #                np.deg2rad(-90), np.deg2rad(-50), np.deg2rad(-0), np.deg2rad(88), np.deg2rad(-100),
+        #                np.deg2rad(0), np.deg2rad(0)])
 
-        pos_left, pos_right, pos_head = qt.forward_kinematics_kinova(angles)
+        # angles = np.array([np.deg2rad(80.18695652), np.deg2rad(-71.84782609), np.deg2rad(-10.6), np.deg2rad(-73.8), np.deg2rad(-68.94782609), np.deg2rad(-7.34347826), np.deg2rad(23.76086957), np.deg2rad(23.34347826)])
+        # angles = np.array([np.deg2rad(79.99130435), np.deg2rad(-71.56521739), np.deg2rad(-11.6), np.deg2rad(-73.3), np.deg2rad(-69.16521739), np.deg2rad(-7.49565217), np.deg2rad(23.67391304), np.deg2rad(22.49565217)])
+        angles = np.array([np.deg2rad(80.5), np.deg2rad(-72.3), np.deg2rad(-9.0), np.deg2rad(-74.6), np.deg2rad(-68.6), np.deg2rad(-7.1), np.deg2rad(23.9), np.deg2rad(24.7)])
+        pos_left, pos_right, pos_head = qt.forward_kinematics_qt(angles)
         left.append(pos_left)
         right.append(pos_right)
         head.append(pos_head)
+    print(pos_left, pos_right, pos_head)
 
     # s = simulate_position.RobotSimulation([pos_left], [pos_right], [pos_head])
     s = simulate_position.RobotSimulation(left, right, head)

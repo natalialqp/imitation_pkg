@@ -15,6 +15,11 @@ class Graph(object):
         self.objects_in_world = {}
         self.key = key
 
+    def get_all_nodes_attr(self, attr):
+        nodes = self.get_nodes()
+        node_values = [self.get_node_attr(node, attr) for node in nodes]
+        return node_values
+
     def get_node_attr(self, node, attr):
         # new_node = self.list_to_string(node)
         return self.G.nodes[node][attr]
@@ -193,7 +198,7 @@ class Graph(object):
         data = np.array(aux_data.split())
         return list(data[0:3].astype(float))
 
-    def plot_graph(self, trajectory = []):
+    def plot_graph(self, trajectory = [], candidates = []):
         # Create the 3D figure
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
@@ -204,8 +209,16 @@ class Graph(object):
             ydata = trajectory[:, 1]
             zdata = trajectory[:, 2]
             ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+                # Plot edges between the points
+            for i in range(len(xdata) - 1):
+                ax.plot([xdata[i], xdata[i+1]], [ydata[i], ydata[i+1]], [zdata[i], zdata[i+1]], c='blue')
+        if len(candidates):
+            xdata = candidates[:, 0]
+            ydata = candidates[:, 1]
+            zdata = candidates[:, 2]
+            ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Reds')
 
-        # Plot the nodes
+           # Plot the nodes
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
             xyz_rounded = tuple(round(coord, 3) for coord in self.get_node_attr(xyz, "value"))
             ax.scatter(*xyz_rounded, s=100, ec="w", cmap='Greens')
@@ -232,11 +245,21 @@ class Graph(object):
             ax.grid(True)
             # Set axes labels
             ax.set_title(self.key)
-            ax.set_xlabel("\n X [m]", linespacing=3.2)
-            ax.set_ylabel("\n Y [m]", linespacing=3.2)
-            ax.set_zlabel("\n Z [m]", linespacing=3.2)
+            ax.set_xlabel("\n X [mm]", linespacing=3.2)
+            ax.set_ylabel("\n Y [mm]", linespacing=3.2)
+            ax.set_zlabel("\n Z [mm]", linespacing=3.2)
 
         _format_axes(ax)
         fig.tight_layout()
         # plt.savefig(key + ".pdf", format="pdf")
         plt.show()
+
+    def find_neighbors(self, node):
+        return self.G.neighbors(self.list_to_string(node))
+
+    def find_neighbors_candidates(self, nodes):
+        return [self.find_neighbors(node) for node in nodes]
+
+    def find_trajectory_shared_nodes(self, tra):
+        kdtree = self.get_nodes()
+        return [point for point in tra if self.list_to_string(point) not in kdtree]

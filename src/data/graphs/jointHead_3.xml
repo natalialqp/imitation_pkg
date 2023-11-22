@@ -1,118 +1,227 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <graph>
-  <node id="[0.092, 0.02, 0.6]" value= "[0.092 0.02  0.6  ]" occupied="False" joint_dependency="{'angle_1': 0.2, 'angle_2': -0.01}"/>
-  <node id="[0.056, -0.124, 0.576]" value= "[ 0.056 -0.124  0.576]" occupied="False" joint_dependency="{'angle_1': 5.2, 'angle_2': 0.26}"/>
-  <node id="[-0.124, 0.056, 0.564]" value= "[-0.124  0.056  0.564]" occupied="False" joint_dependency="{'angle_1': 5.9, 'angle_2': 4.94}"/>
-  <node id="[0.116, 0.128, 0.48]" value= "[0.116 0.128 0.48 ]" occupied="False" joint_dependency="{'angle_1': 7.1, 'angle_2': 0.8}"/>
-  <node id="[0.044, -0.016, 0.624]" value= "[ 0.044 -0.016  0.624]" occupied="False" joint_dependency="{'angle_1': 2.6, 'angle_2': 11.8}"/>
-  <node id="[0.08, 0.092, 0.288]" value= "[0.08  0.092 0.288]" occupied="False" joint_dependency="{'angle_1': 16.6, 'angle_2': 3.32}"/>
-  <node id="[0.08, -0.172, 0.456]" value= "[ 0.08  -0.172  0.456]" occupied="False" joint_dependency="{'angle_1': 8.3, 'angle_2': 4.26}"/>
-  <node id="[0.044, 0.056, 0.264]" value= "[0.044 0.056 0.264]" occupied="False" joint_dependency="{'angle_1': 19.86, 'angle_2': 14.8}"/>
-  <node id="[-0.016, 0.032, 0.252]" value= "[-0.016  0.032  0.252]" occupied="False" joint_dependency="{'angle_1': 11.64, 'angle_2': 15.4}"/>
-  <node id="[-0.172, 0.032, 0.372]" value= "[-0.172  0.032  0.372]" occupied="False" joint_dependency="{'angle_1': 18.7, 'angle_2': 16.38}"/>
-  <node id="[-0.16, 0.056, 0.504]" value= "[-0.16   0.056  0.504]" occupied="False" joint_dependency="{'angle_1': 18.51, 'angle_2': 23.4}"/>
-  <node id="[-0.076, -0.028, 0.6]" value= "[-0.076 -0.028  0.6  ]" occupied="False" joint_dependency="{'angle_1': 25.5, 'angle_2': 17.9}"/>
-  <node id="[0.032, -0.004, 0.252]" value= "[ 0.032 -0.004  0.252]" occupied="False" joint_dependency="{'angle_1': 25.21, 'angle_2': 21.33}"/>
-  <node id="[-0.064, -0.016, 0.264]" value= "[-0.064 -0.016  0.264]" occupied="False" joint_dependency="{'angle_1': 25.5, 'angle_2': 21.8}"/>
-  <node id="[0.092, -0.124, 0.54]" value= "[ 0.092 -0.124  0.54 ]" occupied="False" joint_dependency="{'angle_1': 21.04, 'angle_2': 17.34}"/>
-  <node id="[0.176, 0.056, 0.384]" value= "[0.176 0.056 0.384]" occupied="False" joint_dependency="{'angle_1': 25.5, 'angle_2': 20.2}"/>
-  <node id="[0.008, -0.184, 0.384]" value= "[ 0.008 -0.184  0.384]" occupied="False" joint_dependency="{'angle_1': 20.5, 'angle_2': 16.5}"/>
-  <node id="[-0.196, -0.016, 0.408]" value= "[-0.196 -0.016  0.408]" occupied="False" joint_dependency="{'angle_1': 15.74, 'angle_2': 20.02}"/>
-  <node id="[0.068, -0.124, 0.564]" value= "[ 0.068 -0.124  0.564]" occupied="False" joint_dependency="{'angle_1': 20.92, 'angle_2': 11.2}"/>
-  <node id="[-0.1, -0.16, 0.432]" value= "[-0.1   -0.16   0.432]" occupied="False" joint_dependency="{'angle_1': 23.01, 'angle_2': 19.9}"/>
-  <node id="[0.176, 0.068, 0.48]" value= "[0.176 0.068 0.48 ]" occupied="False" joint_dependency="{'angle_1': 25.52, 'angle_2': 19.64}"/>
-  <node id="[0.152, 0.116, 0.456]" value= "[0.152 0.116 0.456]" occupied="False" joint_dependency="{'angle_1': 25.8, 'angle_2': 19.79}"/>
-  <node id="[0.14, 0.104, 0.384]" value= "[0.14  0.104 0.384]" occupied="False" joint_dependency="{'angle_1': 25.8, 'angle_2': 20.2}"/>
-  <node id="[0.044, -0.028, 0.252]" value= "[ 0.044 -0.028  0.252]" occupied="False" joint_dependency="{'angle_1': 21.41, 'angle_2': 15.46}"/>
-  <node id="[0.176, -0.052, 0.456]" value= "[ 0.176 -0.052  0.456]" occupied="False" joint_dependency="{'angle_1': 24.87, 'angle_2': 19.8}"/>
-  <node id="[0.092, 0.032, 0.264]" value= "[0.092 0.032 0.264]" occupied="False" joint_dependency="{'angle_1': 25.44, 'angle_2': 20.93}"/>
-  <node id="[0.116, -0.136, 0.492]" value= "[ 0.116 -0.136  0.492]" occupied="False" joint_dependency="{'angle_1': 21.15, 'angle_2': 23.32}"/>
-  <node id="[0.032, 0.02, 0.624]" value= "[0.032 0.02  0.624]" occupied="False" joint_dependency="{'angle_1': 25.8, 'angle_2': 18.5}"/>
-  <node id="[0.008, -0.016, 0.624]" value= "[ 0.008 -0.016  0.624]" occupied="False" joint_dependency="{'angle_1': 24.35, 'angle_2': 18.4}"/>
-  <node id="[0.056, -0.04, 0.264]" value= "[ 0.056 -0.04   0.264]" occupied="False" joint_dependency="{'angle_1': 18.28, 'angle_2': 14.8}"/>
-  <node id="[-0.148, -0.076, 0.516]" value= "[-0.148 -0.076  0.516]" occupied="False" joint_dependency="{'angle_1': 19.3, 'angle_2': 17.2}"/>
-  <node id="[0.152, -0.076, 0.516]" value= "[ 0.152 -0.076  0.516]" occupied="False" joint_dependency="{'angle_1': 21.54, 'angle_2': 17.2}"/>
-  <node id="[-0.04, -0.076, 0.612]" value= "[-0.04  -0.076  0.612]" occupied="False" joint_dependency="{'angle_1': 23.08, 'angle_2': 18.75}"/>
-  <node id="[-0.1, -0.136, 0.504]" value= "[-0.1   -0.136  0.504]" occupied="False" joint_dependency="{'angle_1': 19.8, 'angle_2': 17.1}"/>
-  <node id="[-0.028, 0.056, 0.612]" value= "[-0.028  0.056  0.612]" occupied="False" joint_dependency="{'angle_1': 21.08, 'angle_2': 18.63}"/>
-  <node id="[-0.124, -0.076, 0.564]" value= "[-0.124 -0.076  0.564]" occupied="False" joint_dependency="{'angle_1': 22.54, 'angle_2': 19.19}"/>
-  <node id="[0.02, -0.16, 0.336]" value= "[ 0.02  -0.16   0.336]" occupied="False" joint_dependency="{'angle_1': 20.51, 'angle_2': 16.24}"/>
-  <node id="[-0.148, 0.08, 0.516]" value= "[-0.148  0.08   0.516]" occupied="False" joint_dependency="{'angle_1': 15.2, 'angle_2': 19.5}"/>
-  <node id="[-0.04, 0.104, 0.576]" value= "[-0.04   0.104  0.576]" occupied="False" joint_dependency="{'angle_1': 20.8, 'angle_2': 19.0}"/>
-  <node id="[-0.016, -0.016, 0.624]" value= "[-0.016 -0.016  0.624]" occupied="False" joint_dependency="{'angle_1': 25.71, 'angle_2': 18.26}"/>
-  <node id="[0.092, 0.164, 0.456]" value= "[0.092 0.164 0.456]" occupied="False" joint_dependency="{'angle_1': 23.02, 'angle_2': 23.2}"/>
-  <node id="[-0.16, 0.032, 0.336]" value= "[-0.16   0.032  0.336]" occupied="False" joint_dependency="{'angle_1': 24.95, 'angle_2': 22.51}"/>
-  <node id="[-0.016, 0.152, 0.324]" value= "[-0.016  0.152  0.324]" occupied="False" joint_dependency="{'angle_1': 23.65, 'angle_2': 22.4}"/>
-  <node id="[-0.184, -0.016, 0.384]" value= "[-0.184 -0.016  0.384]" occupied="False" joint_dependency="{'angle_1': 15.8, 'angle_2': 20.2}"/>
-  <node id="[-0.052, -0.016, 0.612]" value= "[-0.052 -0.016  0.612]" occupied="False" joint_dependency="{'angle_1': 19.2, 'angle_2': 18.04}"/>
-  <node id="[-0.076, -0.112, 0.564]" value= "[-0.076 -0.112  0.564]" occupied="False" joint_dependency="{'angle_1': 19.79, 'angle_2': 23.8}"/>
-  <node id="[0.176, 0.056, 0.516]" value= "[0.176 0.056 0.516]" occupied="False" joint_dependency="{'angle_1': 25.42, 'angle_2': 19.49}"/>
-  <node id="[-0.016, -0.004, 0.252]" value= "[-0.016 -0.004  0.252]" occupied="False" joint_dependency="{'angle_1': 25.24, 'angle_2': 21.53}"/>
-  <node id="[0.176, 0.068, 0.444]" value= "[0.176 0.068 0.444]" occupied="False" joint_dependency="{'angle_1': 25.5, 'angle_2': 19.8}"/>
-  <node id="[-0.016, 0.176, 0.384]" value= "[-0.016  0.176  0.384]" occupied="False" joint_dependency="{'angle_1': 23.68, 'angle_2': 22.8}"/>
-  <node id="[-0.172, 0.056, 0.504]" value= "[-0.172  0.056  0.504]" occupied="False" joint_dependency="{'angle_1': 24.8, 'angle_2': 23.4}"/>
-  <node id="[0.008, 0.176, 0.504]" value= "[0.008 0.176 0.504]" occupied="False" joint_dependency="{'angle_1': 23.52, 'angle_2': 23.4}"/>
-  <node id="[-0.172, -0.016, 0.504]" value= "[-0.172 -0.016  0.504]" occupied="False" joint_dependency="{'angle_1': 25.17, 'angle_2': 23.4}"/>
-  <node id="[0.008, -0.004, 0.624]" value= "[ 0.008 -0.004  0.624]" occupied="False" joint_dependency="{'angle_1': 19.2, 'angle_2': 18.39}"/>
-  <node id="[0.116, 0.128, 0.372]" value= "[0.116 0.128 0.372]" occupied="False" joint_dependency="{'angle_1': 19.66, 'angle_2': 13.96}"/>
-  <node id="[-0.076, 0.164, 0.504]" value= "[-0.076  0.164  0.504]" occupied="False" joint_dependency="{'angle_1': 17.75, 'angle_2': 17.11}"/>
-  <node id="[0.032, -0.016, 0.624]" value= "[ 0.032 -0.016  0.624]" occupied="False" joint_dependency="{'angle_1': 18.5, 'angle_2': 12.2}"/>
-  <node id="[0.02, -0.004, 0.624]" value= "[ 0.02  -0.004  0.624]" occupied="False" joint_dependency="{'angle_1': 22.2, 'angle_2': 18.2}"/>
-  <node id="[0.08, -0.04, 0.264]" value= "[ 0.08  -0.04   0.264]" occupied="False" joint_dependency="{'angle_1': 24.65, 'angle_2': 20.94}"/>
-  <node id="[0.056, 0.176, 0.384]" value= "[0.056 0.176 0.384]" occupied="False" joint_dependency="{'angle_1': 23.2, 'angle_2': 22.8}"/>
-  <node id="[0.008, -0.076, 0.6]" value= "[ 0.008 -0.076  0.6  ]" occupied="False" joint_dependency="{'angle_1': 20.54, 'angle_2': 17.87}"/>
-  <node id="[-0.004, -0.016, 0.252]" value= "[-0.004 -0.016  0.252]" occupied="False" joint_dependency="{'angle_1': 20.24, 'angle_2': 15.21}"/>
-  <node id="[-0.028, 0.104, 0.276]" value= "[-0.028  0.104  0.276]" occupied="False" joint_dependency="{'angle_1': 20.68, 'angle_2': 14.54}"/>
-  <node id="[0.176, 0.008, 0.516]" value= "[0.176 0.008 0.516]" occupied="False" joint_dependency="{'angle_1': 25.2, 'angle_2': 19.5}"/>
-  <node id="[-0.016, -0.004, 0.624]" value= "[-0.016 -0.004  0.624]" occupied="False" joint_dependency="{'angle_1': 19.2, 'angle_2': 24.55}"/>
-  <node id="[0.116, -0.028, 0.576]" value= "[ 0.116 -0.028  0.576]" occupied="False" joint_dependency="{'angle_1': 24.9, 'angle_2': 19.06}"/>
-  <node id="[-0.112, -0.016, 0.276]" value= "[-0.112 -0.016  0.276]" occupied="False" joint_dependency="{'angle_1': 25.2, 'angle_2': 22.09}"/>
-  <node id="[0.056, 0.152, 0.528]" value= "[0.056 0.152 0.528]" occupied="False" joint_dependency="{'angle_1': 20.08, 'angle_2': 13.1}"/>
-  <node id="[-0.052, 0.104, 0.576]" value= "[-0.052  0.104  0.576]" occupied="False" joint_dependency="{'angle_1': 17.7, 'angle_2': 17.6}"/>
-  <node id="[-0.016, 0.164, 0.516]" value= "[-0.016  0.164  0.516]" occupied="False" joint_dependency="{'angle_1': 23.7, 'angle_2': 17.23}"/>
-  <node id="[0.116, -0.052, 0.564]" value= "[ 0.116 -0.052  0.564]" occupied="False" joint_dependency="{'angle_1': 21.6, 'angle_2': 17.56}"/>
-  <node id="[-0.016, 0.068, 0.264]" value= "[-0.016  0.068  0.264]" occupied="False" joint_dependency="{'angle_1': 20.5, 'angle_2': 14.8}"/>
-  <node id="[-0.076, -0.172, 0.444]" value= "[-0.076 -0.172  0.444]" occupied="False" joint_dependency="{'angle_1': 23.2, 'angle_2': 13.55}"/>
-  <node id="[0.056, -0.16, 0.36]" value= "[ 0.056 -0.16   0.36 ]" occupied="False" joint_dependency="{'angle_1': 23.86, 'angle_2': 20.3}"/>
-  <node id="[0.176, 0.044, 0.48]" value= "[0.176 0.044 0.48 ]" occupied="False" joint_dependency="{'angle_1': 25.33, 'angle_2': 19.67}"/>
-  <node id="[-0.004, 0.008, 0.624]" value= "[-0.004  0.008  0.624]" occupied="False" joint_dependency="{'angle_1': 23.98, 'angle_2': 18.26}"/>
-  <node id="[0.08, 0.056, 0.6]" value= "[0.08  0.056 0.6  ]" occupied="False" joint_dependency="{'angle_1': 25.67, 'angle_2': 18.85}"/>
-  <node id="[0.104, -0.088, 0.564]" value= "[ 0.104 -0.088  0.564]" occupied="False" joint_dependency="{'angle_1': 21.32, 'angle_2': 11.2}"/>
-  <node id="[0.068, 0.02, 0.6]" value= "[0.068 0.02  0.6  ]" occupied="False" joint_dependency="{'angle_1': 16.03, 'angle_2': 17.9}"/>
-  <node id="[0.164, 0.056, 0.372]" value= "[0.164 0.056 0.372]" occupied="False" joint_dependency="{'angle_1': 16.09, 'angle_2': 16.39}"/>
-  <node id="[0.08, -0.1, 0.564]" value= "[ 0.08  -0.1    0.564]" occupied="False" joint_dependency="{'angle_1': 21.1, 'angle_2': 11.3}"/>
-  <node id="[0.128, 0.104, 0.36]" value= "[0.128 0.104 0.36 ]" occupied="False" joint_dependency="{'angle_1': 13.29, 'angle_2': 20.3}"/>
-  <node id="[-0.004, -0.004, 0.624]" value= "[-0.004 -0.004  0.624]" occupied="False" joint_dependency="{'angle_1': 25.6, 'angle_2': 12.03}"/>
-  <node id="[0.044, -0.088, 0.588]" value= "[ 0.044 -0.088  0.588]" occupied="False" joint_dependency="{'angle_1': 23.94, 'angle_2': 18.9}"/>
-  <node id="[-0.112, 0.044, 0.576]" value= "[-0.112  0.044  0.576]" occupied="False" joint_dependency="{'angle_1': 18.47, 'angle_2': 23.95}"/>
-  <node id="[0.056, -0.184, 0.42]" value= "[ 0.056 -0.184  0.42 ]" occupied="False" joint_dependency="{'angle_1': 20.7, 'angle_2': 22.95}"/>
-  <node id="[-0.016, 0.056, 0.252]" value= "[-0.016  0.056  0.252]" occupied="False" joint_dependency="{'angle_1': 20.8, 'angle_2': 14.9}"/>
-  <node id="[0.164, -0.088, 0.432]" value= "[ 0.164 -0.088  0.432]" occupied="False" joint_dependency="{'angle_1': 24.61, 'angle_2': 19.9}"/>
-  <node id="[0.104, 0.044, 0.288]" value= "[0.104 0.044 0.288]" occupied="False" joint_dependency="{'angle_1': 25.49, 'angle_2': 20.79}"/>
-  <node id="[0.02, -0.064, 0.264]" value= "[ 0.02  -0.064  0.264]" occupied="False" joint_dependency="{'angle_1': 20.77, 'angle_2': 15.5}"/>
-  <node id="[0.008, 0.044, 0.624]" value= "[0.008 0.044 0.624]" occupied="False" joint_dependency="{'angle_1': 20.2, 'angle_2': 24.8}"/>
-  <node id="[-0.004, 0.044, 0.624]" value= "[-0.004  0.044  0.624]" occupied="False" joint_dependency="{'angle_1': 20.44, 'angle_2': 24.8}"/>
-  <node id="[-0.016, -0.04, 0.252]" value= "[-0.016 -0.04   0.252]" occupied="False" joint_dependency="{'angle_1': 23.18, 'angle_2': 21.23}"/>
-  <node id="[-0.016, 0.068, 0.612]" value= "[-0.016  0.068  0.612]" occupied="False" joint_dependency="{'angle_1': 23.85, 'angle_2': 24.19}"/>
-  <edge source="[0.056, -0.124, 0.576]" target="[0.068, -0.124, 0.564]" weight="1" occupied="False"/>
-  <edge source="[0.044, -0.016, 0.624]" target="[0.032, -0.016, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.16, 0.056, 0.504]" target="[-0.172, 0.056, 0.504]" weight="1" occupied="False"/>
-  <edge source="[0.176, 0.056, 0.384]" target="[0.164, 0.056, 0.372]" weight="1" occupied="False"/>
-  <edge source="[0.008, -0.016, 0.624]" target="[0.008, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[0.008, -0.016, 0.624]" target="[0.02, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[0.008, -0.016, 0.624]" target="[-0.004, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.028, 0.056, 0.612]" target="[-0.016, 0.068, 0.612]" weight="1" occupied="False"/>
-  <edge source="[-0.04, 0.104, 0.576]" target="[-0.052, 0.104, 0.576]" weight="1" occupied="False"/>
-  <edge source="[-0.016, -0.016, 0.624]" target="[-0.016, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.016, -0.016, 0.624]" target="[-0.004, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.016, -0.004, 0.252]" target="[-0.004, -0.016, 0.252]" weight="1" occupied="False"/>
-  <edge source="[0.008, -0.004, 0.624]" target="[0.02, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[0.008, -0.004, 0.624]" target="[-0.004, 0.008, 0.624]" weight="1" occupied="False"/>
-  <edge source="[0.008, -0.004, 0.624]" target="[-0.004, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[0.032, -0.016, 0.624]" target="[0.02, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.016, -0.004, 0.624]" target="[-0.004, 0.008, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.016, -0.004, 0.624]" target="[-0.004, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[-0.016, 0.068, 0.264]" target="[-0.016, 0.056, 0.252]" weight="1" occupied="False"/>
-  <edge source="[-0.004, 0.008, 0.624]" target="[-0.004, -0.004, 0.624]" weight="1" occupied="False"/>
-  <edge source="[0.008, 0.044, 0.624]" target="[-0.004, 0.044, 0.624]" weight="1" occupied="False"/>
+  <node id="[80.0, 0.0, 600.0]" value= "[ 80.   0. 600.]" occupied="False" joint_dependency="{'angle_1': 0.07, 'angle_2': -3.15}"/>
+  <node id="[90.0, 0.0, 600.0]" value= "[ 90.   0. 600.]" occupied="False" joint_dependency="{'angle_1': 2.2, 'angle_2': 0.11}"/>
+  <node id="[90.0, 10.0, 600.0]" value= "[ 90.  10. 600.]" occupied="False" joint_dependency="{'angle_1': 5.9, 'angle_2': 0.3}"/>
+  <node id="[100.0, 10.0, 590.0]" value= "[100.  10. 590.]" occupied="False" joint_dependency="{'angle_1': 5.87, 'angle_2': 3.8}"/>
+  <node id="[110.0, 10.0, 590.0]" value= "[110.  10. 590.]" occupied="False" joint_dependency="{'angle_1': 7.9, 'angle_2': 5.21}"/>
+  <node id="[110.0, 10.0, 580.0]" value= "[110.  10. 580.]" occupied="False" joint_dependency="{'angle_1': 4.24, 'angle_2': 7.8}"/>
+  <node id="[120.0, 10.0, 580.0]" value= "[120.  10. 580.]" occupied="False" joint_dependency="{'angle_1': 6.6, 'angle_2': 9.38}"/>
+  <node id="[130.0, 10.0, 570.0]" value= "[130.  10. 570.]" occupied="False" joint_dependency="{'angle_1': 2.6, 'angle_2': 11.8}"/>
+  <node id="[120.0, 10.0, 570.0]" value= "[120.  10. 570.]" occupied="False" joint_dependency="{'angle_1': 3.6, 'angle_2': 11.19}"/>
+  <node id="[120.0, 20.0, 580.0]" value= "[120.  20. 580.]" occupied="False" joint_dependency="{'angle_1': 10.69, 'angle_2': 10.4}"/>
+  <node id="[110.0, 20.0, 580.0]" value= "[110.  20. 580.]" occupied="False" joint_dependency="{'angle_1': 9.9, 'angle_2': 8.43}"/>
+  <node id="[110.0, 20.0, 590.0]" value= "[110.  20. 590.]" occupied="False" joint_dependency="{'angle_1': 8.4, 'angle_2': 6.01}"/>
+  <node id="[110.0, 30.0, 590.0]" value= "[110.  30. 590.]" occupied="False" joint_dependency="{'angle_1': 13.6, 'angle_2': 5.14}"/>
+  <node id="[100.0, 30.0, 590.0]" value= "[100.  30. 590.]" occupied="False" joint_dependency="{'angle_1': 14.3, 'angle_2': 3.35}"/>
+  <node id="[100.0, 20.0, 590.0]" value= "[100.  20. 590.]" occupied="False" joint_dependency="{'angle_1': 9.3, 'angle_2': 4.11}"/>
+  <node id="[120.0, 20.0, 570.0]" value= "[120.  20. 570.]" occupied="False" joint_dependency="{'angle_1': 11.07, 'angle_2': 12.4}"/>
+  <node id="[130.0, 30.0, 570.0]" value= "[130.  30. 570.]" occupied="False" joint_dependency="{'angle_1': 11.45, 'angle_2': 14.4}"/>
+  <node id="[130.0, 30.0, 560.0]" value= "[130.  30. 560.]" occupied="False" joint_dependency="{'angle_1': 14.7, 'angle_2': 15.99}"/>
+  <node id="[130.0, 40.0, 560.0]" value= "[130.  40. 560.]" occupied="False" joint_dependency="{'angle_1': 18.6, 'angle_2': 16.91}"/>
+  <node id="[130.0, 50.0, 560.0]" value= "[130.  50. 560.]" occupied="False" joint_dependency="{'angle_1': 20.38, 'angle_2': 18.8}"/>
+  <node id="[140.0, 50.0, 550.0]" value= "[140.  50. 550.]" occupied="False" joint_dependency="{'angle_1': 20.26, 'angle_2': 22.8}"/>
+  <node id="[130.0, 60.0, 550.0]" value= "[130.  60. 550.]" occupied="False" joint_dependency="{'angle_1': 23.59, 'angle_2': 21.65}"/>
+  <node id="[130.0, 60.0, 560.0]" value= "[130.  60. 560.]" occupied="False" joint_dependency="{'angle_1': 23.47, 'angle_2': 18.53}"/>
+  <node id="[140.0, 40.0, 560.0]" value= "[140.  40. 560.]" occupied="False" joint_dependency="{'angle_1': 15.6, 'angle_2': 19.01}"/>
+  <node id="[140.0, 40.0, 550.0]" value= "[140.  40. 550.]" occupied="False" joint_dependency="{'angle_1': 15.8, 'angle_2': 20.2}"/>
+  <node id="[130.0, 40.0, 570.0]" value= "[130.  40. 570.]" occupied="False" joint_dependency="{'angle_1': 17.63, 'angle_2': 15.3}"/>
+  <node id="[120.0, 40.0, 570.0]" value= "[120.  40. 570.]" occupied="False" joint_dependency="{'angle_1': 18.5, 'angle_2': 14.3}"/>
+  <node id="[110.0, 40.0, 580.0]" value= "[110.  40. 580.]" occupied="False" joint_dependency="{'angle_1': 21.1, 'angle_2': 10.9}"/>
+  <node id="[120.0, 50.0, 570.0]" value= "[120.  50. 570.]" occupied="False" joint_dependency="{'angle_1': 20.5, 'angle_2': 14.8}"/>
+  <node id="[120.0, 50.0, 560.0]" value= "[120.  50. 560.]" occupied="False" joint_dependency="{'angle_1': 22.07, 'angle_2': 15.9}"/>
+  <node id="[140.0, 60.0, 550.0]" value= "[140.  60. 550.]" occupied="False" joint_dependency="{'angle_1': 23.76, 'angle_2': 23.34}"/>
+  <node id="[140.0, 50.0, 540.0]" value= "[140.  50. 540.]" occupied="False" joint_dependency="{'angle_1': 21.04, 'angle_2': 24.09}"/>
+  <node id="[130.0, 50.0, 550.0]" value= "[130.  50. 550.]" occupied="False" joint_dependency="{'angle_1': 20.35, 'angle_2': 19.8}"/>
+  <node id="[150.0, 50.0, 540.0]" value= "[150.  50. 540.]" occupied="False" joint_dependency="{'angle_1': 18.9, 'angle_2': 24.8}"/>
+  <node id="[110.0, 50.0, 580.0]" value= "[110.  50. 580.]" occupied="False" joint_dependency="{'angle_1': 21.5, 'angle_2': 10.9}"/>
+  <node id="[140.0, 30.0, 560.0]" value= "[140.  30. 560.]" occupied="False" joint_dependency="{'angle_1': 14.16, 'angle_2': 19.3}"/>
+  <node id="[140.0, 30.0, 550.0]" value= "[140.  30. 550.]" occupied="False" joint_dependency="{'angle_1': 13.6, 'angle_2': 20.4}"/>
+  <node id="[130.0, 50.0, 570.0]" value= "[130.  50. 570.]" occupied="False" joint_dependency="{'angle_1': 20.6, 'angle_2': 15.52}"/>
+  <node id="[110.0, 60.0, 570.0]" value= "[110.  60. 570.]" occupied="False" joint_dependency="{'angle_1': 26.19, 'angle_2': 12.4}"/>
+  <node id="[120.0, 60.0, 570.0]" value= "[120.  60. 570.]" occupied="False" joint_dependency="{'angle_1': 25.27, 'angle_2': 15.4}"/>
+  <node id="[120.0, 60.0, 560.0]" value= "[120.  60. 560.]" occupied="False" joint_dependency="{'angle_1': 24.97, 'angle_2': 16.4}"/>
+  <node id="[140.0, 60.0, 540.0]" value= "[140.  60. 540.]" occupied="False" joint_dependency="{'angle_1': 23.9, 'angle_2': 24.7}"/>
+  <edge source="[80.0, 0.0, 600.0]" target="[90.0, 0.0, 600.0]" weight="1" occupied="False"/>
+  <edge source="[80.0, 0.0, 600.0]" target="[90.0, 10.0, 600.0]" weight="1" occupied="False"/>
+  <edge source="[90.0, 0.0, 600.0]" target="[90.0, 10.0, 600.0]" weight="1" occupied="False"/>
+  <edge source="[90.0, 0.0, 600.0]" target="[100.0, 10.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[90.0, 10.0, 600.0]" target="[100.0, 10.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[90.0, 10.0, 600.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 10.0, 590.0]" target="[110.0, 10.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 10.0, 590.0]" target="[110.0, 10.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 10.0, 590.0]" target="[110.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 10.0, 590.0]" target="[110.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 10.0, 590.0]" target="[100.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 10.0, 590.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[110.0, 10.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[120.0, 10.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[120.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[110.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[110.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[110.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 590.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[120.0, 10.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[120.0, 10.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[120.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[110.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[110.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 10.0, 580.0]" target="[120.0, 20.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 580.0]" target="[130.0, 10.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 580.0]" target="[120.0, 10.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 580.0]" target="[120.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 580.0]" target="[110.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 580.0]" target="[110.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 580.0]" target="[120.0, 20.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 10.0, 570.0]" target="[120.0, 10.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 10.0, 570.0]" target="[120.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 10.0, 570.0]" target="[120.0, 20.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 10.0, 570.0]" target="[130.0, 30.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 570.0]" target="[120.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 570.0]" target="[110.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 10.0, 570.0]" target="[120.0, 20.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 580.0]" target="[110.0, 20.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 580.0]" target="[110.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 580.0]" target="[110.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 580.0]" target="[120.0, 20.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 580.0]" target="[130.0, 30.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 580.0]" target="[110.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 580.0]" target="[110.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 580.0]" target="[100.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 580.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 580.0]" target="[120.0, 20.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 580.0]" target="[110.0, 40.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 590.0]" target="[110.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 590.0]" target="[100.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 20.0, 590.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 30.0, 590.0]" target="[100.0, 30.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 30.0, 590.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 30.0, 590.0]" target="[110.0, 40.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 30.0, 590.0]" target="[100.0, 20.0, 590.0]" weight="1" occupied="False"/>
+  <edge source="[100.0, 30.0, 590.0]" target="[110.0, 40.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 570.0]" target="[130.0, 30.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 570.0]" target="[130.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 20.0, 570.0]" target="[120.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[130.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[130.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[140.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[130.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[120.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[140.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 570.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[130.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[130.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[140.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[140.0, 40.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[130.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[120.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[140.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 30.0, 560.0]" target="[140.0, 30.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[130.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[140.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[130.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[140.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[140.0, 40.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[130.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[120.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[120.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[140.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[140.0, 30.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 560.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[140.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[130.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[130.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[140.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[140.0, 40.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[130.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[120.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[120.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[140.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 560.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[130.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[130.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[140.0, 40.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[140.0, 40.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[140.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[140.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[150.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[140.0, 30.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 550.0]" target="[140.0, 60.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[130.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[140.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[140.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 550.0]" target="[140.0, 60.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[120.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[140.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 60.0, 560.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 560.0]" target="[140.0, 40.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 560.0]" target="[130.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 560.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 560.0]" target="[140.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 560.0]" target="[140.0, 30.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 560.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 550.0]" target="[140.0, 60.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 550.0]" target="[140.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 550.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 550.0]" target="[150.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 550.0]" target="[140.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 40.0, 550.0]" target="[140.0, 30.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 570.0]" target="[120.0, 40.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 570.0]" target="[120.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 570.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 570.0]" target="[140.0, 30.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 40.0, 570.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 40.0, 570.0]" target="[110.0, 40.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 40.0, 570.0]" target="[120.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 40.0, 570.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 40.0, 570.0]" target="[110.0, 50.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 40.0, 570.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 40.0, 570.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 40.0, 580.0]" target="[120.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 40.0, 580.0]" target="[110.0, 50.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 570.0]" target="[120.0, 50.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 570.0]" target="[110.0, 50.0, 580.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 570.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 570.0]" target="[110.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 570.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 570.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 560.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 560.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 560.0]" target="[110.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 560.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 50.0, 560.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 60.0, 550.0]" target="[140.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 60.0, 550.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 60.0, 550.0]" target="[150.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 60.0, 550.0]" target="[140.0, 60.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 540.0]" target="[130.0, 50.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 540.0]" target="[150.0, 50.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 50.0, 540.0]" target="[140.0, 60.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 550.0]" target="[130.0, 50.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 550.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 550.0]" target="[140.0, 60.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[150.0, 50.0, 540.0]" target="[140.0, 60.0, 540.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 50.0, 580.0]" target="[110.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 50.0, 580.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[140.0, 30.0, 560.0]" target="[140.0, 30.0, 550.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 570.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[130.0, 50.0, 570.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 60.0, 570.0]" target="[120.0, 60.0, 570.0]" weight="1" occupied="False"/>
+  <edge source="[110.0, 60.0, 570.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
+  <edge source="[120.0, 60.0, 570.0]" target="[120.0, 60.0, 560.0]" weight="1" occupied="False"/>
 </graph>

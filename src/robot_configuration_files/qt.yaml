@@ -8,11 +8,10 @@ base:
   base-angle: [0, 0, 0]
 
 distances-head:
-  head-yaw: [0, 0, 0.338]
-  collar: [0, 0, 0.058]
-  head-pitch: [0, 0, 0.0382]
-  #head-pitch: [0, 0, 0.0962]
-  camera: [0.094, 0, 0.162]
+  head-yaw: [0, 0, 338]
+  collar: [0, 0, 58]
+  head-pitch: [0, 0, 38.2]
+  camera: [94, 0, 162]
 
 angles-head:
   head-yaw: [0, 0, 0]
@@ -21,11 +20,11 @@ angles-head:
   camera: [-1.5708, 0, -1.5708]
 
 distances-left-arm:
-  collar: [0, 0, 0.396]
-  shoulder-pitch: [0, 0.08, 0]
-  shoulder-roll: [0, 0.0445, 0]
-  elbow: [0, 0.07708, 0]
-  hand: [0, 0.184, 0]
+  collar: [0, 0, 396]
+  shoulder-pitch: [0, 80, 0]
+  shoulder-roll: [0, 44.5, 0]
+  elbow: [0, 77.08, 0]
+  hand: [0, 184, 0]
 
 angles-left-arm:
   collar: [0, 0, 0]
@@ -35,11 +34,11 @@ angles-left-arm:
   hand: [1.5708, 0, 1.5708]
 
 distances-right-arm:
-  collar: [0, 0, 0.396]
-  shoulder-pitch: [0, -0.08, 0]
-  shoulder-roll: [0, 0.0445, 0]
-  elbow: [0, 0.07708, 0]
-  hand: [0, 0.184, 0]
+  collar: [0, 0, 396]
+  shoulder-pitch: [0, -80, 0]
+  shoulder-roll: [0, 44.5, 0]
+  elbow: [0, 77.08, 0]
+  hand: [0, 184, 0]
 
 angles-right-arm:
   collar: [0, 0, 0]
