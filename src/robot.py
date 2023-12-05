@@ -226,23 +226,23 @@ class Robot(object):
 
         leftArmAngles["torso"] = self.leftArmAngles["torso"]
         leftArmAngles["base"] = self.leftArmAngles["base"]
-        leftArmAngles["shoulder_link"] = self.leftArmAngles["shoulder_link"] + np.array([0, 0, angles[0]])
-        leftArmAngles["half_arm_1_link"] = self.leftArmAngles["half_arm_1_link"] + np.array([0, angles[1], 0]) #check
+        leftArmAngles["shoulder_link"] = self.leftArmAngles["shoulder_link"] - np.array([0, 0, angles[0]])
+        leftArmAngles["half_arm_1_link"] = self.leftArmAngles["half_arm_1_link"] + np.array([0, angles[1], 0])
         leftArmAngles["half_arm_2_link"] = self.leftArmAngles["half_arm_2_link"] + np.array([0, angles[2], 0])
-        leftArmAngles["forearm_link"] = self.leftArmAngles["forearm_link"] + np.array([0, 0, angles[3]])       #check
+        leftArmAngles["forearm_link"] = self.leftArmAngles["forearm_link"] + np.array([0, angles[3], 0])
         leftArmAngles["spherical_wrist_1_link"] = self.leftArmAngles["spherical_wrist_1_link"] + np.array([0, angles[4], 0])
-        leftArmAngles["spherical_wrist_2_link"] = self.leftArmAngles["spherical_wrist_2_link"] + np.array([0, angles[5], 0]) #check
-        leftArmAngles["bracelet_link"] = self.leftArmAngles["bracelet_link"] - np.array([0, angles[6], 0])
+        leftArmAngles["spherical_wrist_2_link"] = self.leftArmAngles["spherical_wrist_2_link"] + np.array([0, angles[5], 0])
+        leftArmAngles["bracelet_link"] = self.leftArmAngles["bracelet_link"] + np.array([0, angles[6], 0])
         leftArmAngles["end_effector_link"] = self.leftArmAngles["end_effector_link"]
 
         rightArmAngles["torso"] = self.rightArmAngles["torso"]
         rightArmAngles["base"] = self.rightArmAngles["base"]
-        rightArmAngles["shoulder_link"] = self.rightArmAngles["shoulder_link"] + np.array([0, 0, angles[7]])
-        rightArmAngles["half_arm_1_link"] = self.rightArmAngles["half_arm_1_link"] + np.array([0, angles[8], 0]) #check
+        rightArmAngles["shoulder_link"] = self.rightArmAngles["shoulder_link"] - np.array([0, 0, angles[7]])
+        rightArmAngles["half_arm_1_link"] = self.rightArmAngles["half_arm_1_link"] + np.array([0, angles[8], 0])
         rightArmAngles["half_arm_2_link"] = self.rightArmAngles["half_arm_2_link"] + np.array([0, angles[9], 0])
-        rightArmAngles["forearm_link"] = self.rightArmAngles["forearm_link"] + np.array([0, 0, angles[10]])       #check
+        rightArmAngles["forearm_link"] = self.rightArmAngles["forearm_link"] + np.array([0, angles[10], 0])
         rightArmAngles["spherical_wrist_1_link"] = self.rightArmAngles["spherical_wrist_1_link"] + np.array([0,  angles[11], 0])
-        rightArmAngles["spherical_wrist_2_link"] = self.rightArmAngles["spherical_wrist_2_link"] + np.array([0, angles[12], 0]) #check
+        rightArmAngles["spherical_wrist_2_link"] = self.rightArmAngles["spherical_wrist_2_link"] + np.array([0, angles[12], 0])
         rightArmAngles["bracelet_link"] = self.rightArmAngles["bracelet_link"] + np.array([0, angles[13], 0])
         rightArmAngles["end_effector_link"] = self.rightArmAngles["end_effector_link"]
 
@@ -311,7 +311,7 @@ class Robot(object):
         return left_distances, right_distances, head_distances
 
 if __name__ == "__main__":
-    file_path = "./robot_configuration_files/qt.yaml"
+    file_path = "./robot_configuration_files/gen3.yaml"
     qt = Robot()
     qt.import_robot(file_path)
     # angles = np.array([ 1.52367249, -1.29154365, -0.2268928, -1.54636169, -1.41022609, -0.14137168, 0.03839724, 0.00523599])
@@ -342,32 +342,36 @@ if __name__ == "__main__":
         [-0.71221313, -0.69591499, 0.09194987],
         [0.68484935, -0.71761021, -0.12655814]])
 
-    r = R.from_matrix(ri)
-    l = R.from_matrix(le)
-    # qt.leftArmAngles["base"] = l.as_euler('xyz', degrees=False)
-    # qt.rightArmAngles["base"] = r.as_euler('xyz', degrees=False)
+    r = R.from_matrix(ri.T)
+    l = R.from_matrix(le.T)
+    print(l.as_euler('xyz', degrees=False))
+    print(r.as_euler('xyz', degrees=False))
+
+    # qt.leftArmAngles["base"] = l.as_euler('zyx', degrees=False)
+    # qt.rightArmAngles["base"] = r.as_euler('zyx', degrees=False)
+
+    # qt.leftArmAngles["base"] = [0, np.deg2rad(97.5), np.deg2rad(45)] #= l.as_euler('xyz', degrees=False)
+    # qt.rightArmAngles["base"] = [0, np.deg2rad(97.5), np.deg2rad(-45)] #= r.as_euler('xyz', degrees=False)
 
     left = []
     right = []
     head = []
     for i in range(0, 370, 10):
-        # angles = np.array([np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
-        #     np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
-
-        #     np.deg2rad(i), np.deg2rad(0), np.deg2rad(0),
-        #     np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
+        angles = np.array([
+        np.deg2rad(82.5 + i), np.deg2rad(45 + i), np.deg2rad(90), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
+        np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(90), np.deg2rad(i), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)])
         # angles = np.array([np.deg2rad(-90), np.deg2rad(50), np.deg2rad(-0), np.deg2rad(-88), np.deg2rad(-100),
         #                np.deg2rad(-90), np.deg2rad(-50), np.deg2rad(-0), np.deg2rad(88), np.deg2rad(-100),
         #                np.deg2rad(0), np.deg2rad(0)])
 
         # angles = np.array([np.deg2rad(80.18695652), np.deg2rad(-71.84782609), np.deg2rad(-10.6), np.deg2rad(-73.8), np.deg2rad(-68.94782609), np.deg2rad(-7.34347826), np.deg2rad(23.76086957), np.deg2rad(23.34347826)])
         # angles = np.array([np.deg2rad(79.99130435), np.deg2rad(-71.56521739), np.deg2rad(-11.6), np.deg2rad(-73.3), np.deg2rad(-69.16521739), np.deg2rad(-7.49565217), np.deg2rad(23.67391304), np.deg2rad(22.49565217)])
-        angles = np.array([np.deg2rad(80.5), np.deg2rad(-72.3), np.deg2rad(-9.0), np.deg2rad(-74.6), np.deg2rad(-68.6), np.deg2rad(-7.1), np.deg2rad(23.9), np.deg2rad(24.7)])
-        pos_left, pos_right, pos_head = qt.forward_kinematics_qt(angles)
+        # angles = np.array([np.deg2rad(80.5), np.deg2rad(-72.3), np.deg2rad(-9.0), np.deg2rad(-74.6), np.deg2rad(-68.6), np.deg2rad(-7.1), np.deg2rad(23.9), np.deg2rad(24.7)])
+        pos_left, pos_right, pos_head = qt.forward_kinematics_kinova(angles)
         left.append(pos_left)
         right.append(pos_right)
         head.append(pos_head)
-    print(pos_left, pos_right, pos_head)
+    # print(pos_left, pos_right, pos_head)
 
     # s = simulate_position.RobotSimulation([pos_left], [pos_right], [pos_head])
     s = simulate_position.RobotSimulation(left, right, head)

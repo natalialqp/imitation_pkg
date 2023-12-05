@@ -114,7 +114,8 @@ class Graph(object):
         print("After Removal:")
         print("Number of nodes:", self.G.number_of_nodes())
         print("Number of edges:", self.G.number_of_edges())
-        self.plot_graph()
+        self.find_subgraphs()
+        # self.plot_graph()
         deleted_object = self.objects_in_world[name]
         self.G.add_nodes_from(deleted_object.nodes.items())
         self.G.add_edges_from(deleted_object.edges)
@@ -122,7 +123,8 @@ class Graph(object):
         print("After adding again:")
         print("Number of nodes:", self.G.number_of_nodes())
         print("Number of edges:", self.G.number_of_edges())
-        self.plot_graph()
+        self.find_subgraphs()
+        # self.plot_graph()
 
     def get_nodes_values(self):
         nodes = self.G.nodes()
@@ -251,7 +253,7 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        # plt.savefig(key + ".pdf", format="pdf")
+        plt.savefig(self.key + "_object.pdf", format="pdf")
         plt.show()
 
     def find_neighbors(self, node):
@@ -263,3 +265,11 @@ class Graph(object):
     def find_trajectory_shared_nodes(self, tra):
         kdtree = self.get_nodes()
         return [point for point in tra if self.list_to_string(point) not in kdtree]
+
+    def find_subgraphs(self):
+        sub_graphs = [self.G.subgraph(c) for c in nx.connected_components(self.G)]
+        print(len(sub_graphs))
+        # for i, sg in enumerate(sub_graphs):
+        #     print("subgraph {} has {} nodes".format(i, sg.number_of_nodes()))
+        #     print("\tNodes:", sg.nodes(data=True))
+        #     print("\tEdges:", sg.edges())

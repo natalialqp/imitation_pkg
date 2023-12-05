@@ -8,10 +8,10 @@ base:
   base-angle: [0, 0, 0]
 
 distances-head:
-  torso: [0, 0, 0.1]
-  head-yaw: [0, 0, 0.0265]
+  torso: [0, 0, 100]
+  head-yaw: [0, 0, 26.5]
   head-pitch: [0, 0, 0]
-  camera-top: [0.05071, 0, 0.01774]
+  camera-top: [50.71, 0, 17.74]
 
 angles-head:
   torso: [0, 0, 0]
@@ -20,13 +20,13 @@ angles-head:
   camera-top: [0, 0.0209435, 0]
 
 distances-left-arm:
-  torso: [0, 0, 0.1]
-  shoulder-pitch: [0, 0.098, 0]
+  torso: [0, 0, 100]
+  shoulder-pitch: [0, 98, 0]
   shoulder-roll: [0, 0, 0]
-  elbow-yaw: [0.105, 0.015, 0]
+  elbow-yaw: [105, 15, 0]
   elbow-roll: [0, 0, 0]
-  wrist-yaw: [0.05595, 0, 0]
-  hand: [0.05775, 0, -0.01231]
+  wrist-yaw: [55.95, 0, 0]
+  hand: [57.75, 0, -12.31]
 
 angles-left-arm:
   torso: [0, 0, 0]
@@ -38,13 +38,13 @@ angles-left-arm:
   hand: [0, 0, 0]
 
 distances-right-arm:
-  torso: [0, 0, 0.1]
-  shoulder-pitch: [0, -0.098, 0]
+  torso: [0, 0, 100]
+  shoulder-pitch: [0, -98, 0]
   shoulder-roll: [0, 0, 0]
-  elbow-yaw: [0.105, -0.015, 0]
+  elbow-yaw: [105, -15, 0]
   elbow-roll: [0, 0, 0]
-  wrist-yaw: [0.05595, 0, 0]
-  hand: [0.05775, 0, -0.01213]
+  wrist-yaw: [55.95, 0, 0]
+  hand: [57.75, 0, -12.13]
 
 angles-right-arm:
   torso: [0, 0, 0]

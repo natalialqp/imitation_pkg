@@ -25,9 +25,9 @@ class RobotSimulation:
         self.plot_chain(self.list2[frame], color='g')
         self.plot_chain(self.list3[frame], color='r')
         self.plot_chain(self.base[frame], color='orange')
-        self.ax.set_xlabel('X [cm]')
-        self.ax.set_ylabel('Y [cm]')
-        self.ax.set_zlabel('Z [cm]')
+        self.ax.set_xlabel('X [mm]')
+        self.ax.set_ylabel('Y [mm]')
+        self.ax.set_zlabel('Z [mm]')
         self.ax.set_title(f'Frame {frame + 1}')
 
         # Find the maximum range of coordinates across all lists for the current frame

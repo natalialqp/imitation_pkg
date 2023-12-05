@@ -13,21 +13,33 @@ distances-head:
 angles-head:
   torso: [0, 0, 0]
 
+# distances-left-arm:
+#   torso: [0, 0, 0.8] #fake hight, measure real from base and distance from the torso to base
+#   base: [0, 0.08, 0]
+#   shoulder_link: [0, 0, 0.15643]
+#   half_arm_1_link: [0, 0.005375, -0.12838]
+#   half_arm_2_link: [0, -0.21038, -0.006375]
+#   forearm_link: [0, -0.006375, -0.21038]
+#   spherical_wrist_1_link: [0, -0.20843, -0.006375]
+#   spherical_wrist_2_link: [0, 0.00017505, -0.10593]
+#   bracelet_link: [0, -0.10593, -0.00017505]
+#   end_effector_link: [0, 0, -0.061525]
+
 distances-left-arm:
-  torso: [0, 0, 0.8] #fake hight, measure real from base and distance from the torso to base
-  base: [0, 0.08, 0]
-  shoulder_link: [0, 0, 0.15643]
-  half_arm_1_link: [0, 0.005375, -0.12838]
-  half_arm_2_link: [0, -0.21038, -0.006375]
-  forearm_link: [0, -0.006375, -0.21038]
-  spherical_wrist_1_link: [0, -0.20843, -0.006375]
-  spherical_wrist_2_link: [0, 0.00017505, -0.10593]
-  bracelet_link: [0, -0.10593, -0.00017505]
-  end_effector_link: [0, 0, -0.061525]
+  torso: [0, 0, 800] #fake hight, measure real from base and distance from the torso to base
+  base: [0, 80, 0]
+  shoulder_link: [0, 0, 156.43]
+  half_arm_1_link: [0, 5.375, -128.38]
+  half_arm_2_link: [0, -210.38, -6.375]
+  forearm_link: [0, -6.375, -210.38]
+  spherical_wrist_1_link: [0, -208.43, -6.375]
+  spherical_wrist_2_link: [0, 0.17505, -105.93]
+  bracelet_link: [0, -105.93, -0.17505]
+  end_effector_link: [0, 0, -61.525]
 
 angles-left-arm:
   torso: [0, 0, 0] #measure real angle of rotation
-  base: [ 1.78102358, -0.94172232,  1.27590322]
+  base: [0, 1.701696, 0.785398]
   shoulder_link: [-3.14159, 0, 0]
   half_arm_1_link: [1.5708, 0, 0]
   half_arm_2_link: [-1.5708, 0, 0]
@@ -48,21 +60,33 @@ angles-left-arm:
 # 0.5629971, -0.81728662, -0.1227878      0.08
 # 0.80857271, 0.57544186, -0.1227878      0.0
 
+# distances-right-arm:
+#   torso: [0, 0, 0.8]  #fake hight, measure real from base and distance from the torso to base
+#   base: [0, -0.08, 0]
+#   shoulder_link: [0, 0, 0.15643]
+#   half_arm_1_link: [0, 0.005375, -0.12838]
+#   half_arm_2_link: [0, -0.21038, -0.006375]
+#   forearm_link: [0, -0.006375, -0.21038]
+#   spherical_wrist_1_link: [0, -0.20843, -0.006375]
+#   spherical_wrist_2_link: [0, 0.00017505, -0.10593]
+#   bracelet_link: [0, -0.10593, -0.00017505]
+#   end_effector_link: [0, 0, -0.061525]
+
 distances-right-arm:
-  torso: [0, 0, 0.8]  #fake hight, measure real from base and distance from the torso to base
-  base: [0, -0.08, 0]
-  shoulder_link: [0, 0, 0.15643]
-  half_arm_1_link: [0, 0.005375, -0.12838]
-  half_arm_2_link: [0, -0.21038, -0.006375]
-  forearm_link: [0, -0.006375, -0.21038]
-  spherical_wrist_1_link: [0, -0.20843, -0.006375]
-  spherical_wrist_2_link: [0, 0.00017505, -0.10593]
-  bracelet_link: [0, -0.10593, -0.00017505]
-  end_effector_link: [0, 0, -0.061525]
+  torso: [0, 0, 800]  #fake hight, measure real from base and distance from the torso to base
+  base: [0, -80, 0]
+  shoulder_link: [0, 0, 156.43]
+  half_arm_1_link: [0, 5.375, -128.38]
+  half_arm_2_link: [0, -210.38, -6.375]
+  forearm_link: [0, -6.375, -210.38]
+  spherical_wrist_1_link: [0, -208.43, -6.375]
+  spherical_wrist_2_link: [0, 0.17505, -105.93]
+  bracelet_link: [0, -105.93, -0.17505]
+  end_effector_link: [0, 0, -61.525]
 
 angles-right-arm:
   torso: [0, 0, 0]  #measure real angle of rotation
-  base: [-1.74536182, -0.75439693, -1.35776966]
+  base: [0, 1.701696, -0.785398]
   shoulder_link: [-3.14159, 0, 0]
   half_arm_1_link: [1.5708, 0, 0]
   half_arm_2_link: [-1.5708, 0, 0]

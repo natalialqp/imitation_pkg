@@ -15,6 +15,7 @@ from scipy.spatial import cKDTree
 import random
 from sklearn.metrics import mean_squared_error
 import copy
+import pose_prediction
 
 plt.rcParams.update({'font.size': 18})
 
@@ -263,7 +264,9 @@ def plotPath(key, demonstration, path, candidates = []):
     ax.set_ylabel("\n Y [mm]", linespacing=3.2)
     ax.set_zlabel("\n Z [mm]", linespacing=3.2)
 
-    ax.legend()  # Show the legend
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(key + "_world_path.pdf", format="pdf")
     plt.show()
 
 def printRobotGraphs(robot):
@@ -352,6 +355,7 @@ def find_trajectory_in_world(world, tra):
 if __name__ == "__main__":
 
     flag = "path-planning"
+    # flag = "pose-predicition"
     # flag = "explore-world"
     # flag = "object-in-robot-graph"
 
@@ -428,11 +432,57 @@ if __name__ == "__main__":
             # robot_graphs[key].plot_graph(generated_trajectory)
             # tra = approximateTrajectory(generated_trajectory, robot_graphs[key])
             new_tra = find_trajectory_in_world(graph_world, generated_trajectory)
+            # print("GENERATED TRAJECTORY: ", generated_trajectory)
             if robot_graphs[key].number_of_nodes() > 1:
                 print(key)
                 candidate_nodes = robot_graphs[key].find_trajectory_shared_nodes(new_tra)
-                neighbors_candidates = robot_graphs[key].find_neighbors_candidates(candidate_nodes)
+                # neighbors_candidates = robot_graphs[key].find_neighbors_candidates(candidate_nodes)
                 # plotPath(key, generated_trajectory, np.asarray(new_tra), np.asarray(candidate_nodes))
-        #         tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
-        #         dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
-        # plot_error(dict_error)
+                tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
+                dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
+        plot_error(dict_error)
+
+    elif flag == "pose-predicition":
+        lowEdge = np.array([-450, -450, 100])
+        highEdge = np.array([450, 450, 700])
+        graph_world = createWorldCubes(lowEdge, highEdge, length)
+
+        robotName = "qt"
+        file_path = "./robot_configuration_files/"+ robotName + ".yaml"
+        pose_predictor = pose_prediction.Prediction(file_path, robotName)
+        file_name = "robot_angles_qt"
+        theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
+        pose_predictor.train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+        df = pose_predictor.read_file("combined_actions")
+        action = "teapot"
+        user = 5
+        robot_pose = []
+        left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
+        left_side = left_side * 1000
+        right_side = right_side * 1000
+        head = head * 1000
+        angles_left_vec = []
+        angles_right_vec = []
+        angles_head_vec = []
+        cartesian_left_vec = []
+        cartesian_right_vec = []
+        cartesian_head_vec = []
+
+        for i in range(len(left_side)):
+            angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
+            angles_left_vec.append(angles_left)
+            angles_right_vec.append(angles_right)
+            angles_head_vec.append(angles_head)
+
+            points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
+            cartesian_left_vec.append(points4)
+            cartesian_right_vec.append(points5)
+            cartesian_head_vec.append(points6)
+            robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
+
+        pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
+        for key in robot_graphs:
+            print(key)
+            generated_trajectory = pose_predictor.robot.robotDict[key]
+            new_tra = find_trajectory_in_world(graph_world, generated_trajectory)
+            plotPath(key, generated_trajectory, np.asarray(new_tra))

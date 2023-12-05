@@ -64,30 +64,31 @@ real-angles-head:
   head-pitch: [-15, 25]
 
 robot-dict:
-  jointLeft_0: [0, 0, 0]
-  jointLeft_1: [0, 0, 0]
-  jointLeft_2: [0, 0, 0]
-  jointLeft_3: [0, 0, 0]
-  jointLeft_4: [0, 0, 0]
+  jointLeft_0:
+  jointLeft_1:
+  jointLeft_2:
+  jointLeft_3:
+  jointLeft_4:
 
-  jointRight_0: [0, 0, 0]
-  jointRight_1: [0, 0, 0]
-  jointRight_2: [0, 0, 0]
-  jointRight_3: [0, 0, 0]
-  jointRight_4: [0, 0, 0]
+  jointRight_0:
+  jointRight_1:
+  jointRight_2:
+  jointRight_3:
+  jointRight_4:
 
-  jointHead_0: [0, 0, 0]
-  jointHead_1: [0, 0, 0]
-  jointHead_2: [0, 0, 0]
+  jointHead_0:
+  jointHead_1:
+  jointHead_2:
+  jointHead_3:
 
 robot-angular-dict:
-  jointLeft_0: [0, 0, 0]
-  jointLeft_1: [0, 0, 0]
-  jointLeft_2: [0, 0, 0]
+  jointLeft_0:
+  jointLeft_1:
+  jointLeft_2:
 
-  jointRight_0: [0, 0, 0]
-  jointRight_1: [0, 0, 0]
-  jointRight_2: [0, 0, 0]
+  jointRight_0:
+  jointRight_1:
+  jointRight_2:
 
-  jointHead_0: [0, 0, 0]
-  jointHead_1: [0, 0, 0]
+  jointHead_0:
+  jointHead_1:

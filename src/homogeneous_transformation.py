@@ -63,7 +63,7 @@ class HT(object):
         gamma = euler_rotation[0]
         beta = euler_rotation[1]
         alpha = euler_rotation[2]
-        rotation_matrix = HT.Rz(alpha).dot(HT.Ry(beta)).dot(HT.Rx(gamma))
+        rotation_matrix = HT.Rz(alpha).dot(HT.Ry(beta)).dot(HT.Rx(gamma)) # Fixed Euler angles convention
 
         t = np.array(translation_vector)[np.newaxis].T
         T = np.hstack((rotation_matrix, t))
