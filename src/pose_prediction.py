@@ -571,8 +571,8 @@ if __name__ == "__main__":
     #16 18 13 6  4 20  9 1  8 3 14
     #17 19 12 2 10 11 5 15
     robot_pose = []
-    action = "teapot"
-    user = 14
+    action = "fork"
+    user = 3
     users = np.arange(1, 21, 1)
     left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
     left_side = left_side * 1000
@@ -584,9 +584,8 @@ if __name__ == "__main__":
     ra = np.array([
         #azul - izquierda
         #3th joints have diff references to rotate
-        np.deg2rad(82.5), np.deg2rad(45), np.deg2rad(90), np.deg2rad(90), np.deg2rad(60), np.deg2rad(30), np.deg2rad(random.randint(-180, 181)),
-        np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(90), np.deg2rad(50), np.deg2rad(-60), np.deg2rad(30), np.deg2rad(random.randint(-180, 181))])
-    print("Initial value:", ra)
+        np.deg2rad(82.5), np.deg2rad(45), np.deg2rad(150), np.deg2rad(70), np.deg2rad(60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181)),
+        np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(-150), np.deg2rad(70), np.deg2rad(-60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181))])
     lht, lhp, rht, rhp, hht, hhp = pose_predictor.extract_spherical_angles_from_human(left_side[0], right_side[0], head[0])
     points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:7], ra[7:14], [0, 0])
     robot_pose.append((left_side[0], right_side[0], head[0], points4, points5, points6))
