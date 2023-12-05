@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas as pd
 import robot
-from matplotlib.widgets import Slider
+from matplotlib.widgets import Slider, Button
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 import random
-plt.rcParams.update({'font.size': 20})
+# plt.rcParams.update({'font.size': 20})
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
@@ -141,7 +141,6 @@ class Prediction(object):
         return theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot
 
     def save_mapping_csv(self, file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra):
-
         df = pd.read_csv(file_name + ".csv")
         for i in range(len(df)):
             if action == df['action'][i] and user == df['participant_id'][i]:
@@ -159,12 +158,17 @@ class Prediction(object):
                     df['left_arm_robot'][i] = str(ra[0:3])
                     df['right_arm_robot'][i] = str(ra[3:6])
                     df['head_robot'][i] = str(ra[6:8])
-            df.to_csv(file_name + ".csv")
+        df.to_csv(file_name + ".csv")
 
     def create_3d_plot(self):
         fig = plt.figure(figsize=(12, 5))
-        ax1 = fig.add_subplot(121, projection='3d')
-        ax2 = fig.add_subplot(122, projection='3d')
+        # ax1 = fig.add_subplot(121, projection='3d')
+        # ax2 = fig.add_subplot(122, projection='3d')
+
+        gs = fig.add_gridspec(1, 2, width_ratios=[1, 1], height_ratios=[1])
+
+        ax1 = fig.add_subplot(gs[0], projection='3d')
+        ax2 = fig.add_subplot(gs[1], projection='3d')
 
         # Set the axis labels and limits for both subplots (adjust as needed)
         ax1.set_xlabel("\n X [mm]", linespacing=3.2)
@@ -188,70 +192,70 @@ class Prediction(object):
 
         return fig, ax1, ax2
 
-    def plot_animation_3d(self, point_clouds_list):
-        if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
-            raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
+    # def plot_animation_3d(self, point_clouds_list):
+    #     if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
+    #         raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
 
-        fig, ax1, ax2 = self.create_3d_plot()
+    #     fig, ax1, ax2 = self.create_3d_plot()
 
-        # Line plots for connections in both subplots
-        lines1 = [ax1.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][0]) - 1)]
-        lines2 = [ax1.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][1]) - 1)]
-        lines3 = [ax1.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][2]) - 1)]
-        lines4 = [ax2.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][3]) - 1)]
-        lines5 = [ax2.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][4]) - 1)]
-        lines6 = [ax2.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][5]) - 1)]
+    #     # Line plots for connections in both subplots
+    #     lines1 = [ax1.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][0]) - 1)]
+    #     lines2 = [ax1.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][1]) - 1)]
+    #     lines3 = [ax1.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][2]) - 1)]
+    #     lines4 = [ax2.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][3]) - 1)]
+    #     lines5 = [ax2.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][4]) - 1)]
+    #     lines6 = [ax2.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][5]) - 1)]
 
-        def update(frame):
-            points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
+    #     def update(frame):
+    #         points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
 
-            # Set the titles for each subplot
-            ax1.set_title('Human', fontsize=20)
-            ax2.set_title('Robot', fontsize=20)
+    #         # Set the titles for each subplot
+    #         ax1.set_title('Human', fontsize=20)
+    #         ax2.set_title('Robot', fontsize=20)
 
-            # Update line plots in both subplots
-            for i in range(len(points1) - 1):
-                lines1[i].set_data([points1[i, 0], points1[i + 1, 0]], [points1[i, 1], points1[i + 1, 1]])
-                lines1[i].set_3d_properties([points1[i, 2], points1[i + 1, 2]])
+    #         # Update line plots in both subplots
+    #         for i in range(len(points1) - 1):
+    #             lines1[i].set_data([points1[i, 0], points1[i + 1, 0]], [points1[i, 1], points1[i + 1, 1]])
+    #             lines1[i].set_3d_properties([points1[i, 2], points1[i + 1, 2]])
 
-            for i in range(len(points2) - 1):
-                lines2[i].set_data([points2[i, 0], points2[i + 1, 0]], [points2[i, 1], points2[i + 1, 1]])
-                lines2[i].set_3d_properties([points2[i, 2], points2[i + 1, 2]])
+    #         for i in range(len(points2) - 1):
+    #             lines2[i].set_data([points2[i, 0], points2[i + 1, 0]], [points2[i, 1], points2[i + 1, 1]])
+    #             lines2[i].set_3d_properties([points2[i, 2], points2[i + 1, 2]])
 
-            for i in range(len(points3) - 1):
-                lines3[i].set_data([points3[i, 0], points3[i + 1, 0]], [points3[i, 1], points3[i + 1, 1]])
-                lines3[i].set_3d_properties([points3[i, 2], points3[i + 1, 2]])
+    #         for i in range(len(points3) - 1):
+    #             lines3[i].set_data([points3[i, 0], points3[i + 1, 0]], [points3[i, 1], points3[i + 1, 1]])
+    #             lines3[i].set_3d_properties([points3[i, 2], points3[i + 1, 2]])
 
-            for i in range(len(points4) - 1):
-                lines4[i].set_data([points4[i, 0], points4[i + 1, 0]], [points4[i, 1], points4[i + 1, 1]])
-                lines4[i].set_3d_properties([points4[i, 2], points4[i + 1, 2]])
+    #         for i in range(len(points4) - 1):
+    #             lines4[i].set_data([points4[i, 0], points4[i + 1, 0]], [points4[i, 1], points4[i + 1, 1]])
+    #             lines4[i].set_3d_properties([points4[i, 2], points4[i + 1, 2]])
 
-            for i in range(len(points5) - 1):
-                lines5[i].set_data([points5[i, 0], points5[i + 1, 0]], [points5[i, 1], points5[i + 1, 1]])
-                lines5[i].set_3d_properties([points5[i, 2], points5[i + 1, 2]])
+    #         for i in range(len(points5) - 1):
+    #             lines5[i].set_data([points5[i, 0], points5[i + 1, 0]], [points5[i, 1], points5[i + 1, 1]])
+    #             lines5[i].set_3d_properties([points5[i, 2], points5[i + 1, 2]])
 
-            for i in range(len(points6) - 1):
-                lines6[i].set_data([points6[i, 0], points6[i + 1, 0]], [points6[i, 1], points6[i + 1, 1]])
-                lines6[i].set_3d_properties([points6[i, 2], points6[i + 1, 2]])
+    #         for i in range(len(points6) - 1):
+    #             lines6[i].set_data([points6[i, 0], points6[i + 1, 0]], [points6[i, 1], points6[i + 1, 1]])
+    #             lines6[i].set_3d_properties([points6[i, 2], points6[i + 1, 2]])
 
-            return *lines1, *lines2, *lines3, *lines4, *lines5, *lines6
+    #         return *lines1, *lines2, *lines3, *lines4, *lines5, *lines6
 
-        # Create the animation
-        ani = FuncAnimation(fig, update, frames=len(point_clouds_list), interval=200, blit=True)
+    #     # Create the animation
+    #     ani = FuncAnimation(fig, update, frames=len(point_clouds_list), interval=200, blit=True)
 
-        # Add a slider to control the animation
-        slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
-        slider = Slider(slider_ax, 'Frame', 0, len(point_clouds_list) - 1, valinit=0, valstep=1)
-        ax2.scatter(self.base[0], self.base[1], self.base[2], marker="o")
+    #     # Add a slider to control the animation
+    #     slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+    #     slider = Slider(slider_ax, 'Frame', 0, len(point_clouds_list) - 1, valinit=0, valstep=1)
+    #     ax2.scatter(self.base[0], self.base[1], self.base[2], marker="o")
 
-        def update_animation(val):
-            frame = int(slider.val)
-            update(frame)
-            fig.canvas.draw_idle()
+    #     def update_animation(val):
+    #         frame = int(slider.val)
+    #         update(frame)
+    #         fig.canvas.draw_idle()
 
-        slider.on_changed(update_animation)
-        # Show the animation
-        plt.show()
+    #     slider.on_changed(update_animation)
+    #     # Show the animation
+    #     plt.show()
 
     def read_file(self, name):
         return pd.read_csv('./data/' + name + '.csv')
@@ -462,6 +466,97 @@ class Prediction(object):
         plt.tight_layout()
         plt.show()
 
+    def plot_animation_3d(self, point_clouds_list, initial_ra):
+
+        if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
+            raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
+        fig, ax1, ax2 = self.create_3d_plot()
+        # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6), subplot_kw={'projection': '3d'})
+        # Line plots for connections in both subplots
+        lines1 = [ax1.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][0]) - 1)]
+        lines2 = [ax1.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][1]) - 1)]
+        lines3 = [ax1.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][2]) - 1)]
+        lines4 = [ax2.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][3]) - 1)]
+        lines5 = [ax2.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][4]) - 1)]
+        lines6 = [ax2.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][5]) - 1)]
+
+
+         # Create sliders for each angle in ra
+        slider_axes = [plt.axes([0.2, 0.02 + 0.02 * i, 0.65, 0.03], facecolor='lightgoldenrodyellow') for i in range(len(initial_ra))]
+        sliders = [Slider(slider_ax, f'Angle {i}', -np.pi, np.pi, valinit=initial_ra[i]) for i, slider_ax in enumerate(slider_axes)]
+
+        button_ax = plt.axes([0.8, 0.9, 0.1, 0.04])  # Adjust the position as needed
+        button = Button(button_ax, 'Save CSV')
+
+        def on_button_click(event):
+            # Callback function for button click
+            ra = np.array([slider.val for slider in sliders])
+            pose_predictor.save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra)
+            print("CSV saved!")
+
+        # Connect the button click function
+        button.on_clicked(on_button_click)
+
+        def update_sliders(val, sliders):
+            slider_values = [slider.val for slider in sliders]
+            print("Slider Values:", slider_values)
+            for slider, v in zip(sliders, val):
+                slider.valtext.set_text(f'{slider.val:.2f}')
+
+       # Set the update function for the sliders
+        def slider_update_func(val, sliders=sliders):
+            update_sliders(val, sliders)
+
+        # Connect the slider update function to each slider
+        for slider in sliders:
+            slider.on_changed(lambda val, sliders=sliders: slider_update_func(val, sliders))
+
+
+        def update(frame, ra):
+            ra = np.array([slider.val for slider in sliders])  # Get the current values of sliders
+            points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
+
+            # Set the titles for each subplot
+            ax1.set_title('Human', fontsize=20)
+            ax2.set_title('Robot', fontsize=20)
+
+            # Update line plots in both subplots
+            for i in range(len(points1) - 1):
+                lines1[i].set_data([points1[i, 0], points1[i + 1, 0]], [points1[i, 1], points1[i + 1, 1]])
+                lines1[i].set_3d_properties([points1[i, 2], points1[i + 1, 2]])
+
+            for i in range(len(points2) - 1):
+                lines2[i].set_data([points2[i, 0], points2[i + 1, 0]], [points2[i, 1], points2[i + 1, 1]])
+                lines2[i].set_3d_properties([points2[i, 2], points2[i + 1, 2]])
+
+            for i in range(len(points3) - 1):
+                lines3[i].set_data([points3[i, 0], points3[i + 1, 0]], [points3[i, 1], points3[i + 1, 1]])
+                lines3[i].set_3d_properties([points3[i, 2], points3[i + 1, 2]])
+
+            points4, points5, points6 = self.robot_embodiment(ra[0:7], ra[7:14], [0, 0])
+
+            for i in range(len(points4) - 1):
+                lines4[i].set_data([points4[i, 0], points4[i + 1, 0]], [points4[i, 1], points4[i + 1, 1]])
+                lines4[i].set_3d_properties([points4[i, 2], points4[i + 1, 2]])
+
+            for i in range(len(points5) - 1):
+                lines5[i].set_data([points5[i, 0], points5[i + 1, 0]], [points5[i, 1], points5[i + 1, 1]])
+                lines5[i].set_3d_properties([points5[i, 2], points5[i + 1, 2]])
+
+            for i in range(len(points6) - 1):
+                lines6[i].set_data([points6[i, 0], points6[i + 1, 0]], [points6[i, 1], points6[i + 1, 1]])
+                lines6[i].set_3d_properties([points6[i, 2], points6[i + 1, 2]])
+             # Update robot pose using the provided angles
+
+            return lines1 + lines2 + lines3 + lines4 + lines5 + lines6
+
+        # Create animation
+        animation = FuncAnimation(fig, update, frames=len(point_clouds_list), fargs=(initial_ra,), interval=100, blit=True)
+
+        # plt.tight_layout()
+
+        plt.show()
+        plt.ioff()
 
 if __name__ == "__main__":
     robotName = "gen3"
@@ -473,11 +568,11 @@ if __name__ == "__main__":
                'dinner_plate', 'knife', 'fork', 'salt_shaker',
                'sugar_bowl', 'mixer', 'pressure_cooker']
 
-    #16 18 13 6  4 20  9 1  8 3
-    #17 19 12 2 10 14 11 5 15
+    #16 18 13 6  4 20  9 1  8 3 14
+    #17 19 12 2 10 11 5 15
     robot_pose = []
-    action = "fork"
-    user = 13
+    action = "teapot"
+    user = 14
     users = np.arange(1, 21, 1)
     left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
     left_side = left_side * 1000
@@ -485,18 +580,18 @@ if __name__ == "__main__":
     head = head * 1000
     file_name = "./data/robot_angles_" + robotName
 
-    for i in range(len(left_side)):
-        ra = np.array([
+    # for i in range(len(left_side)):
+    ra = np.array([
         #azul - izquierda
         #3th joints have diff references to rotate
-        np.deg2rad(82.5), np.deg2rad(40), np.deg2rad(175), np.deg2rad(92), np.deg2rad(61), np.deg2rad(83), np.deg2rad(random.randint(-180, 181)),
-        np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(5), np.deg2rad(-81), np.deg2rad(120), np.deg2rad(80), np.deg2rad(random.randint(-180, 181))])
-
-        lht, lhp, rht, rhp, hht, hhp = pose_predictor.extract_spherical_angles_from_human(left_side[i], right_side[i], head[i])
-        points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:7], ra[7:14], [0, 0])
-        robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
-        pose_predictor.save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra)
-    pose_predictor.plot_animation_3d(robot_pose)
+        np.deg2rad(82.5), np.deg2rad(45), np.deg2rad(90), np.deg2rad(90), np.deg2rad(60), np.deg2rad(30), np.deg2rad(random.randint(-180, 181)),
+        np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(90), np.deg2rad(50), np.deg2rad(-60), np.deg2rad(30), np.deg2rad(random.randint(-180, 181))])
+    print("Initial value:", ra)
+    lht, lhp, rht, rhp, hht, hhp = pose_predictor.extract_spherical_angles_from_human(left_side[0], right_side[0], head[0])
+    points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:7], ra[7:14], [0, 0])
+    robot_pose.append((left_side[0], right_side[0], head[0], points4, points5, points6))
+    pose_predictor.plot_animation_3d(robot_pose, ra)
+    # pose_predictor.save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra)
 
     #NN TRAINING
     # file_name = "robot_angles_" + robotName
