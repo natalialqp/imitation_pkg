@@ -1,4 +1,4 @@
-name: "NAO"
+name: "NAO"  #H25
 DOF-head: 2
 DOF-right-arm: 5
 DOF-left-arm: 5
