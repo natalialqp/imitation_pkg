@@ -61,12 +61,12 @@ real-angles-left-arm:
   shoulder-pitch: [-119.5, 119.5]
   shoulder-roll: [-18, 76]
   elbow-yaw: [-119.5, 119.5]
-  elbow-roll: [-2, -88.5]
+  elbow-roll: [-88.5, -2]
   wrist-yaw: [-104.5, 104.5]
 
 real-angles-right-arm:
   shoulder-pitch: [-119.5, 119.5]
-  shoulder-roll: [18, -76]
+  shoulder-roll: [-76, 18]
   elbow-yaw: [-119.5, 119.5]
   elbow-roll: [2, 88.5]
   wrist-yaw: [-104.5, 104.5]
