@@ -104,7 +104,7 @@ class Prediction(object):
     def vectorise_spherical_data(self, vec):
         aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
         data = np.array(aux_data.split())
-        return list(data[0:4].astype(float))
+        return list(data[0:self.robot.dof_arm].astype(float))
 
     def read_csv_combined(self, df, action, user):
         left_side = []
@@ -126,7 +126,6 @@ class Prediction(object):
         return np.array(left_side), np.array(right_side), np.array(head)
 
     def read_training_data(self, file_name):
-
         df = self.read_file(file_name)
         theta_left = np.array([self.vectorise_spherical_data(i) for i in df['left_arm_human_theta']])
         theta_right = np.array([self.vectorise_spherical_data(i) for i in df['right_arm_human_theta']])
@@ -137,7 +136,6 @@ class Prediction(object):
         left_arm_robot = np.array([self.vectorise_spherical_data(i) for i in df['left_arm_robot']])
         right_arm_robot = np.array([self.vectorise_spherical_data(i) for i in df['right_arm_robot']])
         head_robot = np.array([self.vectorise_spherical_data(i) for i in df['head_robot']])
-
         return theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot
 
     def save_mapping_csv(self, file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra):
@@ -150,14 +148,12 @@ class Prediction(object):
                 df['left_arm_human_phi'][i] = str(lhp)
                 df['right_arm_human_phi'][i] = str(rhp)
                 df['head_human_phi'][i] = str(hhp)
+                df['left_arm_robot'][i] = str(ra[0:self.robot.dof_arm])
+                df['right_arm_robot'][i] = str(ra[self.robot.dof_arm:2*self.robot.dof_arm])
                 if "gen3" in file_name:
-                    df['left_arm_robot'][i] = str(ra[0:7])
-                    df['right_arm_robot'][i] = str(ra[7:14])
                     df['head_robot'][i] = str([0, 0])
                 else:
-                    df['left_arm_robot'][i] = str(ra[0:3])
-                    df['right_arm_robot'][i] = str(ra[3:6])
-                    df['head_robot'][i] = str(ra[6:8])
+                    df['head_robot'][i] = str(ra[2*self.robot.dof_arm:2*self.robot.dof_arm + 2])
         df.to_csv(file_name + ".csv")
 
     def create_3d_plot(self):
@@ -174,9 +170,9 @@ class Prediction(object):
         ax1.set_xlabel("\n X [mm]", linespacing=3.2)
         ax1.set_ylabel("\n Y [mm]", linespacing=3.2)
         ax1.set_zlabel("\n Z [mm]", linespacing=3.2)
-        ax1.set_xlim([1000, 3000])
-        ax1.set_ylim([-1000, 1000])
-        ax1.set_zlim([-1000, 1000])
+        ax1.set_xlim([1500, 3000])
+        ax1.set_ylim([-900, 900])
+        ax1.set_zlim([-400, 800])
 
         ax2.set_xlabel("\n X [mm]", linespacing=3.2)
         ax2.set_ylabel("\n Y [mm]", linespacing=3.2)
@@ -185,77 +181,81 @@ class Prediction(object):
             ax2.set_xlim([-1000, 1000])
             ax2.set_ylim([-1000, 1000])
             ax2.set_zlim([0, 1500])
-        else:
+        elif self.robotName == "qt":
             ax2.set_xlim([-500, 500])
             ax2.set_ylim([-500, 500])
-            ax2.set_zlim([0, 900])
+            ax2.set_zlim([0, 800])
+        elif self.robotName == "nao":
+            ax2.set_xlim([-300, 300])
+            ax2.set_ylim([-400, 400])
+            ax2.set_zlim([-200, 300])
 
         return fig, ax1, ax2
 
-    # def plot_animation_3d(self, point_clouds_list):
-    #     if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
-    #         raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
+    def plot_animation_3d(self, point_clouds_list):
+        if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
+            raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
 
-    #     fig, ax1, ax2 = self.create_3d_plot()
+        fig, ax1, ax2 = self.create_3d_plot()
 
-    #     # Line plots for connections in both subplots
-    #     lines1 = [ax1.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][0]) - 1)]
-    #     lines2 = [ax1.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][1]) - 1)]
-    #     lines3 = [ax1.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][2]) - 1)]
-    #     lines4 = [ax2.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][3]) - 1)]
-    #     lines5 = [ax2.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][4]) - 1)]
-    #     lines6 = [ax2.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][5]) - 1)]
+        # Line plots for connections in both subplots
+        lines1 = [ax1.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][0]) - 1)]
+        lines2 = [ax1.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][1]) - 1)]
+        lines3 = [ax1.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][2]) - 1)]
+        lines4 = [ax2.plot([], [], [], c='b', linewidth=2)[0] for _ in range(len(point_clouds_list[0][3]) - 1)]
+        lines5 = [ax2.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][4]) - 1)]
+        lines6 = [ax2.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][5]) - 1)]
 
-    #     def update(frame):
-    #         points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
+        def update(frame):
+            points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
 
-    #         # Set the titles for each subplot
-    #         ax1.set_title('Human', fontsize=20)
-    #         ax2.set_title('Robot', fontsize=20)
+            # Set the titles for each subplot
+            ax1.set_title('Human', fontsize=20)
+            ax2.set_title('Robot', fontsize=20)
 
-    #         # Update line plots in both subplots
-    #         for i in range(len(points1) - 1):
-    #             lines1[i].set_data([points1[i, 0], points1[i + 1, 0]], [points1[i, 1], points1[i + 1, 1]])
-    #             lines1[i].set_3d_properties([points1[i, 2], points1[i + 1, 2]])
+            # Update line plots in both subplots
+            for i in range(len(points1) - 1):
+                lines1[i].set_data([points1[i, 0], points1[i + 1, 0]], [points1[i, 1], points1[i + 1, 1]])
+                lines1[i].set_3d_properties([points1[i, 2], points1[i + 1, 2]])
 
-    #         for i in range(len(points2) - 1):
-    #             lines2[i].set_data([points2[i, 0], points2[i + 1, 0]], [points2[i, 1], points2[i + 1, 1]])
-    #             lines2[i].set_3d_properties([points2[i, 2], points2[i + 1, 2]])
+            for i in range(len(points2) - 1):
+                lines2[i].set_data([points2[i, 0], points2[i + 1, 0]], [points2[i, 1], points2[i + 1, 1]])
+                lines2[i].set_3d_properties([points2[i, 2], points2[i + 1, 2]])
 
-    #         for i in range(len(points3) - 1):
-    #             lines3[i].set_data([points3[i, 0], points3[i + 1, 0]], [points3[i, 1], points3[i + 1, 1]])
-    #             lines3[i].set_3d_properties([points3[i, 2], points3[i + 1, 2]])
+            for i in range(len(points3) - 1):
+                lines3[i].set_data([points3[i, 0], points3[i + 1, 0]], [points3[i, 1], points3[i + 1, 1]])
+                lines3[i].set_3d_properties([points3[i, 2], points3[i + 1, 2]])
 
-    #         for i in range(len(points4) - 1):
-    #             lines4[i].set_data([points4[i, 0], points4[i + 1, 0]], [points4[i, 1], points4[i + 1, 1]])
-    #             lines4[i].set_3d_properties([points4[i, 2], points4[i + 1, 2]])
+            for i in range(len(points4) - 1):
+                lines4[i].set_data([points4[i, 0], points4[i + 1, 0]], [points4[i, 1], points4[i + 1, 1]])
+                lines4[i].set_3d_properties([points4[i, 2], points4[i + 1, 2]])
 
-    #         for i in range(len(points5) - 1):
-    #             lines5[i].set_data([points5[i, 0], points5[i + 1, 0]], [points5[i, 1], points5[i + 1, 1]])
-    #             lines5[i].set_3d_properties([points5[i, 2], points5[i + 1, 2]])
+            for i in range(len(points5) - 1):
+                lines5[i].set_data([points5[i, 0], points5[i + 1, 0]], [points5[i, 1], points5[i + 1, 1]])
+                lines5[i].set_3d_properties([points5[i, 2], points5[i + 1, 2]])
 
-    #         for i in range(len(points6) - 1):
-    #             lines6[i].set_data([points6[i, 0], points6[i + 1, 0]], [points6[i, 1], points6[i + 1, 1]])
-    #             lines6[i].set_3d_properties([points6[i, 2], points6[i + 1, 2]])
+            for i in range(len(points6) - 1):
+                lines6[i].set_data([points6[i, 0], points6[i + 1, 0]], [points6[i, 1], points6[i + 1, 1]])
+                lines6[i].set_3d_properties([points6[i, 2], points6[i + 1, 2]])
 
-    #         return *lines1, *lines2, *lines3, *lines4, *lines5, *lines6
+            return *lines1, *lines2, *lines3, *lines4, *lines5, *lines6
 
-    #     # Create the animation
-    #     ani = FuncAnimation(fig, update, frames=len(point_clouds_list), interval=200, blit=True)
+        # Create the animation
+        ani = FuncAnimation(fig, update, frames=len(point_clouds_list), interval=200, blit=True)
 
-    #     # Add a slider to control the animation
-    #     slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
-    #     slider = Slider(slider_ax, 'Frame', 0, len(point_clouds_list) - 1, valinit=0, valstep=1)
-    #     ax2.scatter(self.base[0], self.base[1], self.base[2], marker="o")
+        # Add a slider to control the animation
+        slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+        slider = Slider(slider_ax, 'Frame', 0, len(point_clouds_list) - 1, valinit=0, valstep=1)
+        ax2.scatter(self.base[0], self.base[1], self.base[2], marker="o")
 
-    #     def update_animation(val):
-    #         frame = int(slider.val)
-    #         update(frame)
-    #         fig.canvas.draw_idle()
+        def update_animation(val):
+            frame = int(slider.val)
+            update(frame)
+            fig.canvas.draw_idle()
 
-    #     slider.on_changed(update_animation)
-    #     # Show the animation
-    #     plt.show()
+        slider.on_changed(update_animation)
+        # Show the animation
+        plt.show()
 
     def read_file(self, name):
         return pd.read_csv('./data/' + name + '.csv')
@@ -266,11 +266,11 @@ class Prediction(object):
         class MultiOutputModel(nn.Module):
             def __init__(self):
                 super(MultiOutputModel, self).__init__()
-                self.shared_layer1 = nn.Linear(20, 16)
+                self.shared_layer1 = nn.Linear(20, 128)
                 # self.shared_layer2 = nn.Linear(128, 128)
-                self.left_arm_layer = nn.Linear(16, 3)
-                self.right_arm_layer = nn.Linear(16, 3)
-                self.head_layer = nn.Linear(16, 2)
+                self.left_arm_layer = nn.Linear(128, pose_predictor.robot.dof_arm)
+                self.right_arm_layer = nn.Linear(128, pose_predictor.robot.dof_arm)
+                self.head_layer = nn.Linear(128, 2)
 
             def forward(self, x):
                 x = torch.relu(self.shared_layer1(x))
@@ -296,10 +296,8 @@ class Prediction(object):
         # Training loop
         training_losses = []
         validation_losses = []
-        num_epochs = 1000
         train_input_data, val_input_data, train_output_data_left, val_output_data_left, train_output_data_right, val_output_data_right, train_output_data_head, val_output_data_head = train_test_split(
         input_data, output_data_left, output_data_right, output_data_head, test_size=0.2, random_state=50)
-
         for epoch in range(num_epochs):
             # Forward pass
             left_arm_pred, right_arm_pred, head_pred = model(train_input_data)
@@ -466,8 +464,8 @@ class Prediction(object):
         plt.tight_layout()
         plt.show()
 
-    def plot_animation_3d(self, point_clouds_list, initial_ra):
-
+    def plot_animation_3d_labeling(self, point_clouds_list, initial_ra):
+        limits = list(self.robot.physical_limits_left.values()) + list(self.robot.physical_limits_right.values()) + list(self.robot.physical_limits_head.values())
         if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
             raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
         fig, ax1, ax2 = self.create_3d_plot()
@@ -480,10 +478,9 @@ class Prediction(object):
         lines5 = [ax2.plot([], [], [], c='g', linewidth=2, linestyle='--')[0] for _ in range(len(point_clouds_list[0][4]) - 1)]
         lines6 = [ax2.plot([], [], [], c='r', linewidth=2)[0] for _ in range(len(point_clouds_list[0][5]) - 1)]
 
-
-         # Create sliders for each angle in ra
+        # Create sliders for each angle in ra
         slider_axes = [plt.axes([0.2, 0.02 + 0.02 * i, 0.65, 0.03], facecolor='lightgoldenrodyellow') for i in range(len(initial_ra))]
-        sliders = [Slider(slider_ax, f'Angle {i}', -np.pi, np.pi, valinit=initial_ra[i]) for i, slider_ax in enumerate(slider_axes)]
+        sliders = [Slider(slider_ax, f'Angle {i}', np.deg2rad(limits[i][0]), np.deg2rad(limits[i][1]), valinit=initial_ra[i]) for i, slider_ax in enumerate(slider_axes)]
 
         button_ax = plt.axes([0.8, 0.9, 0.1, 0.04])  # Adjust the position as needed
         button = Button(button_ax, 'Save CSV')
@@ -491,7 +488,7 @@ class Prediction(object):
         def on_button_click(event):
             # Callback function for button click
             ra = np.array([slider.val for slider in sliders])
-            pose_predictor.save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra)
+            self.save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra)
             print("CSV saved!")
 
         # Connect the button click function
@@ -559,7 +556,7 @@ class Prediction(object):
         plt.ioff()
 
 if __name__ == "__main__":
-    robotName = "gen3"
+    robotName = "nao"
     file_path = "./robot_configuration_files/"+ robotName + ".yaml"
     pose_predictor = Prediction(file_path, robotName)
 
@@ -568,11 +565,11 @@ if __name__ == "__main__":
                'dinner_plate', 'knife', 'fork', 'salt_shaker',
                'sugar_bowl', 'mixer', 'pressure_cooker']
 
-    #16 18 13 6  4 20  9 1  8 3 14
-    #17 19 12 2 10 11 5 15
+    #16 18 13 6  20  9 1  8 14
+    #4 3 17 19 12 2 10 11 5 15
     robot_pose = []
-    action = "fork"
-    user = 3
+    action = "salt_shaker_right"
+    user = 15
     users = np.arange(1, 21, 1)
     left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
     left_side = left_side * 1000
@@ -580,27 +577,29 @@ if __name__ == "__main__":
     head = head * 1000
     file_name = "./data/robot_angles_" + robotName
 
+    #Freddy azul - izquierda
+    # 3th joints have diff references to rotate
     # for i in range(len(left_side)):
-    ra = np.array([
-        #azul - izquierda
-        #3th joints have diff references to rotate
-        np.deg2rad(82.5), np.deg2rad(45), np.deg2rad(150), np.deg2rad(70), np.deg2rad(60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181)),
-        np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(-150), np.deg2rad(70), np.deg2rad(-60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181))])
+        # ra = np.array([
+        # np.deg2rad(82.5), np.deg2rad(45), np.deg2rad(150), np.deg2rad(70), np.deg2rad(60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181)),
+        # np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(-150), np.deg2rad(70), np.deg2rad(-60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181))])
+    ra = np.array([np.deg2rad(65), np.deg2rad(20), np.deg2rad(-100), np.deg2rad(-80), np.deg2rad(-90),
+                   np.deg2rad(100), np.deg2rad(-20), np.deg2rad(100), np.deg2rad(10), np.deg2rad(40),
+                   np.deg2rad(0), np.deg2rad(0)])
     lht, lhp, rht, rhp, hht, hhp = pose_predictor.extract_spherical_angles_from_human(left_side[0], right_side[0], head[0])
-    points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:7], ra[7:14], [0, 0])
+    points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:5], ra[5:10], [10, 12])
     robot_pose.append((left_side[0], right_side[0], head[0], points4, points5, points6))
-    pose_predictor.plot_animation_3d(robot_pose, ra)
-    # pose_predictor.save_mapping_csv(file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra)
+    pose_predictor.plot_animation_3d_labeling(robot_pose, ra)
 
     #NN TRAINING
     # file_name = "robot_angles_" + robotName
     # theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-    # pose_predictor.train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+    # pose_predictor.train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 400)
 
     #NN TESTING
     # df = pose_predictor.read_file("combined_actions")
-    # action = "teapot"
-    # user = 5
+    # action = "dinner_plate"
+    # user = 15
     # robot_pose = []
     # left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
     # left_side = left_side * 1000
@@ -631,3 +630,4 @@ if __name__ == "__main__":
     # pose_predictor.plot_angle_sequence(angles_left_vec, angles_right_vec)
     # pose_predictor.plot_angle_sequence(angles_head_vec)
     # pose_predictor.plot_animation_3d(robot_pose)
+
