@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 import random
-# plt.rcParams.update({'font.size': 20})
+plt.rcParams.update({'font.size': 20})
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
@@ -94,7 +94,7 @@ class Prediction(object):
 
     def matrix_array_to_list_list(self, vec):
         new_list = [list(i) for i in vec]
-        return np.around(np.array(new_list), decimals = 3)
+        return np.around(np.array(new_list), decimals = 2)
 
     def vectorise_string(self, vec):
         aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
@@ -104,25 +104,35 @@ class Prediction(object):
     def vectorise_spherical_data(self, vec):
         aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
         data = np.array(aux_data.split())
-        return list(data[0:self.robot.dof_arm].astype(float))
+        #+1 for QT, human has 4 angles and QT 3
+        return list(data[0:self.robot.dof_arm + 1].astype(float))
 
     def read_csv_combined(self, df, action, user):
         left_side = []
         right_side = []
         head = []
-        aux_arm = [[]] * number_arm_human_joints
-        aux_head = [[]] * number_head_human_joints
-        for i in range(len(df)):
-            if action == df['action'][i] and user == df['participant_id'][i]:
+        aux_arm = [[] for _ in range(number_arm_human_joints)]  # Use list comprehension
+        aux_head = [[] for _ in range(number_head_human_joints)]  # Use list comprehension
+        try:
+            filtered_df = df[(df['action'] == action) & (df['participant_id'] == user)]
+
+            for i in range(len(filtered_df)):
                 for count, left in enumerate(human_joints_left):
-                    aux_arm[count] = self.vectorise_string(df[left][i])
+                    aux_arm[count] = self.vectorise_string(filtered_df[left].iloc[i])
                 left_side.append(aux_arm.copy())
+
                 for count, right in enumerate(human_joints_right):
-                    aux_arm[count] = self.vectorise_string(df[right][i])
+                    aux_arm[count] = self.vectorise_string(filtered_df[right].iloc[i])
                 right_side.append(aux_arm.copy())
+
                 for count, _head in enumerate(human_joints_head):
-                    aux_head[count] = self.vectorise_string(df[_head][i])
+                    aux_head[count] = self.vectorise_string(filtered_df[_head].iloc[i])
                 head.append(aux_head.copy())
+
+        except KeyError as e:
+            print(f"Error: {e}")
+            # Handle the exception here if needed, e.g., return default values
+
         return np.array(left_side), np.array(right_side), np.array(head)
 
     def read_training_data(self, file_name):
@@ -260,17 +270,16 @@ class Prediction(object):
     def read_file(self, name):
         return pd.read_csv('./data/' + name + '.csv')
 
-    def train_pytorch(self, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
-
+    def train_pytorch(self, robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
         # Create a custom PyTorch model class
         class MultiOutputModel(nn.Module):
             def __init__(self):
                 super(MultiOutputModel, self).__init__()
-                self.shared_layer1 = nn.Linear(20, 128)
+                self.shared_layer1 = nn.Linear(20, 16)
                 # self.shared_layer2 = nn.Linear(128, 128)
-                self.left_arm_layer = nn.Linear(128, pose_predictor.robot.dof_arm)
-                self.right_arm_layer = nn.Linear(128, pose_predictor.robot.dof_arm)
-                self.head_layer = nn.Linear(128, 2)
+                self.left_arm_layer = nn.Linear(16, robot.dof_arm)
+                self.right_arm_layer = nn.Linear(16, robot.dof_arm)
+                self.head_layer = nn.Linear(16, 2)
 
             def forward(self, x):
                 x = torch.relu(self.shared_layer1(x))
@@ -337,13 +346,13 @@ class Prediction(object):
 
         self.model = model
         # Plot the training loss
-        plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
-        plt.plot(range(1, num_epochs + 1), validation_losses, label='Validation Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.grid()
-        plt.show()
+        # plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
+        # plt.plot(range(1, num_epochs + 1), validation_losses, label='Validation Loss')
+        # plt.xlabel('Epoch')
+        # plt.ylabel('Loss')
+        # plt.legend()
+        # plt.grid()
+        # plt.show()
 
     def dicts_to_lists(self, left, right, head):
         left_side = []
@@ -429,38 +438,29 @@ class Prediction(object):
 
     def plot_3d_paths(self, paths):
         num_points, num_paths, _ = paths.shape
-
         # Calculate the number of rows and columns based on the desired layout
         num_rows = (num_paths + 2) // 3  # Ensure there are enough rows for all paths
         num_cols = min(num_paths, 3)
-
         fig, axs = plt.subplots(num_rows, num_cols, figsize=(15, 4 * num_rows), subplot_kw={'projection': '3d'})
-
         for i in range(num_paths):
             row = i // 3
             col = i % 3
-
             # Extract X, Y, Z coordinates
             x, y, z = paths[:, i, :].T
             axs[row, col].scatter(x, y, z, s=10) # label=f'Joint {i}'
             axs[row, col].plot(x, y, z, color='grey', linestyle='dashed') # label=f'Joint {i}'
-
-             # Highlight
+            # Highlight
             axs[row, col].scatter(x[0], y[0], z[0], color='green', s=50, label='Start Point')
             axs[row, col].scatter(x[-1], y[-1], z[-1], color='red', s=50, label='End Point')
-
             axs[row, col].set_xlabel('X [mm]')
             axs[row, col].set_ylabel('Y [mm]')
             axs[row, col].set_zlabel('Z [mm]')
             axs[row, col].set_title(f'Joint {i}')
-
         handles, labels = axs[0, 0].get_legend_handles_labels()
         fig.legend(handles, labels, loc='lower right')
-
         # Remove empty subplots
         for i in range(num_paths, num_rows * num_cols):
             fig.delaxes(axs.flatten()[i])
-
         plt.tight_layout()
         plt.show()
 
@@ -568,14 +568,14 @@ if __name__ == "__main__":
     #16 18 13 6  20  9 1  8 14
     #4 3 17 19 12 2 10 11 5 15
     robot_pose = []
-    action = "salt_shaker_right"
-    user = 15
-    users = np.arange(1, 21, 1)
-    left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
-    left_side = left_side * 1000
-    right_side = right_side * 1000
-    head = head * 1000
-    file_name = "./data/robot_angles_" + robotName
+    # action = "salt_shaker_right"
+    # user = 15
+    # users = np.arange(1, 21, 1)
+    # left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
+    # left_side = left_side * 1000
+    # right_side = right_side * 1000
+    # head = head * 1000
+    # file_name = "./data/robot_angles_" + robotName
 
     #Freddy azul - izquierda
     # 3th joints have diff references to rotate
@@ -583,51 +583,52 @@ if __name__ == "__main__":
         # ra = np.array([
         # np.deg2rad(82.5), np.deg2rad(45), np.deg2rad(150), np.deg2rad(70), np.deg2rad(60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181)),
         # np.deg2rad(-82.5), np.deg2rad(45), np.deg2rad(-150), np.deg2rad(70), np.deg2rad(-60), np.deg2rad(70), np.deg2rad(random.randint(-180, 181))])
-    ra = np.array([np.deg2rad(65), np.deg2rad(20), np.deg2rad(-100), np.deg2rad(-80), np.deg2rad(-90),
-                   np.deg2rad(100), np.deg2rad(-20), np.deg2rad(100), np.deg2rad(10), np.deg2rad(40),
-                   np.deg2rad(0), np.deg2rad(0)])
-    lht, lhp, rht, rhp, hht, hhp = pose_predictor.extract_spherical_angles_from_human(left_side[0], right_side[0], head[0])
-    points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:5], ra[5:10], [10, 12])
-    robot_pose.append((left_side[0], right_side[0], head[0], points4, points5, points6))
-    pose_predictor.plot_animation_3d_labeling(robot_pose, ra)
+    # ra = np.array([np.deg2rad(65), np.deg2rad(20), np.deg2rad(-100), np.deg2rad(-80), np.deg2rad(-90),
+    #                np.deg2rad(100), np.deg2rad(-20), np.deg2rad(100), np.deg2rad(10), np.deg2rad(40),
+    #                np.deg2rad(0), np.deg2rad(0)])
+    # lht, lhp, rht, rhp, hht, hhp = pose_predictor.extract_spherical_angles_from_human(left_side[0], right_side[0], head[0])
+    # points4, points5, points6 = pose_predictor.robot_embodiment(ra[0:5], ra[5:10], [10, 12])
+    # robot_pose.append((left_side[0], right_side[0], head[0], points4, points5, points6))
+    # pose_predictor.plot_animation_3d_labeling(robot_pose, ra)
 
     #NN TRAINING
-    # file_name = "robot_angles_" + robotName
-    # theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-    # pose_predictor.train_pytorch(theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 400)
+    file_name = "robot_angles_" + robotName
+    theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
+    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
 
     #NN TESTING
-    # df = pose_predictor.read_file("combined_actions")
-    # action = "dinner_plate"
-    # user = 15
-    # robot_pose = []
-    # left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
-    # left_side = left_side * 1000
-    # right_side = right_side * 1000
-    # head = head * 1000
-    # angles_left_vec = []
-    # angles_right_vec = []
-    # angles_head_vec = []
-    # cartesian_left_vec = []
-    # cartesian_right_vec = []
-    # cartesian_head_vec = []
+    df = pose_predictor.read_file("combined_actions")
+    action = "spoon"
+    user = 20
+    robot_pose = []
+    left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
+    left_side = left_side * 1000
+    right_side = right_side * 1000
+    head = head * 1000
+    angles_left_vec = []
+    angles_right_vec = []
+    angles_head_vec = []
+    cartesian_left_vec = []
+    cartesian_right_vec = []
+    cartesian_head_vec = []
 
-    # for i in range(len(left_side)):
-    #     angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
-    #     angles_left_vec.append(angles_left)
-    #     angles_right_vec.append(angles_right)
-    #     angles_head_vec.append(angles_head)
+    for i in range(len(left_side)):
+        angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
+        angles_left_vec.append(angles_left)
+        angles_right_vec.append(angles_right)
+        angles_head_vec.append(angles_head)
 
-    #     points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
-    #     cartesian_left_vec.append(points4)
-    #     cartesian_right_vec.append(points5)
-    #     cartesian_head_vec.append(points6)
-    #     robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
-    # pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
-    # pose_predictor.plot_3d_paths(np.asarray(cartesian_left_vec))
-    # pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
-    # pose_predictor.plot_3d_paths(np.asarray(cartesian_head_vec))
-    # pose_predictor.plot_angle_sequence(angles_left_vec, angles_right_vec)
-    # pose_predictor.plot_angle_sequence(angles_head_vec)
-    # pose_predictor.plot_animation_3d(robot_pose)
+        points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
+        cartesian_left_vec.append(points4)
+        cartesian_right_vec.append(points5)
+        cartesian_head_vec.append(points6)
+        robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
+
+    pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
+    pose_predictor.plot_3d_paths(np.asarray(cartesian_left_vec))
+    pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
+    pose_predictor.plot_3d_paths(np.asarray(cartesian_head_vec))
+    pose_predictor.plot_angle_sequence(angles_left_vec, angles_right_vec)
+    pose_predictor.plot_angle_sequence(angles_head_vec)
+    pose_predictor.plot_animation_3d(robot_pose)
 

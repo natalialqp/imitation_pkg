@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import ast
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 import xml.etree.ElementTree as ET
+import json
+import re
 
-plt.rcParams.update({'font.size': 20})
+plt.rcParams.update({"font.size": 20})
 
 class Graph(object):
     def __init__(self, n_dependecies, key):
@@ -21,7 +23,8 @@ class Graph(object):
         return node_values
 
     def get_node_attr(self, node, attr):
-        # new_node = self.list_to_string(node)
+        if not isinstance(node, str):
+            node = self.list_to_string(node)
         return self.G.nodes[node][attr]
 
     def change_node_attr(self, node, attr, value):
@@ -36,15 +39,15 @@ class Graph(object):
 
     def list_to_string(self, vec):
         modified_vector = [0.0 if value in {0, 0., -0., -0.0, -0} else value for value in vec]
-        vector_str = '[' + ', '.join(map(str, modified_vector)) + ']'
+        vector_str = "[" + ", ".join(map(str, modified_vector)) + "]"
         return vector_str
 
     def set_attribute(self, node, angles):
         # new_node = self.list_to_string(node)
         keyList = np.arange(1, self.n_dependecies, 1)
-        dependendies = {"angle_" + str(keyList[i]): round(angles[i], 2) for i in range(len(keyList))}
+        dependencies = {"angle_" + str(keyList[i]): round(angles[i], 2) for i in range(len(keyList))}
         # attrs = {new_node: { "value": np.array(node), "occupied": False, "joint_dependency": dependendies}}
-        self.add_one_node(node, dependendies)
+        self.add_one_node(node, dependencies)
         # return attrs
 
     def set_edge_attr(self, u, v, attr):
@@ -56,7 +59,7 @@ class Graph(object):
         # nx.set_node_attributes(self.G, attr)
 
     def change_edge_weight(self, u, v, value):
-        self.G[u][v]['weight'] = value
+        self.G[u][v]["weight"] = value
 
     def add_one_edge(self, edge):
         u, v = self.list_to_string(edge[0]), self.list_to_string(edge[1])  # Convert ndarrays to tuples
@@ -82,13 +85,17 @@ class Graph(object):
         return path
 
     def shortest_path(self, initial_node, goal_node):
+        initial_node = self.list_to_string(initial_node)
+        goal_node = self.list_to_string(goal_node)
         return nx.shortest_path(self.G, str(initial_node), str(goal_node))
 
     def number_of_nodes(self):
         return self.G.number_of_nodes()
 
     def has_path(self, initial_node, goal_node):
-        return nx.has_path(self.G, str(initial_node), str(goal_node))
+        initial_node = self.list_to_string(initial_node)
+        goal_node = self.list_to_string(goal_node)
+        return nx.has_path(self.G, initial_node, goal_node)
 
     def has_node(self, node):
         return self.G.has_node(node)
@@ -144,51 +151,95 @@ class Graph(object):
         for u, v, attributes in self.G.edges(data = True):
             print("Edge:", u, "-", v, "Attributes:", attributes)
 
+    def read_last_id_from_file(self):
+        try:
+            with open(self.key + "_data.json", "r") as jsonfile:
+                lines = jsonfile.readlines()
+                if lines:
+                    last_line = lines[-1]
+                    last_pose = json.loads(last_line)
+                    last_id = last_pose.get("id", 0)
+                    return last_id
+                else:
+                    return 0
+        except FileNotFoundError:
+            return 0
+        except json.JSONDecodeError:
+            # Handle JSON decoding error if necessary
+            return 0
+
+    def save_path_in_library(self, trajectory, dependency):
+        last_id = self.read_last_id_from_file()
+        with open(self.key + "_data.json", "a") as jsonfile:
+            pose = {"id": last_id + 1, "path": trajectory, "joint_dependency": dependency}
+            json.dump(pose, jsonfile)
+            jsonfile.write("\n")
+
     def save_graph_to_file(self, name):
         output_file = "./data/graphs/" + name + ".xml"
 
-        with open(output_file, 'w', encoding='utf-8') as file:
+        with open(output_file, "w", encoding="utf-8") as file:
             file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-            file.write('<graph>\n')
+            file.write("<graph>\n")
 
             for node, attributes in self.G.nodes(data=True):
-                x, y, z = attributes['value']
-                value = attributes['value']
-                occupied = attributes['occupied']
-                joint_dependency = attributes['joint_dependency']
+                x, y, z = attributes["value"]
+                value = attributes["value"]
+                occupied = attributes["occupied"]
+                joint_dependency = attributes["joint_dependency"]
                 file.write(f'  <node id="[{x}, {y}, {z}]" value= "{value}" occupied="{occupied}" joint_dependency="{joint_dependency}"/>\n')
             for u, v, attributes in self.G.edges(data = True):
-                source = f'{u}'
-                target = f'{v}'
-                weight = attributes['weight']
-                occupied = attributes['occupied']
-                file.write(f'  <edge source="{source}" target="{target}" weight="{weight}" occupied="{occupied}"/>\n')
-            file.write('</graph>\n')
+                source = f"{u}"
+                target = f"{v}"
+                weight = attributes["weight"]
+                occupied = attributes["occupied"]
+                file.write(f' <edge source="{source}" target="{target}" weight="{weight}" occupied="{occupied}"/>\n')
+            file.write("</graph>\n")
+
+    def select_joint_dependencies(self, trajectory):
+        prev_dict =  {"angle_" + str(key + 1): 0 for key in range(self.n_dependecies - 1)}#change for initial position of the robot joints
+        dependencies = []
+        for point in trajectory:
+            dep_list = [self.get_node_attr(point, "joint_dependency")]
+            least_error_dict = self.find_least_error_dict(prev_dict, dep_list)
+            dependencies.append(least_error_dict)
+            prev_dict = least_error_dict
+        return dependencies
+
+    def calculate_error(self, d_1, d_2):
+        # Calculate the sum of squared differences between corresponding values
+        d_2 = self.string_to_dict(d_2)
+        return sum((d_1[key] - d_2[key]) ** 2 for key in d_1 if key in d_2)
+
+    def find_least_error_dict(self, reference_dict, dict_list):
+        # Find the dictionary with the least error
+        least_error_dict = min(dict_list, key=lambda d: self.calculate_error(reference_dict, d))
+        return least_error_dict
 
     def parse_node(self, element):
-        node_id = element.get('id')
-        value = self.vectorise_string(element.get('value'))
-        occupied = element.get('occupied')
-        joint_dependency = element.get('joint_dependency')
-        return node_id, {'value': value, 'occupied': occupied, 'joint_dependency': joint_dependency}
+        node_id = element.get("id")
+        value = self.vectorise_string(element.get("value"))
+        occupied = element.get("occupied")
+        joint_dependency = element.get("joint_dependency")
+        return node_id, {"value": value, "occupied": occupied, "joint_dependency": joint_dependency}
 
     def parse_edge(self, element):
-        source = element.get('source')
-        target = element.get('target')
-        weight = element.get('weight')
-        occupied = element.get('occupied')
-        return (source, target), {'weight': float(weight), 'occupied': occupied}
+        source = element.get("source")
+        target = element.get("target")
+        weight = element.get("weight")
+        occupied = element.get("occupied")
+        return (source, target), {"weight": float(weight), "occupied": occupied}
 
     def read_graph_from_file(self, name):
         file_path = "./data/graphs/" + name + ".xml"
         tree = ET.parse(file_path)
         root = tree.getroot()
 
-        for node_element in root.findall('.//node'):
+        for node_element in root.findall(".//node"):
             node, attributes = self.parse_node(node_element)
             self.G.add_node(node, **attributes)
 
-        for edge_element in root.findall('.//edge'):
+        for edge_element in root.findall(".//edge"):
             edge, attributes = self.parse_edge(edge_element)
             self.G.add_edge(*edge, **attributes)
 
@@ -196,7 +247,7 @@ class Graph(object):
         return nx.read_graphml("./data/objects/" + name + ".net")
 
     def vectorise_string(self, vec):
-        aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
+        aux_data = "".join([i for i in vec if not (i=="[" or i=="]" or i==",")])
         data = np.array(aux_data.split())
         return list(data[0:3].astype(float))
 
@@ -210,20 +261,20 @@ class Graph(object):
             xdata = trajectory[:, 0]
             ydata = trajectory[:, 1]
             zdata = trajectory[:, 2]
-            ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+            ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap="Greens")
                 # Plot edges between the points
             for i in range(len(xdata) - 1):
-                ax.plot([xdata[i], xdata[i+1]], [ydata[i], ydata[i+1]], [zdata[i], zdata[i+1]], c='blue')
+                ax.plot([xdata[i], xdata[i+1]], [ydata[i], ydata[i+1]], [zdata[i], zdata[i+1]], c="blue")
         if len(candidates):
             xdata = candidates[:, 0]
             ydata = candidates[:, 1]
             zdata = candidates[:, 2]
-            ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Reds')
+            ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap="Reds")
 
            # Plot the nodes
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
-            xyz_rounded = tuple(round(coord, 3) for coord in self.get_node_attr(xyz, "value"))
-            ax.scatter(*xyz_rounded, s=100, ec="w", cmap='Greens')
+            xyz_rounded = tuple(round(coord, 2) for coord in self.get_node_attr(xyz, "value"))
+            ax.scatter(*xyz_rounded, s=100, ec="w", cmap="Greens")
             # ax.text(*xyz_rounded, f"Node: {xyz_rounded}", ha="center", va="center")
 
         # Plot the edges
@@ -233,13 +284,13 @@ class Graph(object):
             x = [first_edge[0], second_edge[0]]
             y = [first_edge[1], second_edge[1]]
             z = [first_edge[2], second_edge[2]]
-            ax.plot(x, y, z, color='grey')
+            ax.plot(x, y, z, color="grey")
             # Calculate the length of the edge
             # length = ((x[1] - x[0])**2 + (y[1] - y[0])**2 + (z[1] - z[0])**2)**0.5
             # Calculate the midpoint of the edge
             # midpoint = ((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, (z[0] + z[1]) / 2)
             # Add the length as a text annotation at the midpoint
-            # ax.text(midpoint[0], midpoint[1], midpoint[2], f"Length: {length:.2f}", ha='center', va='center')
+            # ax.text(midpoint[0], midpoint[1], midpoint[2], f"Length: {length:.2f}", ha="center", va="center")
 
         def _format_axes(ax):
             """Visualization options for the 3D axes."""
@@ -259,6 +310,23 @@ class Graph(object):
     def find_neighbors(self, node):
         return self.G.neighbors(self.list_to_string(node))
 
+    def find_closest_point(self, new_point, kdtree):
+        distance, index = kdtree.query(new_point)
+        return kdtree.data[index]
+
+    def find_trajectory_in_graph(self, tra):
+        nodes = self.get_nodes_values()
+        kdtree = KDTree(np.array(nodes))
+        world_nodes = []
+        for node in tra:
+            closest_point = self.find_closest_point(node, kdtree)
+            if world_nodes:
+                if (world_nodes[-1] != closest_point).any():
+                    world_nodes.append(closest_point)
+            else:
+                world_nodes.append(closest_point)
+        return world_nodes
+
     def find_neighbors_candidates(self, nodes):
         return [self.find_neighbors(node) for node in nodes]
 
@@ -273,3 +341,47 @@ class Graph(object):
         #     print("subgraph {} has {} nodes".format(i, sg.number_of_nodes()))
         #     print("\tNodes:", sg.nodes(data=True))
         #     print("\tEdges:", sg.edges())
+
+    def lerp(self, a, b, t):
+        return (1 - t) * a + t * b
+
+    def string_to_dict(self, dict):
+        if type(dict) == str:
+            try:
+                dict = re.sub(r"\'", '"', dict)
+                dict = json.loads(dict)
+            except ValueError as e:
+                print(f"Error: {e}")
+        return dict
+
+    def interpolate_joint_angles(self, joint_angles_a, joint_angles_b, t = 0.5):
+        joint_angles_a = self.string_to_dict(joint_angles_a)
+        joint_angles_b = self.string_to_dict(joint_angles_b)
+        return {key: self.lerp(joint_angles_a[key], joint_angles_b[key], t)
+                for key in joint_angles_a.keys()}
+
+    def adding_candidates_to_graph(self, length, candidates):
+        nodes = self.get_nodes_values()
+        tree = KDTree(np.array(nodes))
+        max_dist = 2 * length
+        for i, point in enumerate(candidates):
+            neighbors_indices = tree.query_ball_point(point, max_dist)
+            if len(neighbors_indices) > 1:
+                distances, indices = tree.query(point, k = 2)
+                angles = self.interpolate_joint_angles(self.get_node_attr(tree.data[indices[0]], "joint_dependency"), self.get_node_attr(tree.data[indices[1]], "joint_dependency"))
+                self.add_one_node(point, angles)
+                for index in neighbors_indices:
+                    node_link = tree.data[index]
+                    self.add_one_edge([point, node_link])
+
+    def verify_path_in_graph(self, path):
+        nodes = self.get_nodes_values()
+        missing_nodes = []
+        if self.has_path(path[0], path[-1]):
+            for point in path:
+                if point not in nodes:
+                    missing_nodes.append(point)
+            return missing_nodes
+        else:
+            return None
+

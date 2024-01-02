@@ -86,7 +86,7 @@ class Graph(object):
 
         # Plot the nodes
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
-            xyz_rounded = tuple(round(coord, 3) for coord in xyz)
+            xyz_rounded = tuple(round(coord, 2) for coord in xyz)
             ax.scatter(*xyz_rounded, s=100, ec="w")
             # ax.text(*xyz_rounded, f"Node: {xyz_rounded}", ha="center", va="center")
 
