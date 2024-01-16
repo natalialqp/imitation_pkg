@@ -9,7 +9,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
-import random
+import robot_graph
+from scipy.spatial import KDTree
+import json
+
 plt.rcParams.update({'font.size': 20})
 
 number_arm_human_joints = 5
@@ -20,11 +23,126 @@ human_joints_head  = ['JOINT_LEFT_COLLAR', 'JOINT_NECK', 'JOINT_HEAD']
 human_joints_left  = ['JOINT_LEFT_COLLAR', 'JOINT_LEFT_SHOULDER', 'JOINT_LEFT_ELBOW', 'JOINT_LEFT_WRIST', 'JOINT_LEFT_HAND']
 human_joints_right = ['JOINT_RIGHT_COLLAR', 'JOINT_RIGHT_SHOULDER', 'JOINT_RIGHT_ELBOW', 'JOINT_RIGHT_WRIST', 'JOINT_RIGHT_HAND']
 
+def createRobotGraphs(robot):
+    joint_dic = {}
+    for i in range(len(robot.leftArmAngles)):
+        joint_dic["jointLeft_" + str(i)] = robot_graph.Graph(i, "jointLeft_" + str(i))
+
+    for i in range(len(robot.rightArmAngles)):
+        joint_dic["jointRight_" + str(i)] = robot_graph.Graph(i, "jointRight_" + str(i))
+
+    for i in range(len(robot.headAngles)):
+        joint_dic["jointHead_" + str(i)] = robot_graph.Graph(i, "jointHead_" + str(i))
+    return joint_dic
+
+def extract_vectors(data):
+    angles = data[0].keys()
+    # Create vectors for each angle
+    angle_vectors = []
+    for point in data:
+        values = [point[i] for i in angles]
+        angle_vectors.append(np.deg2rad(values))
+    return angle_vectors
+
+def find_closest_point(new_point, kdtree):
+    distance, index = kdtree.query(new_point)
+    return kdtree.data[index]
+
+def path_planning(demonstration, graph):
+    kdtree = KDTree(graph.get_nodes_values())
+    path = []
+    demonstration = list(demonstration)
+    for i in demonstration:
+        node = find_closest_point(i, kdtree)
+        path.append(tuple(node))
+    # MSE, RMSE = error_calculation(demonstration, path)
+    return path
+
+def plotPath(key, demonstration, predicted_path, path_from_library):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    xdem = demonstration[:, 0]
+    ydem = demonstration[:, 1]
+    zdem = demonstration[:, 2]
+    xpath = predicted_path[:, 0]
+    ypath = predicted_path[:, 1]
+    zpath = predicted_path[:, 2]
+
+    # Scatter plots for the points
+    ax.scatter3D(xdem[1:-1], ydem[1:-1], zdem[1:-1], c='blue', marker='o', label='User demonstration')
+    ax.scatter3D(xdem[0], ydem[0], zdem[0], c='green', marker='*')
+    ax.scatter3D(xdem[-1], ydem[-1], zdem[-1], c='red', marker='*')
+
+    ax.scatter3D(xpath[1:-1], ypath[1:-1], zpath[1:-1], c='pink', marker='o', label='Path planning')
+    ax.scatter3D(xpath[0], ypath[0], zpath[0], c='green', marker='*', label='Starting point')
+    ax.scatter3D(xpath[-1], ypath[-1], zpath[-1], c='red', marker='*', label='Ending point')
+
+    if len(path_from_library):
+        xdata = path_from_library[:, 0]
+        ydata = path_from_library[:, 1]
+        zdata = path_from_library[:, 2]
+        ax.scatter3D(xdata, ydata, zdata, c='purple', label='Path from library')
+
+    # Plot edges between the points
+    for i in range(len(xdem) - 1):
+        ax.plot([xdem[i], xdem[i+1]], [ydem[i], ydem[i+1]], [zdem[i], zdem[i+1]], c='grey')
+    for i in range(len(xpath) - 1):
+        ax.plot([xpath[i], xpath[i+1]], [ypath[i], ypath[i+1]], [zpath[i], zpath[i+1]], c='lightblue')
+    for i in range(len(xdata) - 1):
+        ax.plot([xdata[i], xdata[i+1]], [ydata[i], ydata[i+1]], [zdata[i], zdata[i+1]], c='green')
+
+    ax.set_title(key)
+    ax.set_xlabel("\n X [mm]", linespacing=3.2)
+    ax.set_ylabel("\n Y [mm]", linespacing=3.2)
+    ax.set_zlabel("\n Z [mm]", linespacing=3.2)
+
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.legend()
+    fig.tight_layout()
+    # plt.savefig(key + "_world_path.pdf", format="pdf")
+    plt.show()
+
+def extract_action_from_library(actionName, library):
+    robot_pose = {}
+    for key in library:
+        for item in library[key]:
+            if item["id"] == actionName:
+                robot_pose[key] = item["path"]
+    return robot_pose
+
+def extract_angles_from_library(actionName, library):
+    robot_pose = {}
+    for key in library:
+        for item in library[key]:
+            if item["id"] == actionName:
+                robot_pose[key] = item["joint_dependency"]
+    return robot_pose
+
+def read_library_from_file(name, robotName):
+    try:
+        with open(name + "_" + robotName + "_data.json", "r") as jsonfile:
+            data = [json.loads(line) for line in jsonfile.readlines()]
+            return data
+    except FileNotFoundError:
+        print(f"File {name}_data.json not found.")
+        return []
+
+def find_end_effectors_keys(dict):
+    left_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointLeft')]
+    right_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointRight')]
+    head_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointHead')]
+
+    max_left = 'jointLeft_' + str(max(left_numbers, default=0))
+    max_right = 'jointRight_' + str(max(right_numbers, default=0))
+    max_head = 'jointHead_' + str(max(head_numbers, default=0))
+
+    return [max_left, max_right, max_head]
+
 class Prediction(object):
 
     def __init__(self, file_path, name):
 
-        self.robot = robot.Robot()
+        self.robot = robot.Robot(name)
         self.robot.import_robot(file_path)
         self.base = self.robot.baseDistance
         self.robotName = name
@@ -89,7 +207,7 @@ class Prediction(object):
         elif self.robotName == "nao":
             l, r, h = self.robot.forward_kinematics_nao(angles)
         elif self.robotName == "gen3":
-            l, r, h = self.robot.forward_kinematics_kinova(angles)
+            l, r, h = self.robot.forward_kinematics_gen3(angles)
         return self.matrix_array_to_list_list(l), self.matrix_array_to_list_list(r), self.matrix_array_to_list_list(h)
 
     def matrix_array_to_list_list(self, vec):
@@ -180,9 +298,14 @@ class Prediction(object):
         ax1.set_xlabel("\n X [mm]", linespacing=3.2)
         ax1.set_ylabel("\n Y [mm]", linespacing=3.2)
         ax1.set_zlabel("\n Z [mm]", linespacing=3.2)
-        ax1.set_xlim([1500, 3000])
-        ax1.set_ylim([-900, 900])
-        ax1.set_zlim([-400, 800])
+        #QTROBOT
+        ax1.set_xlim([-500, 500])
+        ax1.set_ylim([-500, 500])
+        ax1.set_zlim([0, 800])
+        #HUMAN
+        # ax1.set_xlim([1500, 3000])
+        # ax1.set_ylim([-900, 900])
+        # ax1.set_zlim([-400, 800])
 
         ax2.set_xlabel("\n X [mm]", linespacing=3.2)
         ax2.set_ylabel("\n Y [mm]", linespacing=3.2)
@@ -556,7 +679,7 @@ class Prediction(object):
         plt.ioff()
 
 if __name__ == "__main__":
-    robotName = "nao"
+    robotName = "qt"
     file_path = "./robot_configuration_files/"+ robotName + ".yaml"
     pose_predictor = Prediction(file_path, robotName)
 
@@ -565,8 +688,6 @@ if __name__ == "__main__":
                'dinner_plate', 'knife', 'fork', 'salt_shaker',
                'sugar_bowl', 'mixer', 'pressure_cooker']
 
-    #16 18 13 6  20  9 1  8 14
-    #4 3 17 19 12 2 10 11 5 15
     robot_pose = []
     # action = "salt_shaker_right"
     # user = 15
@@ -598,9 +719,10 @@ if __name__ == "__main__":
 
     #NN TESTING
     df = pose_predictor.read_file("combined_actions")
-    action = "spoon"
-    user = 20
+    action = "teapot"
+    user = 5
     robot_pose = []
+    robot_pose_2 = []
     left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
     left_side = left_side * 1000
     right_side = right_side * 1000
@@ -611,6 +733,39 @@ if __name__ == "__main__":
     cartesian_left_vec = []
     cartesian_right_vec = []
     cartesian_head_vec = []
+    cartesian_left_vec_2 = []
+    cartesian_right_vec_2 = []
+    robotName = 'qt'
+    file_path = "./robot_configuration_files/" + robotName + ".yaml"
+    qt = robot.Robot(robotName)
+    qt.import_robot(file_path)
+    robot_graphs = createRobotGraphs(qt)
+    lib_dict = {}
+    dep_dict = {}
+    length = 10
+    end_effector_dict = find_end_effectors_keys(robot_graphs)
+
+    for key in end_effector_dict:
+        lib_dict[key] = read_library_from_file(key, robotName)
+        robot_graphs[key].read_graph_from_file(key, robotName)
+        # robot_graphs[key].plot_graph(key)
+
+    dict_pose = extract_action_from_library(str(user) + action, lib_dict)
+    dep_dict = extract_angles_from_library(str(user) + action, lib_dict)
+
+    jointLeft_vectors = extract_vectors(dep_dict[end_effector_dict[0]])
+    jointRight_vectors = extract_vectors(dep_dict[end_effector_dict[1]])
+    jointHead_vectors = extract_vectors(dep_dict[end_effector_dict[2]])
+
+    # for key in end_effector_dict:
+    #     dep_dict[key] = robot_graphs[key].select_joint_dependencies(dict_pose[key])
+
+    # print(dict_pose)
+    # for key in robot_graphs:
+        # robot_graphs[key].read_graph_from_file(key, robotName)
+        # generated_trajectory = pose_predictor.robot.robotDict[key]
+        # tra = path_planning(generated_trajectory, robot_graphs[key])
+        # plotPath(action + " " + str(user) + " " + key, generated_trajectory, np.asarray(tra), np.asarray(dict_pose[key]))
 
     for i in range(len(left_side)):
         angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
@@ -622,13 +777,21 @@ if __name__ == "__main__":
         cartesian_left_vec.append(points4)
         cartesian_right_vec.append(points5)
         cartesian_head_vec.append(points6)
+
+        points1, points2, points3 = pose_predictor.robot_embodiment(jointLeft_vectors[i], jointRight_vectors[i], jointHead_vectors[i])
+        cartesian_left_vec_2.append(points1)
+        cartesian_right_vec_2.append(points2)
         robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
+        robot_pose_2.append((points4, points5, points6, points1, points2, points3))
 
     pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
-    pose_predictor.plot_3d_paths(np.asarray(cartesian_left_vec))
-    pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
-    pose_predictor.plot_3d_paths(np.asarray(cartesian_head_vec))
-    pose_predictor.plot_angle_sequence(angles_left_vec, angles_right_vec)
-    pose_predictor.plot_angle_sequence(angles_head_vec)
-    pose_predictor.plot_animation_3d(robot_pose)
-
+    # pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
+    pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec_2))
+    # pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
+    # pose_predictor.plot_3d_paths(np.asarray(cartesian_head_vec))
+    # pose_predictor.plot_angle_sequence(angles_left_vec, angles_right_vec)
+    # pose_predictor.plot_angle_sequence(angles_head_vec)
+    # pose_predictor.plot_animation_3d(robot_pose)
+    pose_predictor.plot_animation_3d(robot_pose_2)
+    # pose_predictor.plot_angle_sequence(angles_left_vec, jointLeft_vectors)
+    # pose_predictor.plot_angle_sequence(cartesian_left_vec, points1)

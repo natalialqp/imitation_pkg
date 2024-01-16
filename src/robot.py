@@ -6,7 +6,7 @@ from scipy.spatial.transform import Rotation as R
 
 class Robot(object):
 
-    def __init__(self):
+    def __init__(self, robotName):
         self.robot = None
         self.baseAngles = []
         self.baseDistance = []
@@ -20,6 +20,15 @@ class Robot(object):
         self.physical_limits_right = []
         self.physical_limits_head = []
         self.robotDict = {}
+        self.robotName = robotName
+
+    def check_angle_limits(self, angles, arm_type):
+        valid_set = True
+        if "left" in arm_type:
+            for index, (key, value) in enumerate(self.physical_limits_left.items()):
+                if not (value[0] <= angles[index] <= value[0]):
+                    valid_set = False
+        return valid_set
 
     def read_yaml_file(self, file_path):
         with open(file_path, 'r') as file:
@@ -194,7 +203,7 @@ class Robot(object):
 
         return pos_leftArm, pos_rightArm, pos_head
 
-    def forward_kinematics_kinova(self, angles):
+    def forward_kinematics_gen3(self, angles):
         '''
         This function receives an angle configuration and calculates the spatial position of the end effector and the elbow
         left_shoulder_pitch --> 0
@@ -313,7 +322,8 @@ class Robot(object):
 
 if __name__ == "__main__":
     file_path = "./robot_configuration_files/qt.yaml"
-    qt = Robot()
+    robotName = "qt"
+    qt = Robot(robotName)
     qt.import_robot(file_path)
     # angles = np.array([ 1.52367249, -1.29154365, -0.2268928, -1.54636169, -1.41022609, -0.14137168, 0.03839724, 0.00523599])
     #default
@@ -358,10 +368,10 @@ if __name__ == "__main__":
     right = []
     head = []
     for i in range(0, 370, 10):
-        angles = np.array([np.deg2rad(-74.3), np.deg2rad(-10.3), np.deg2rad(-70.7),
-                           np.deg2rad(74), np.deg2rad(-10.9), np.deg2rad(-69.4),
+        angles = np.array([np.deg2rad(-4.7), np.deg2rad(-77.7), np.deg2rad(-11.8),
+                           np.deg2rad(-4.5), np.deg2rad(-73), np.deg2rad(-11),
                            np.deg2rad(0), np.deg2rad(2.2)])
-   
+
         # NEGATIVE ANGLES RIGHT: SHOULDER_ROLL, ELBOWS and wrist
         # angles = np.array([np.deg2rad(80), np.deg2rad(20), np.deg2rad(-80), np.deg2rad(-60), np.deg2rad(0),
         #                    np.deg2rad(110), np.deg2rad(-30), np.deg2rad(90), np.deg2rad(88), np.deg2rad(90),
@@ -378,6 +388,7 @@ if __name__ == "__main__":
         left.append(pos_left)
         right.append(pos_right)
         head.append(pos_head)
+    print(pos_head)
     # print(pos_left, pos_right, pos_head)
 
     # s = simulate_position.RobotSimulation([pos_left], [pos_right], [pos_head])

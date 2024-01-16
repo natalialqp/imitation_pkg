@@ -21,8 +21,12 @@ class Graph(object):
 
     def list_to_string(self, vec):
         modified_vector = [0.0 if value in {0, 0., -0., -0.0, -0} else value for value in vec]
-        # vector_str = '[' + ', '.join(map(str, modified_vector)) + ']'
-        return modified_vector
+        vector_str = "[" + ", ".join(map(str, modified_vector)) + "]"
+        return vector_str
+
+    def get_nodes_as_string(self):
+        nodes = self.G.nodes()
+        return [self.list_to_string(node) for node in nodes]
 
     def add_one_edge(self, edge):
         u, v = tuple(edge[0]), tuple(edge[1])  # Convert ndarrays to tuples

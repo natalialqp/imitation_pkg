@@ -6,7 +6,6 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import world_graph
 import robot_graph
-import itertools
 from scipy.spatial import KDTree
 import robot
 import json
@@ -17,6 +16,7 @@ import random
 from sklearn.metrics import mean_squared_error
 import copy
 import pose_prediction
+import simulate_position
 
 plt.rcParams.update({'font.size': 18})
 
@@ -165,27 +165,38 @@ def pathPlanning(demonstration, robotWorld):
         prev_node = node
     return path
 
+# def path_planning(demonstration, graph):
+#     kdtree = KDTree(graph.get_nodes_values())
+#     path = []
+#     path_for_error = []
+#     demonstration = list(demonstration)
+#     prev_node = find_closest_point(demonstration.pop(0), kdtree)
+#     path.append(tuple(prev_node))
+#     for i in demonstration:
+#         node = find_closest_point(i, kdtree)
+#         if graph.has_path(prev_node, node):
+#             sub_path = graph.shortest_path(prev_node, node)
+#             sub_path.pop(0)
+#             sub_path = [graph.get_node_attr(i, "value") for i in sub_path]
+#             aux_path = [item.tolist() if isinstance(item, np.ndarray) else item for item in sub_path]
+#             path.extend(aux_path)
+
+#         else:
+#             path.extend([node])
+#             path.append([node])
+#         prev_node = node
+#         path_for_error.append(tuple(prev_node))
+#     MSE, RMSE = error_calculation(demonstration, path_for_error)
+#     return path, MSE, RMSE
+
 def path_planning(demonstration, graph):
     kdtree = KDTree(graph.get_nodes_values())
     path = []
-    path_for_error = []
     demonstration = list(demonstration)
-    prev_node = find_closest_point(demonstration.pop(0), kdtree)
-    path.append(tuple(prev_node))
     for i in demonstration:
         node = find_closest_point(i, kdtree)
-        # graph.print_graph()
-        if graph.has_path(prev_node, node):
-            sub_path = graph.shortest_path(prev_node, node)
-            sub_path.pop(0)
-            sub_path = [graph.get_node_attr(i, "value") for i in sub_path]
-            aux_path = [item.tolist() if isinstance(item, np.ndarray) else item for item in sub_path]
-            path.extend(aux_path)
-        else:
-            path.extend([node])
-        prev_node = node
-        path_for_error.append(tuple(prev_node))
-    MSE, RMSE = error_calculation(demonstration, path_for_error)
+        path.append(tuple(node))
+    MSE, RMSE = error_calculation(demonstration, path)
     return path, MSE, RMSE
 
 def plot_error(Dict):
@@ -311,7 +322,7 @@ def forward_kinematics_n_frames(name, robot, joint_angles):
         elif name == "nao":
             pos_left, pos_right, pos_head = robot.forward_kinematics_nao(frame)
         elif name == "gen3":
-            pos_left, pos_right, pos_head = robot.forward_kinematics_kinova(frame)
+            pos_left, pos_right, pos_head = robot.forward_kinematics_gen3(frame)
         left.append(copy.copy(pos_left))
         right.append(copy.copy(pos_right))
         head.append(copy.copy(pos_head))
@@ -351,9 +362,24 @@ def list_to_string(vec):
 def find_object_in_world(world, new_object):
     kdtree = cKDTree(world.get_nodes())
     object_nodes = []
+    object_nodes_str = []
     for node in new_object.get_nodes():
-        object_nodes.append(list_to_string(find_closest_point(node, kdtree)))
-    return object_nodes
+        closest = find_closest_point(node, kdtree)
+        object_nodes_str.append(list_to_string(closest))
+        object_nodes.append(closest)
+    return object_nodes, object_nodes_str
+
+def match_object_in_world(objectName):
+    lowEdge = np.array([-450, -450, 100])
+    highEdge = np.array([450, 450, 700])
+    graph_world = createWorldCubes(lowEdge, highEdge, length)
+    object = world_graph.Graph()
+    object2 = world_graph.Graph()
+    object_name = objectName
+    object.read_object_from_file(object_name)
+    object_nodes, _ = find_object_in_world(graph_world, object)
+    object2.add_nodes(object_nodes)
+    object2.save_object_to_file(objectName + "_nodes")
 
 def find_trajectory_in_world(world, tra):
     kdtree = cKDTree(world.get_nodes())
@@ -367,9 +393,9 @@ def find_trajectory_in_world(world, tra):
             world_nodes.append(closest_point)
     return world_nodes
 
-def read_library_from_file(name):
+def read_library_from_file(name, robotName):
     try:
-        with open(name + "_data.json", "r") as jsonfile:
+        with open(name + "_" + robotName + "_data.json", "r") as jsonfile:
             data = [json.loads(line) for line in jsonfile.readlines()]
             return data
     except FileNotFoundError:
@@ -385,10 +411,35 @@ def extract_action_from_library(actionName, library):
     return robot_pose
 
 def extract_angles_from_library(actionName, library):
+    robot_pose = {}
     for key in library:
         for item in library[key]:
             if item["id"] == actionName:
-                print(key, item["joint_dependency"])
+                robot_pose[key] = item["joint_dependency"]
+    return robot_pose
+
+def find_end_effectors_keys(dict):
+    left_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointLeft')]
+    right_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointRight')]
+    head_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointHead')]
+
+    max_left = 'jointLeft_' + str(max(left_numbers, default=0))
+    max_right = 'jointRight_' + str(max(right_numbers, default=0))
+    max_head = 'jointHead_' + str(max(head_numbers, default=0))
+
+    return [max_left, max_right, max_head]
+
+def find_fk_from_dict(dict, robot, robotName):
+    result_list = []
+    for position in range(max(len(joint_data) for joint_data in dict.values())):
+        joint_angles = []
+        for joint_name, joint_data in dict.items():
+            if position < len(joint_data):
+                joint_angles.extend(list(joint_data[position].values()))
+        result_list.append(joint_angles)
+    pos_left, pos_right, pos_head = forward_kinematics_n_frames(robotName, robot, result_list)
+    s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
+    s.animate()
 
 if __name__ == "__main__":
 
@@ -401,7 +452,7 @@ if __name__ == "__main__":
     #Read robot configuration from the .yaml filerobot_graphs
     robotName = 'qt'
     file_path = "./robot_configuration_files/" + robotName + ".yaml"
-    qt = robot.Robot()
+    qt = robot.Robot(robotName)
     qt.import_robot(file_path)
     robot_graphs = createRobotGraphs(qt)
     length = 10
@@ -428,9 +479,9 @@ if __name__ == "__main__":
         robot_world = learn_environment(robot_graphs, graph_world, cartesian_points, joint_angles_dict)
         print("BEFORE SAVING THE GRAPHS")
         for key in tqdm(robot_world):
-            robot_world[key].save_graph_to_file(key)
-            # robot_world[key].read_graph_from_file(key)
-            # robot_world[key].plot_graph()
+            robot_world[key].save_graph_to_file(key, robotName)
+            # robot_world[key].read_graph_from_file(key, robotName)
+            robot_world[key].plot_graph(robotName)
 
     elif flag == "create-object":
         lowEdge = np.array([-60, 100, 140])
@@ -446,9 +497,9 @@ if __name__ == "__main__":
         graph_world = createWorldCubes(lowEdge, highEdge, length)
         object = world_graph.Graph()
         object.read_object_from_file("object_1")
-        object_nodes = find_object_in_world(graph_world, object)
+        _, object_nodes = find_object_in_world(graph_world, object)
         for key in robot_graphs:
-            robot_graphs[key].read_graph_from_file(key)
+            robot_graphs[key].read_graph_from_file(key, robotName)
             print(key)
             robot_graphs[key].new_object_in_world(object_nodes, "object_1")
             robot_graphs[key].remove_object_from_world("object_1")
@@ -465,7 +516,7 @@ if __name__ == "__main__":
         graph_world = createWorldCubes(lowEdge, highEdge, length)
 
         for key in robot_graphs:
-            robot_graphs[key].read_graph_from_file(key)
+            robot_graphs[key].read_graph_from_file(key, robotName)
             generated_trajectory = personalised_random_points(robot_graphs[key])
             # robot_graphs[key].plot_graph(generated_trajectory)
             # tra = approximateTrajectory(generated_trajectory, robot_graphs[key])
@@ -474,10 +525,9 @@ if __name__ == "__main__":
                 new_tra_world = find_trajectory_in_world(graph_world, generated_trajectory)
                 # print(key)
                 candidate_nodes = robot_graphs[key].find_trajectory_shared_nodes(new_tra_world)
-                robot_graphs[key].adding_candidates_to_graph(length, candidate_nodes)
+                robot_graphs[key].adding_candidates_to_graph(qt, length, candidate_nodes)
                 # new_tra = robot_graphs[key].find_trajectory_in_graph(generated_trajectory)
-                # neighbors_candidates = robot_graphs[key].find_neighbors_candidates(candidate_nodes)
-                tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key]) #generated_trajectory
+                tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
                 plotPath(key, generated_trajectory, np.asarray(tra))
                 dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
         plot_error(dict_error)
@@ -493,13 +543,12 @@ if __name__ == "__main__":
         theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
         pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
         df = pose_predictor.read_file("combined_actions")
-        action = "knife"
-        user = 3
-        actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate',
-               'dinner_plate', 'knife', 'fork', 'salt_shaker',
-               'sugar_bowl', 'mixer', 'pressure_cooker']
+        actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
         users = np.arange(1, 21, 1)
-        for user in users:
+        for key in robot_graphs:
+            robot_graphs[key].read_graph_from_file(key, robotName)
+            # robot_graphs[key].plot_graph(robotName)
+        for user in tqdm(users):
             for action in actions:
                 dict_error = {}
                 robot_pose = []
@@ -513,6 +562,7 @@ if __name__ == "__main__":
                 cartesian_left_vec = []
                 cartesian_right_vec = []
                 cartesian_head_vec = []
+                actionName = str(user) + action
 
                 for i in range(len(left_side)):
                     angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
@@ -525,34 +575,59 @@ if __name__ == "__main__":
                     cartesian_right_vec.append(points5)
                     cartesian_head_vec.append(points6)
                     robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
-
                 pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
 
                 for key in robot_graphs:
-                    robot_graphs[key].read_graph_from_file(key)
-                    # if robot_graphs[key].number_of_nodes() > 1:
                     generated_trajectory = pose_predictor.robot.robotDict[key]
                     new_tra_world = find_trajectory_in_world(graph_world, generated_trajectory)
                     #path planning
                     candidate_nodes = robot_graphs[key].find_trajectory_shared_nodes(new_tra_world)
-                    robot_graphs[key].adding_candidates_to_graph(length, candidate_nodes)
+                    robot_graphs[key].adding_candidates_to_graph(qt, length, candidate_nodes)
                     tra, MSE, RMSE = path_planning(generated_trajectory, robot_graphs[key])
                     dep = robot_graphs[key].select_joint_dependencies(tra)
-                    robot_graphs[key].save_path_in_library(tra, dep)
-                    robot_graphs[key].save_graph_to_file(key)
-                        # plotPath(user, generated_trajectory, np.asarray(tra), np.asarray(candidate_nodes)) # key instead of user + action
-                        # dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
+                    robot_graphs[key].save_path_in_library(tra, dep, robotName, actionName)
+                    # plotPath(actionName, generated_trajectory, np.asarray(tra)) # key instead of user + action
+                    # dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
                 # plot_error(dict_error)
+        for key in robot_graphs:
+            robot_graphs[key].save_graph_to_file(key, robotName)
 
     elif flag == "read_library_paths":
         lib_dict = {}
         file_path = "./robot_configuration_files/"+ robotName + ".yaml"
         pose_predictor = pose_prediction.Prediction(file_path, robotName)
-        for key in robot_graphs:
-            robot_graphs[key].read_graph_from_file(key)
-            lib_dict[key] = read_library_from_file(key)
-        dict_pose = extract_action_from_library(10, lib_dict)
 
-        for key in dict_pose:
-            print(robot_graphs[key].verify_path_in_graph(dict_pose[key]))
-            plotPath(key, np.asarray(dict_pose[key]), np.asarray(dict_pose[key]))
+        end_effector_dict = find_end_effectors_keys(robot_graphs)
+        object_name = "object_6"
+        object = world_graph.Graph()
+        object.read_object_from_file(object_name)
+        object_nodes = object.get_nodes_as_string()
+        layered_dependencies = []
+        for key in robot_graphs:
+            robot_graphs[key].read_graph_from_file(key, robotName)
+            lib_dict[key] = read_library_from_file(key, robotName)
+            if key not in end_effector_dict:
+                layered_dependencies.extend(robot_graphs[key].new_object_in_world(object_nodes, object_name, False))
+            else:
+                robot_graphs[key].new_object_in_world(object_nodes, object_name, True, layered_dependencies)
+                layered_dependencies.clear()
+
+        dict_pose = extract_action_from_library("2spoon", lib_dict)
+        dict_angles = extract_angles_from_library("2spoon", lib_dict)
+        new_path = {}
+        angle_dep_new_path = {}
+        angle_dep_old_path = {}
+        for key in end_effector_dict:
+            missing_nodes = robot_graphs[key].verify_path_in_graph(dict_pose[key])
+            new_path[key] = robot_graphs[key].re_path_end_effector(missing_nodes, dict_pose[key])
+            angle_dep_old_path[key] = dict_angles[key]
+            if new_path[key]:
+                angle_dep_new_path[key] = robot_graphs[key].select_joint_dependencies(new_path[key])
+            else:
+                angle_dep_new_path[key] = []
+            angles_new_path = robot_graphs[key].dict_of_dep_to_dict_of_lists(angle_dep_new_path[key])
+            angles_old_path = robot_graphs[key].dict_of_dep_to_dict_of_lists(angle_dep_old_path[key])
+            robot_graphs[key].plot_dict_of_dependencies(angles_old_path, angles_new_path)
+            plotPath(key, np.asarray(dict_pose[key]), np.asarray(new_path[key]))
+        # find_fk_from_dict(angle_dep_new_path, qt, robotName)
+        find_fk_from_dict(angle_dep_old_path, qt, robotName)

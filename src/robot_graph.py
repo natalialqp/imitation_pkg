@@ -1,12 +1,12 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
 import ast
 from scipy.spatial import KDTree
 import xml.etree.ElementTree as ET
 import json
 import re
+from scipy.optimize import minimize
 
 plt.rcParams.update({"font.size": 20})
 
@@ -16,6 +16,7 @@ class Graph(object):
         self.n_dependecies = n_dependecies
         self.objects_in_world = {}
         self.key = key
+        self.nodes_id = 0
 
     def get_all_nodes_attr(self, attr):
         nodes = self.get_nodes()
@@ -31,12 +32,6 @@ class Graph(object):
         aux_node = str(node)
         self.G.nodes[aux_node][attr] = value
 
-    # def add_nodes(self, connections):
-    #     for i in connections:
-    #         node_label = tuple(i)
-    #         attr = self.set_attribute(node_label)
-    #         self.add_one_node(node_label, attr)
-
     def list_to_string(self, vec):
         modified_vector = [0.0 if value in {0, 0., -0., -0.0, -0} else value for value in vec]
         vector_str = "[" + ", ".join(map(str, modified_vector)) + "]"
@@ -46,17 +41,28 @@ class Graph(object):
         # new_node = self.list_to_string(node)
         keyList = np.arange(1, self.n_dependecies, 1)
         dependencies = {"angle_" + str(keyList[i]): round(angles[i], 2) for i in range(len(keyList))}
-        # attrs = {new_node: { "value": np.array(node), "occupied": False, "joint_dependency": dependendies}}
-        self.add_one_node(node, dependencies)
-        # return attrs
+        self.add_one_node(node, [dependencies])
 
     def set_edge_attr(self, u, v, attr):
         nx.set_edge_attributes(self.G, {(u, v):{"occupied": attr}})
 
     def add_one_node(self, node, attr):
         new_node = self.list_to_string(node)
-        self.G.add_node(new_node, value = node, occupied = False, joint_dependency = attr)
-        # nx.set_node_attributes(self.G, attr)
+        if not self.has_node(new_node):
+            # list_attr = [attr]
+            self.G.add_node(new_node, value = node, nodes_id = self.nodes_id, occupied = False, joint_dependency = attr) #list_attr
+            self.nodes_id += 1
+        else:
+            node_attr = self.get_node_attr(new_node, "joint_dependency")
+            for a in attr:
+                self.update_joint_attr_dict(new_node, a, node_attr)
+
+    def update_joint_attr_dict(self, node, dict, dict_list):
+        is_different = all(old_dict[attr] != dict[attr] for old_dict in
+                        dict_list for attr in dict) and len(dict) != 0
+        if is_different:
+            dict_list.append(dict)
+            self.change_node_attr(node, "joint_dependency", dict_list)
 
     def change_edge_weight(self, u, v, value):
         self.G[u][v]["weight"] = value
@@ -98,16 +104,41 @@ class Graph(object):
         return nx.has_path(self.G, initial_node, goal_node)
 
     def has_node(self, node):
+        if type(node) == list:
+            node = self.list_to_string(node)
         return self.G.has_node(node)
 
     def get_nodes(self):
         return self.G.nodes()
 
-    def new_object_in_world(self, object_nodes, object_name):
+    def find_nodes_with_angle_tolerance(self, input_values_list, tolerance = 5):
+        result_ids = []
+        for node in self.G.nodes(data = True):
+            node_id = node[0]
+            joint_dependency = node[1].get("joint_dependency")
+            if joint_dependency:
+                for input_values in input_values_list:
+                    meets_tolerance = any(
+                        all(
+                            abs(angle_dict.get(key, 0) - input_values.get(key, 0)) <= tolerance
+                            for key in input_values
+                        )
+                        for angle_dict in joint_dependency
+                    )
+                    if meets_tolerance:
+                        result_ids.append(node_id)
+                        break  # Move to the next node if one dictionary meets the condition
+        return result_ids
+
+    def new_object_in_world(self, object_nodes, object_name, end_effector, prev_joint_angles = []):
         storage_graph = nx.Graph()
-        print("Before Removal:")
-        print("Number of nodes:", self.G.number_of_nodes())
-        print("Number of edges:", self.G.number_of_edges())
+        # print("Before adding object:")
+        # print("Number of nodes:", self.G.number_of_nodes())
+        # print("Number of edges:", self.G.number_of_edges())
+        if end_effector and prev_joint_angles:
+            aux = self.find_nodes_with_angle_tolerance(prev_joint_angles)
+            object_nodes.extend(aux)
+        future_dependencies = []
         for node in object_nodes:
             if self.has_node(node):
                 node_attr = self.G.nodes[node]
@@ -115,30 +146,37 @@ class Graph(object):
                 storage_graph.add_node(node, **node_attr)
                 storage_graph.add_edges_from(local_edges)
                 self.G.remove_node(node)
+                if end_effector == False:
+                    future_dependencies.extend(node_attr["joint_dependency"])
         self.objects_in_world[object_name] = storage_graph
+        # print("After adding object:")
+        # print("Number of nodes:", self.G.number_of_nodes())
+        # print("Number of edges:", self.G.number_of_edges())
+        return future_dependencies
 
     def remove_object_from_world(self, name):
-        print("After Removal:")
-        print("Number of nodes:", self.G.number_of_nodes())
-        print("Number of edges:", self.G.number_of_edges())
+        # print("After adding an object:")
+        # print("Number of nodes:", self.G.number_of_nodes())
+        # print("Number of edges:", self.G.number_of_edges())
         self.find_subgraphs()
         # self.plot_graph()
         deleted_object = self.objects_in_world[name]
         self.G.add_nodes_from(deleted_object.nodes.items())
         self.G.add_edges_from(deleted_object.edges)
         del self.objects_in_world[name]
-        print("After adding again:")
-        print("Number of nodes:", self.G.number_of_nodes())
-        print("Number of edges:", self.G.number_of_edges())
+        # print("After removing object:")
+        # print("Number of nodes:", self.G.number_of_nodes())
+        # print("Number of edges:", self.G.number_of_edges())
         self.find_subgraphs()
         # self.plot_graph()
 
     def get_nodes_values(self):
         nodes = self.G.nodes()
-        vec_nodes = []
-        for node in nodes:
-            vec_nodes.append(self.get_node_attr(node, "value"))
-        return vec_nodes
+        # vec_nodes = []
+        # for node in nodes:
+        #     vec_nodes.append(self.get_node_attr(node, "value"))
+        return [self.get_node_attr(node, "value") for node in nodes]
+        # return vec_nodes
 
     def get_edges(self):
         return self.G.edges()
@@ -151,9 +189,9 @@ class Graph(object):
         for u, v, attributes in self.G.edges(data = True):
             print("Edge:", u, "-", v, "Attributes:", attributes)
 
-    def read_last_id_from_file(self):
+    def read_last_id_path_from_file(self, robotName):
         try:
-            with open(self.key + "_data.json", "r") as jsonfile:
+            with open(self.key + robotName + "_data.json", "r") as jsonfile:
                 lines = jsonfile.readlines()
                 if lines:
                     last_line = lines[-1]
@@ -168,15 +206,14 @@ class Graph(object):
             # Handle JSON decoding error if necessary
             return 0
 
-    def save_path_in_library(self, trajectory, dependency):
-        last_id = self.read_last_id_from_file()
-        with open(self.key + "_data.json", "a") as jsonfile:
-            pose = {"id": last_id + 1, "path": trajectory, "joint_dependency": dependency}
-            json.dump(pose, jsonfile)
+    def save_path_in_library(self, trajectory, dependency, robotName, actionName):
+        with open(self.key + "_" + robotName + "_data.json", "a") as jsonfile:
+            pose = {"id": actionName, "path": trajectory, "joint_dependency": dependency}
+            jsonfile.write(json.dumps(pose))
             jsonfile.write("\n")
 
-    def save_graph_to_file(self, name):
-        output_file = "./data/graphs/" + name + ".xml"
+    def save_graph_to_file(self, name, robot):
+        output_file = "./data/graphs/" + name + "_" + robot +".xml"
 
         with open(output_file, "w", encoding="utf-8") as file:
             file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -186,8 +223,9 @@ class Graph(object):
                 x, y, z = attributes["value"]
                 value = attributes["value"]
                 occupied = attributes["occupied"]
+                nodes_id = attributes["nodes_id"]
                 joint_dependency = attributes["joint_dependency"]
-                file.write(f'  <node id="[{x}, {y}, {z}]" value= "{value}" occupied="{occupied}" joint_dependency="{joint_dependency}"/>\n')
+                file.write(f' <node id="[{x}, {y}, {z}]" value= "{value}" nodes_id = "{nodes_id}" occupied="{occupied}" joint_dependency="{joint_dependency}"/>\n')
             for u, v, attributes in self.G.edges(data = True):
                 source = f"{u}"
                 target = f"{v}"
@@ -200,7 +238,9 @@ class Graph(object):
         prev_dict =  {"angle_" + str(key + 1): 0 for key in range(self.n_dependecies - 1)}#change for initial position of the robot joints
         dependencies = []
         for point in trajectory:
-            dep_list = [self.get_node_attr(point, "joint_dependency")]
+            if not isinstance(point, str):
+                point = self.list_to_string(point)
+            dep_list = self.get_node_attr(point, "joint_dependency")
             least_error_dict = self.find_least_error_dict(prev_dict, dep_list)
             dependencies.append(least_error_dict)
             prev_dict = least_error_dict
@@ -217,11 +257,12 @@ class Graph(object):
         return least_error_dict
 
     def parse_node(self, element):
-        node_id = element.get("id")
+        node_id_cart = element.get("id")
         value = self.vectorise_string(element.get("value"))
         occupied = element.get("occupied")
-        joint_dependency = element.get("joint_dependency")
-        return node_id, {"value": value, "occupied": occupied, "joint_dependency": joint_dependency}
+        node_id = element.get("nodes_id")
+        joint_dependency = ast.literal_eval(element.get("joint_dependency"))
+        return node_id_cart, {"value": value, "nodes_id": node_id, "occupied": occupied, "joint_dependency": joint_dependency}
 
     def parse_edge(self, element):
         source = element.get("source")
@@ -230,14 +271,16 @@ class Graph(object):
         occupied = element.get("occupied")
         return (source, target), {"weight": float(weight), "occupied": occupied}
 
-    def read_graph_from_file(self, name):
-        file_path = "./data/graphs/" + name + ".xml"
+    def read_graph_from_file(self, name, robot):
+        file_path = "./data/graphs/" + name + "_" + robot + ".xml"
         tree = ET.parse(file_path)
         root = tree.getroot()
+        self.nodes_id = 0
 
         for node_element in root.findall(".//node"):
             node, attributes = self.parse_node(node_element)
             self.G.add_node(node, **attributes)
+            self.nodes_id += 1
 
         for edge_element in root.findall(".//edge"):
             edge, attributes = self.parse_edge(edge_element)
@@ -251,7 +294,29 @@ class Graph(object):
         data = np.array(aux_data.split())
         return list(data[0:3].astype(float))
 
-    def plot_graph(self, trajectory = [], candidates = []):
+    def dict_of_dep_to_dict_of_lists(self, dict):
+        result_dict = {}
+        for entry in dict:
+            for key, value in entry.items():
+                if key not in result_dict:
+                    result_dict[key] = []
+                result_dict[key].append(value)
+        return result_dict
+
+    def plot_dict_of_dependencies(self, dict_old, dict_new):
+        for key in dict_new.keys():
+            plt.plot(dict_old[key], label=f'Old angles - {key}', marker='o')
+            plt.plot(dict_new[key], label=f'New angles - {key}', marker='x')
+
+        # Adding labels and legend
+        plt.grid()
+        plt.xlabel('Frames')
+        plt.ylabel('Angle in Degrees')
+        plt.legend()
+        plt.title('Comparison of Lists for Each Key')
+        plt.show()
+
+    def plot_graph(self, robotName, trajectory = [], candidates = []):
         # Create the 3D figure
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
@@ -304,7 +369,7 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.savefig(self.key + "_object.pdf", format="pdf")
+        plt.savefig(self.key + "_" + robotName + "_object.pdf", format="pdf")
         plt.show()
 
     def find_neighbors(self, node):
@@ -337,13 +402,10 @@ class Graph(object):
     def find_subgraphs(self):
         sub_graphs = [self.G.subgraph(c) for c in nx.connected_components(self.G)]
         print(len(sub_graphs))
-        # for i, sg in enumerate(sub_graphs):
-        #     print("subgraph {} has {} nodes".format(i, sg.number_of_nodes()))
-        #     print("\tNodes:", sg.nodes(data=True))
-        #     print("\tEdges:", sg.edges())
 
     def lerp(self, a, b, t):
-        return (1 - t) * a + t * b
+        interpolated_dict = {key: round((1 - t) * a[key] + t * b[key], 2) for key in a}
+        return interpolated_dict
 
     def string_to_dict(self, dict):
         if type(dict) == str:
@@ -354,34 +416,162 @@ class Graph(object):
                 print(f"Error: {e}")
         return dict
 
-    def interpolate_joint_angles(self, joint_angles_a, joint_angles_b, t = 0.5):
-        joint_angles_a = self.string_to_dict(joint_angles_a)
-        joint_angles_b = self.string_to_dict(joint_angles_b)
-        return {key: self.lerp(joint_angles_a[key], joint_angles_b[key], t)
-                for key in joint_angles_a.keys()}
+    def calculate_average_angle(self, dict_list):
+        if not dict_list:
+            return {}
+        array_of_dicts = np.array([list(d.values()) for d in dict_list])
+        avg_array = np.mean(array_of_dicts, axis=0)
+        avg_dict = dict(zip(dict_list[0].keys(), avg_array))
+        return avg_dict
 
-    def adding_candidates_to_graph(self, length, candidates):
+    def interpolate_joint_angles(self, joint_angles_a, joint_angles_b, t = 0.5):
+        joint_angles_a = self.calculate_average_angle(joint_angles_a)
+        joint_angles_b = self.calculate_average_angle(joint_angles_b)
+        return self.lerp(joint_angles_a, joint_angles_b, t)
+
+    def adding_candidates_to_graph(self, robot, length, candidates):
         nodes = self.get_nodes_values()
         tree = KDTree(np.array(nodes))
         max_dist = 2 * length
         for i, point in enumerate(candidates):
             neighbors_indices = tree.query_ball_point(point, max_dist)
             if len(neighbors_indices) > 1:
-                distances, indices = tree.query(point, k = 2)
-                angles = self.interpolate_joint_angles(self.get_node_attr(tree.data[indices[0]], "joint_dependency"), self.get_node_attr(tree.data[indices[1]], "joint_dependency"))
+                distances, indices = tree.query(point, k = 1)
+                initial_angles = self.get_node_attr(tree.data[indices], "joint_dependency")
+                angles = []
+                for i_a in initial_angles:
+                    angles.append(self.gauss_newton_angle_estimation(robot, i_a, point))
                 self.add_one_node(point, angles)
                 for index in neighbors_indices:
                     node_link = tree.data[index]
                     self.add_one_edge([point, node_link])
 
     def verify_path_in_graph(self, path):
-        nodes = self.get_nodes_values()
         missing_nodes = []
-        if self.has_path(path[0], path[-1]):
-            for point in path:
-                if point not in nodes:
-                    missing_nodes.append(point)
-            return missing_nodes
+        if self.has_node(path[0]) and self.has_node(path[-1]):
+            if self.has_path(path[0], path[-1]):
+                for point in path:
+                    if not self.has_node(point) and point not in missing_nodes:
+                        missing_nodes.append(point)
+            else:
+                # print("NO PATH")
+                missing_nodes = None
         else:
-            return None
+            # print("NO INITAL OR FINAL NODE")
+            # print(path[0], path[-1])
+            missing_nodes = None
+        return missing_nodes
 
+    def find_node_dependencies_in_objects(self, node):
+        dependencies = []
+        for key, value in self.objects_in_world.items():
+            if value.has_node(node):
+                dependencies.extend(value.nodes[node]["joint_dependency"])
+        return dependencies
+
+    def find_blocked_angles(self, missing_nodes):
+        blocked_angles = []
+        for node in missing_nodes:
+            blocked_angles.extend(self.find_node_dependencies_in_objects(node))
+        return blocked_angles
+
+    def find_closest_path_in_graph(self, missing_nodes, original_path):
+        new_path = []
+        i = 0
+        print(len(original_path))
+        while i < len(original_path):
+            node = original_path[i]
+            if node not in missing_nodes:
+                new_path.append(node)
+                prev_node = node
+                print("NODE EXISTS ", i, node)
+            else:
+                next_node = None
+                for j in range(i + 1, len(original_path)):
+                    if original_path[j] not in missing_nodes:
+                        next_node = original_path[j]
+                        print("NEXT NODE", j, next_node)
+                        break
+                    else:
+                        print("MISSING NODE", j, node)
+                if next_node is not None and self.has_path(prev_node, next_node):
+                    sub_path = self.shortest_path(prev_node, next_node)
+                    sub_path.pop(0)
+                    sub_path = [self.get_node_attr(i, "value") for i in sub_path]
+                    aux_path = [item.tolist() if isinstance(item, np.ndarray) else item for item in sub_path]
+                    new_path.extend(aux_path)
+                    prev_node = new_path[-1]
+                    i = j
+                else:
+                    break
+                print("NEW PATH ", i, aux_path)
+            i += 1
+        return new_path
+
+    def find_new_path(self, missing_nodes, original_path):
+        new_path = []
+        nodes = self.get_nodes_values()
+        kdtree = KDTree(np.array(nodes))
+        i = 0
+        while i < len(original_path):
+            node = original_path[i]
+            if node not in missing_nodes:
+                new_path.append(node)
+                prev_node = node
+            else:
+                closest_point = self.find_closest_point(node, kdtree)
+                if self.has_path(prev_node, closest_point):
+                    sub_path = self.shortest_path(prev_node, closest_point)
+                    sub_path.pop(0)
+                    sub_path = [self.get_node_attr(i, "value") for i in sub_path]
+                    aux_path = [item.tolist() if isinstance(item, np.ndarray) else item for item in sub_path]
+                    new_path.extend(aux_path)
+                    prev_node = new_path[-1]
+            i += 1
+        return new_path
+
+    def re_path_end_effector(self, missing_nodes, original_path):
+        if missing_nodes == []:
+            print("Path hasn't changed")
+            return original_path
+        elif missing_nodes == None:
+            print("Impossible to execute the path")
+            return None # read the actual position of the robot and keep it there for the rest of the action
+        else:
+            # return self.find_closest_path_in_graph(missing_nodes, original_path)
+            return self.find_new_path(missing_nodes, original_path)
+
+    def gauss_newton_angle_estimation(self, robot, initial_angles, cartesian_point):
+
+        def objective(angles, *args):
+            cartesian_point = args[0]
+            robot = args[1]
+            # Retrieve the forward kinematics function based on the robot instance
+            forward_kinematics = getattr(robot, 'forward_kinematics_' + robot.robotName)
+            angle_list_len = len(robot.physical_limits_left) + len(robot.physical_limits_right) + len(robot.physical_limits_head)
+            angles_zeros = np.zeros((angle_list_len))
+            angles = np.deg2rad(np.array(angles))
+            if 'Left' in self.key:
+                insert_index = 0
+            elif 'Right' in self.key:
+                insert_index = len(robot.physical_limits_left)
+            elif 'Head' in self.key:
+                insert_index = len(robot.physical_limits_left) + len(robot.physical_limits_right)
+            result_array = np.concatenate([angles_zeros[:insert_index], angles, angles_zeros[insert_index + len(angles):]])
+            # Calculate the Euclidean distance between the predicted and observed Cartesian positions
+            left_arm, right_arm, head = forward_kinematics(result_array)
+            if 'Left' in self.key:
+                observed_positions = left_arm[int(self.key[-1])]
+            elif 'Right' in self.key:
+                observed_positions = right_arm[int(self.key[-1])]
+            elif 'Head' in self.key:
+                observed_positions = head[int(self.key[-1])]
+            distance = np.linalg.norm(observed_positions - cartesian_point)
+            return distance
+
+        # Perform optimization to minimize the objective function
+        result = minimize(objective, list(initial_angles.values()), args=(cartesian_point, robot), method='L-BFGS-B')
+
+        # The optimized angles
+        optimized_angles = {f'angle_{i+1}': round(result.x[i], 2) for i in range(len(result.x))}
+        return optimized_angles
