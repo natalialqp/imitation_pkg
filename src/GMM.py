@@ -99,23 +99,7 @@ def plot_angles_vs_time(arrays):
         plt.legend()
         plt.show()
 
-# def plot_axis_vs_time(vec, axis):
-#     variable_to_plot = axis
-#     # Extract time and the chosen variable from each array
-#     time_values = [array[0, :] for array in vec]
-#     variable_values = [array[1, :] for array in vec]
-
-#     # Plot the variable with respect to time for all arrays
-#     for i in range(len(vec)):
-#         plt.plot(time_values[i], variable_values[i], label=f'{i + 1}')
-
-#     # Add labels and legend
-#     plt.xlabel('Time')
-#     plt.ylabel(f'{variable_to_plot.capitalize()} Values')
-#     plt.legend()
-#     plt.show()
-
-def plot_axis_vs_time(vec, axis, target_length=1000, window_length=5, polyorder=3):
+def plot_axis_vs_time(vec, axis, target_length=100, window_length=5, polyorder=3):
     variable_to_plot = axis
     data_as_array = []
     time_as_array = []
@@ -149,8 +133,8 @@ def plot_axis_vs_time(vec, axis, target_length=1000, window_length=5, polyorder=
     plt.ylabel(f'{variable_to_plot.capitalize()} Values (Smoothed)')
     plt.legend()
     plt.show()
-    return np.vstack([np.array(time_as_array), np.array(data_as_array)])
-    # return np.array(time_as_array), np.array(data_as_array)
+    # return np.vstack([np.array(time_as_array), np.array(data_as_array)]), avg_signal
+    return np.array(time_as_array), np.array(data_as_array), avg_signal
 
 def read_library_from_file(name, robotName):
     try:
@@ -171,7 +155,7 @@ def reshape_array(arr2):
             arr = np.dstack([arr, v])
     return arr
 
-def arange_time_array(time, arr, chunk_size=1000):
+def arange_time_array(time, arr, chunk_size=100):
     time = np.array(time)
     time = time.reshape(int(time.shape[0]/chunk_size), chunk_size)
     add = np.linspace(0, 0.0001, chunk_size)
@@ -202,123 +186,24 @@ def reshape_array(time, arr):
     arr = np.vstack((time, arr))
     return arr.T #[:, 0:2]
 
+def gmm_for_limb(angles_with_time, robotName, action, limb, num_components=5):
+    for i in range(1, angles_with_time[0].shape[0]):
+        variable_to_fit = extract_angle_vec(angles_with_time, i)
+        time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i))
+        smoth_angle_with_time = arange_time_array(time, smoothed_angles)
+        eval(smoth_angle_with_time.T, avg_signal, robotName, action, limb + str(i), num_components)
+
 if __name__ == "__main__":
 
-    gmm = GMM_GMR(4)
     robotName = 'qt'
-
     #GMM applied on the output of the neural network
-    # flag ="gmm-on-nn-output"
     flag = "gmm-on-angles-from-library"
-    # flag = "nn-from-library"
-    if flag == "gmm-on-nn-output":
-        actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
-        file_path = "./robot_configuration_files/"+ robotName + ".yaml"
-        pose_predictor = pose_prediction.Prediction(file_path, robotName)
-        file_name = "robot_angles_" + robotName
-        theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-        pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
-        df = pose_predictor.read_file("combined_actions")
-        users = np.arange(1, 21, 1)
-        action = 'shallow_plate'
-        left_side_with_time = []
-        right_side_with_time = []
-        head_with_time = []
-        t_x_left = []
-        t_y_left = []
-        t_z_left = []
-        angles_left_with_time = []
-        angles_right_with_time = []
-        angles_head_with_time = []
-        angles_left_dict = {}
-
-        for user in users:
-            left_side, right_side, head, timestamps = pose_predictor.read_csv_combined(df, action, user)
-            left_side = left_side * 1000
-            right_side = right_side * 1000
-            head = head * 1000
-
-            angles_left_vec = []
-            angles_right_vec = []
-            angles_head_vec = []
-            cartesian_left_vec = []
-            cartesian_right_vec = []
-            cartesian_head_vec = []
-
-            cumulative_time = extract_time(timestamps)
-            for i in range(len(left_side)):
-                angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
-                angles_left_vec.append(angles_left)
-                angles_right_vec.append(angles_right)
-                angles_head_vec.append(angles_head)
-
-                points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
-                cartesian_left_vec.append(points4)
-                cartesian_right_vec.append(points5)
-                cartesian_head_vec.append(points6)
-
-            if len(cumulative_time) > 1:
-                aux_left = extract_end_effector_path(cartesian_left_vec, cumulative_time)
-                aux_right = extract_end_effector_path(cartesian_right_vec, cumulative_time)
-                aux_head = extract_end_effector_path(cartesian_head_vec, cumulative_time)
-
-                aux_left_angles = add_time_to_angles(angles_left_vec, cumulative_time)
-                aux_right_angles = add_time_to_angles(angles_right_vec, cumulative_time)
-                aux_head_angles = add_time_to_angles(angles_head_vec, cumulative_time)
-
-                angles_left_with_time.append(aux_left_angles)
-                angles_right_with_time.append(aux_right_angles)
-                angles_head_with_time.append(aux_head_angles)
-
-                t_x_left.append(extract_axis(aux_left, "x"))
-                t_y_left.append(extract_axis(aux_left, "y"))
-                t_z_left.append(extract_axis(aux_left, "z"))
-
-                # if user > 9:
-                    # lala = extract_axis(aux_left, "x")
-                    # print("time" + str(user) + "= np.array(", lala[0], ")")
-                    # print("data" + str(user) + "= np.array(", lala[1], ")")
-
-                left_side_with_time.append(aux_left)
-                right_side_with_time.append(aux_right)
-                head_with_time.append(aux_head)
-
-        # plot_3d_paths(left_side_with_time, "Left EE")
-        # plot_3d_paths(right_side_with_time, "Right EE")
-        # plot_3d_paths(head_with_time, "Head EE")
-        # plot_axis_vs_time(t_x_left, "x")
-        # plot_axis_vs_time(t_y_left, "y")
-        # plot_axis_vs_time(t_z_left, "z")
-        for i in range(1, angles_left_with_time[0].shape[0]):
-            smoothed_angle_left = plot_axis_vs_time(extract_angle_vec(angles_left_with_time, i), str(i))
-        # plot_angles_vs_time(angles_left_with_time)
-        # plot_angles_vs_time(angles_right_with_time)
-        # plot_angles_vs_time(angles_head_with_time)
-            gmm.fit(smoothed_angle_left)
-            timeInput = np.linspace(1, np.max(smoothed_angle_left[0, :]), 1000)
-            gmm.predict(timeInput)
-            fig = plt.figure()
-            fig.suptitle("Axis 1 vs axis 0")
-            ax1 = fig.add_subplot(221)
-            plt.title("Data")
-            gmm.plot(ax=ax1, plotType="Data")
-            ax2 = fig.add_subplot(222)
-            plt.title("Gaussian States")
-            gmm.plot(ax=ax2, plotType="Clusters")
-            ax3 = fig.add_subplot(223)
-            plt.title("Regression")
-            gmm.plot(ax=ax3, plotType="Regression")
-            ax4 = fig.add_subplot(224)
-            plt.title("Clusters + Regression")
-            gmm.plot(ax=ax4, plotType="Clusters")
-            gmm.plot(ax=ax4, plotType="Regression")
-            predictedMatrix = gmm.getPredictedMatrix()
-            # print(predictedMatrix)
-            plt.show()
-
-    elif flag=="gmm-on-angles-from-library":
-        users = np.arange(1, 21, 1)
-        action = 'fork'
+    if flag=="gmm-on-angles-from-library":
+        # users = np.arange(1, 21, 1)
+        users = [1, 2, 3, 6, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        num_components = 4
+        # users = []
+        action = 'pressure_cooker'
         robotName = "qt"
         lib_dict = {}
         t_x_left = []
@@ -388,14 +273,9 @@ if __name__ == "__main__":
         # plot_3d_paths(left_side_with_time, "Left EE")
         # plot_3d_paths(right_side_with_time, "Right EE")
         # plot_3d_paths(head_with_time, "Head EE")
-
-        for i in range(1, angles_left_with_time[0].shape[0]):
-            variable_to_fit = extract_angle_vec(angles_left_with_time, i)
-            time, smoothed_angle_left = plot_axis_vs_time(variable_to_fit, str(i))
-            # a = reshape_array(time, smoothed_angle_left)
-            a = arange_time_array(time, smoothed_angle_left)
-            # plot_time_vs_signal(a[0], a[1])
-            eval(a.T, robotName, action, "left_" + str(i), 4)
+        gmm_for_limb(angles_left_with_time, robotName, action, "left_", num_components)
+        gmm_for_limb(angles_right_with_time, robotName, action, "right_", num_components)
+        gmm_for_limb(angles_head_with_time, robotName, action, "head_", num_components)
 
             #gmm from git
 
@@ -421,90 +301,3 @@ if __name__ == "__main__":
             # predictedMatrix = gmm.getPredictedMatrix()
             # # print(predictedMatrix)
             # plt.show()
-
-    elif flag == "nn-from-library":
-        users = np.arange(1, 21, 1)
-        action = 'spoon'
-        robotName = "qt"
-        lib_dict = {}
-        t_x_left = []
-        t_y_left = []
-        t_z_left = []
-        left_side_with_time = []
-        right_side_with_time = []
-        head_with_time = []
-
-        end_effector_dict = ["jointLeft_4", "jointRight_4", "jointHead_3"]
-        file_path = "./robot_configuration_files/"+ robotName + ".yaml"
-        pose_predictor = pose_prediction.Prediction(file_path, robotName)
-        df = pose_predictor.read_file("combined_actions")
-
-        dict_pose_vec_left = []
-        dict_pose_vec_right = []
-        dict_pose_vec_head = []
-        angles_left_with_time = []
-        angles_right_with_time = []
-        angles_head_with_time = []
-
-        for key in end_effector_dict:
-            lib_dict[key] = read_library_from_file(key, robotName)
-
-        for user in users:
-            _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
-            cumulative_time = extract_time(timestamps)
-
-            dict_pose = extract_action_from_library(str(user) + action, lib_dict)
-            cartesian_left_vec = dict_pose[end_effector_dict[0]]
-            cartesian_right_vec = dict_pose[end_effector_dict[1]]
-            cartesian_head_vec = dict_pose[end_effector_dict[2]]
-
-            dep_dict = extract_angles_from_library(str(user) + action, lib_dict)
-            jointLeft_vectors = extract_vectors(dep_dict[end_effector_dict[0]])
-            jointRight_vectors = extract_vectors(dep_dict[end_effector_dict[1]])
-            jointHead_vectors = extract_vectors(dep_dict[end_effector_dict[2]])
-
-            if len(cumulative_time) > 1:
-                aux_left = add_time_to_angles(cartesian_left_vec, cumulative_time)
-                aux_right = add_time_to_angles(cartesian_right_vec, cumulative_time)
-                aux_head = add_time_to_angles(cartesian_head_vec, cumulative_time)
-
-                aux_left_angles = add_time_to_angles(np.rad2deg(jointLeft_vectors), cumulative_time)
-                aux_right_angles = add_time_to_angles(np.rad2deg(jointRight_vectors), cumulative_time)
-                aux_head_angles = add_time_to_angles(np.rad2deg(jointHead_vectors), cumulative_time)
-
-                angles_left_with_time.append(aux_left_angles)
-                angles_right_with_time.append(aux_right_angles)
-                angles_head_with_time.append(aux_head_angles)
-
-                t_x_left.append(extract_axis(aux_left, "x"))
-                t_y_left.append(extract_axis(aux_left, "y"))
-                t_z_left.append(extract_axis(aux_left, "z"))
-                left_side_with_time.append(aux_left)
-                right_side_with_time.append(aux_right)
-                head_with_time.append(aux_head)
-
-            dict_pose_vec_left.append(jointLeft_vectors)
-            dict_pose_vec_right.append(jointRight_vectors)
-            dict_pose_vec_head.append(jointHead_vectors)
-        for i in range(1, angles_left_with_time[0].shape[0]):
-            time, smoothed_angle_left = plot_axis_vs_time(extract_angle_vec(angles_left_with_time, i), str(i))
-            if i == 1:
-                smoothed_angles_left = np.vstack([np.array(time), np.array(smoothed_angle_left)])
-            else:
-                smoothed_angles_left = np.vstack([smoothed_angles_left, np.array(smoothed_angle_left)])
-
-        data = reshape_array(smoothed_angles_left)
-        input_size = 4
-        hidden_size = 64
-        output_size = 4
-        model_wrapper = TrajectoryModelWrapper(input_size, hidden_size, output_size)
-        model_wrapper.train(data, num_epochs=100)
-        model_wrapper.evaluate(data)
-
-        # Use the trained model to make predictions
-        # new_data_point = torch.tensor([1.0, 0.0, 0.0, 0.0], dtype=torch.float32)
-        # predicted_trajectory = model_wrapper.predict(new_data_point)
-        # print("Predicted Trajectory:", predicted_trajectory)
-
-
-

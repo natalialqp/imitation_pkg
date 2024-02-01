@@ -229,12 +229,14 @@ class Prediction(object):
         left_side = []
         right_side = []
         head = []
-        aux_arm = [[] for _ in range(number_arm_human_joints)]  # Use list comprehension
-        aux_head = [[] for _ in range(number_head_human_joints)]  # Use list comprehension
+        time = []
+        aux_arm = [[] for _ in range(number_arm_human_joints)]
+        aux_head = [[] for _ in range(number_head_human_joints)]
         try:
             filtered_df = df[(df['action'] == action) & (df['participant_id'] == user)]
 
             for i in range(len(filtered_df)):
+                time.append(filtered_df['timestamp'].iloc[i])
                 for count, left in enumerate(human_joints_left):
                     aux_arm[count] = self.vectorise_string(filtered_df[left].iloc[i])
                 left_side.append(aux_arm.copy())
@@ -251,7 +253,7 @@ class Prediction(object):
             print(f"Error: {e}")
             # Handle the exception here if needed, e.g., return default values
 
-        return np.array(left_side), np.array(right_side), np.array(head)
+        return np.array(left_side), np.array(right_side), np.array(head), np.array(time)
 
     def read_training_data(self, file_name):
         df = self.read_file(file_name)
@@ -299,13 +301,13 @@ class Prediction(object):
         ax1.set_ylabel("\n Y [mm]", linespacing=3.2)
         ax1.set_zlabel("\n Z [mm]", linespacing=3.2)
         #QTROBOT
-        ax1.set_xlim([-500, 500])
-        ax1.set_ylim([-500, 500])
-        ax1.set_zlim([0, 800])
+        # ax1.set_xlim([-500, 500])
+        # ax1.set_ylim([-500, 500])
+        # ax1.set_zlim([0, 800])
         #HUMAN
-        # ax1.set_xlim([1500, 3000])
-        # ax1.set_ylim([-900, 900])
-        # ax1.set_zlim([-400, 800])
+        ax1.set_xlim([1500, 3000])
+        ax1.set_ylim([-900, 900])
+        ax1.set_zlim([-400, 800])
 
         ax2.set_xlabel("\n X [mm]", linespacing=3.2)
         ax2.set_ylabel("\n Y [mm]", linespacing=3.2)
@@ -692,7 +694,7 @@ if __name__ == "__main__":
     # action = "salt_shaker_right"
     # user = 15
     # users = np.arange(1, 21, 1)
-    # left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
+    # left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
     # left_side = left_side * 1000
     # right_side = right_side * 1000
     # head = head * 1000
@@ -719,11 +721,11 @@ if __name__ == "__main__":
 
     #NN TESTING
     df = pose_predictor.read_file("combined_actions")
-    action = "teapot"
-    user = 5
+    action = "sugar_bowl"
+    user = 3
     robot_pose = []
     robot_pose_2 = []
-    left_side, right_side, head = pose_predictor.read_csv_combined(df, action, user)
+    left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
     left_side = left_side * 1000
     right_side = right_side * 1000
     head = head * 1000
@@ -780,18 +782,17 @@ if __name__ == "__main__":
 
         points1, points2, points3 = pose_predictor.robot_embodiment(jointLeft_vectors[i], jointRight_vectors[i], jointHead_vectors[i])
         cartesian_left_vec_2.append(points1)
-        cartesian_right_vec_2.append(points2)
         robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
         robot_pose_2.append((points4, points5, points6, points1, points2, points3))
 
     pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
     # pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
-    pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec_2))
+    # pose_predictor.plot_3d_paths(np.asarray(cartesian_left_vec_2))
     # pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))
     # pose_predictor.plot_3d_paths(np.asarray(cartesian_head_vec))
     # pose_predictor.plot_angle_sequence(angles_left_vec, angles_right_vec)
     # pose_predictor.plot_angle_sequence(angles_head_vec)
     # pose_predictor.plot_animation_3d(robot_pose)
-    pose_predictor.plot_animation_3d(robot_pose_2)
+    pose_predictor.plot_animation_3d(robot_pose)
     # pose_predictor.plot_angle_sequence(angles_left_vec, jointLeft_vectors)
     # pose_predictor.plot_angle_sequence(cartesian_left_vec, points1)

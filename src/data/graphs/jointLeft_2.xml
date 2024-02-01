@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<graph>
-  <node id="[0.0, 120.0, 400.0]" value= "[  0. 120. 400.]" occupied="False" joint_dependency="{'angle_1': 80.5}"/>
-</graph>

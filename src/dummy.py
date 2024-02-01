@@ -53,8 +53,8 @@ class GaussianMixturePlotter:
         x_smooth = x[:len(y_smooth)]
         return x_smooth, y_smooth
 
-    def plot_results(self, X, Y, means, covariances, index, title):
-        splot = plt.subplot(3, 1, 1 + index)
+    def plot_results(self, X, Y, avg_signal, means, covariances, index, title):
+        splot = plt.subplot(2, 1, 1 + index)
         for i, (mean, covar, color) in enumerate(zip(means, covariances, color_iter)):
             v, w = linalg.eigh(covar)
             v = 2.0 * np.sqrt(2.0) * np.sqrt(v)
@@ -69,8 +69,9 @@ class GaussianMixturePlotter:
             ell.set_alpha(0.5)
             splot.add_artist(ell)
 
-        initial = X[0]
-        last = X[-1]
+        initial = [X[0][0], avg_signal[0]]
+        last = [X[-1][0], avg_signal[-1]]
+
         # Compute cluster centroids
         centroids = np.array([np.nanmean(X[Y == i], axis=0) for i in range(self.n_components)])
         centroids = np.vstack([initial, centroids, last])
@@ -86,8 +87,8 @@ class GaussianMixturePlotter:
         # centroids = np.vstack([X[Y == 0][0], centroids])
         sorted_centroids = centroids[np.argsort(centroids[:, 0])]
         # Plot smooth curve using make_interp_spline for all centroids
-        spl = make_interp_spline(sorted_centroids[:, 0], sorted_centroids[:, 1], k=3)
-        x_smooth_range = np.linspace(sorted_centroids[:, 0].min(), sorted_centroids[:, 0].max(), 1000)
+        spl = make_interp_spline(sorted_centroids[:, 0], sorted_centroids[:, 1], k=2)
+        x_smooth_range = np.linspace(sorted_centroids[:, 0].min(), sorted_centroids[:, 0].max(), 100)
         y_smooth_range = spl(x_smooth_range)
 
         file_path = 'GMM_learned_actions/' + self.robotName + '_' + self.actionName + '.csv'
@@ -135,7 +136,7 @@ class GaussianMixturePlotter:
         imputer = SimpleImputer(strategy='mean')
         return imputer.fit_transform(data)
 
-def eval(X, robotName, actionName, angleId, n_components):
+def eval(X, avg_signal, robotName, actionName, angleId, n_components):
     plt.figure(figsize=(10, 10))
     plt.subplots_adjust(
         bottom=0.04, top=0.95, hspace=0.2, wspace=0.05, left=0.03, right=0.97
@@ -145,28 +146,29 @@ def eval(X, robotName, actionName, angleId, n_components):
     # Fit a Gaussian mixture with EM using ten components
     gmm = plotter.fit_gaussian_mixture(X)
 
-    plotter.plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0, "Expectation-maximization")
+    plotter.plot_results(X, gmm.predict(X), avg_signal, gmm.means_, gmm.covariances_, 0, "Expectation-maximization")
 
     # Fit Bayesian Gaussian mixture models with a Dirichlet process prior
-    dpgmm = plotter.fit_bayesian_gaussian_mixture(X)
-    plotter.plot_results(
-        X,
-        dpgmm.predict(X),
-        dpgmm.means_,
-        dpgmm.covariances_,
-        1,
-        "Bayesian Gaussian mixture models with a Dirichlet process prior "
-        r"for $\gamma_0=0.01$.",
-    )
+    # dpgmm = plotter.fit_bayesian_gaussian_mixture(X)
+    # plotter.plot_results(
+        # X,
+        # dpgmm.predict(X),
+        # dpgmm.means_,
+        # dpgmm.covariances_,
+        # 1,
+        # "Bayesian Gaussian mixture models with a Dirichlet process prior "
+        # r"for $\gamma_0=0.01$.",
+    # )
 
     # Fit Bayesian Gaussian mixture models with a Dirichlet process prior for $\gamma_0=100$
     dpgmm = plotter.fit_bayesian_gaussian_mixture(X, weight_concentration_prior=1e2, init_params="kmeans")
     plotter.plot_results(
         X,
         dpgmm.predict(X),
+        avg_signal,
         dpgmm.means_,
         dpgmm.covariances_,
-        2,
+        1,
         "Bayesian Gaussian mixture models with a Dirichlet process prior "
         r"for $\gamma_0=100$",
     )

@@ -26,13 +26,14 @@ class SignalAnalyzer:
         last_change_point = {'time': last_time, **{self.signal_columns.columns[i]: value for i, value in enumerate(last_values)}}
         self.change_points.append(last_change_point)
 
-    def save_results(self, output_file='GMM_learned_actions/change_points.csv'):
+    def save_results(self, name):
+        output_file='GMM_learned_actions/' + name + '_for_execution' + '.csv'
         change_points_df = pd.DataFrame(self.change_points)
         change_points_df.to_csv(output_file, index=False)
 
 # Example usage:
-name = 'qt_fork'
+name = 'qt_teapot_left'
 csv_file_path = name + '.csv'  # Replace with the actual path to your CSV file
 analyzer = SignalAnalyzer(csv_file_path)
 analyzer.analyze_signals()
-analyzer.save_results()
+analyzer.save_results(name)

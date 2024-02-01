@@ -16,8 +16,8 @@ class Graph(object):
 
     def add_one_node(self, node):
          # Convert ndarray to tuple
-        new_node = self.list_to_string(node)
-        self.G.add_node(tuple(new_node))
+        # new_node = self.list_to_string(node)
+        self.G.add_node(tuple(node))
 
     def list_to_string(self, vec):
         modified_vector = [0.0 if value in {0, 0., -0., -0.0, -0} else value for value in vec]
