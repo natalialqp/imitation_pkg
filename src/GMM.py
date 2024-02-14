@@ -1,11 +1,10 @@
-from GMM.GMM_GMR import *
+import matplotlib.pyplot as plt
 import numpy as np
 import pose_prediction
 from scipy.signal import savgol_filter
 import json
-from MultiSignalLSTM import TrajectoryLearningModel, TrajectoryModelWrapper
 from sklearn.model_selection import train_test_split
-from dummy import eval
+from GMPlotter import eval
 
 def plot_3d_paths(trajectories, title):
     fig = plt.figure()
@@ -99,7 +98,7 @@ def plot_angles_vs_time(arrays):
         plt.legend()
         plt.show()
 
-def plot_axis_vs_time(vec, axis, target_length=100, window_length=5, polyorder=3):
+def plot_axis_vs_time(vec, axis, max_length =1000, target_length=100, window_length=5, polyorder=3):
     variable_to_plot = axis
     data_as_array = []
     time_as_array = []
@@ -108,7 +107,7 @@ def plot_axis_vs_time(vec, axis, target_length=100, window_length=5, polyorder=3
     variable_values = [array[1, :] for array in vec]
     # Interpolate each instance to the specified target length
     interp_variable_values = [
-        np.interp(np.linspace(0, 1000, target_length), np.linspace(0, 1000, len(time)), variable)
+        np.interp(np.linspace(0, max_length, target_length), np.linspace(0, max_length, len(time)), variable)
         for time, variable in zip(time_values, variable_values)
     ]
 
@@ -120,13 +119,13 @@ def plot_axis_vs_time(vec, axis, target_length=100, window_length=5, polyorder=3
 
     # Plot the smoothed variable with respect to time for all arrays
     for i, smoothed_variable in enumerate(smoothed_variable_values):
-        plt.plot(np.linspace(0, 1000, target_length), smoothed_variable, label=f'{i + 1}')
+        plt.plot(np.linspace(0, max_length, target_length), smoothed_variable, label=f'{i + 1}')
         data_as_array.extend(smoothed_variable)
-        time_as_array.extend(np.linspace(0, 1000, target_length))
+        time_as_array.extend(np.linspace(0, max_length, target_length))
 
     # Calculate and plot the average signal
     avg_signal = np.mean(smoothed_variable_values, axis=0)
-    plt.plot(np.linspace(0, 1000, target_length), avg_signal, label='Average', linestyle='--', linewidth=2)
+    plt.plot(np.linspace(0, max_length, target_length), avg_signal, label='Average', linestyle='--', linewidth=2)
 
     # Add labels and legend
     plt.xlabel('Normalized Time')
@@ -138,7 +137,7 @@ def plot_axis_vs_time(vec, axis, target_length=100, window_length=5, polyorder=3
 
 def read_library_from_file(name, robotName):
     try:
-        with open(name + "_" + robotName + "_data.json", "r") as jsonfile:
+        with open("data/graphs/lib/" + name + "_" + robotName + "_data.json", "r") as jsonfile:
             data = [json.loads(line) for line in jsonfile.readlines()]
             return data
     except FileNotFoundError:
@@ -179,18 +178,18 @@ def plot_time_vs_signal(time, signal, xlabel='Time', ylabel='Signal', title='Tim
     # Show the plot
     plt.show()
 
-def reshape_array(time, arr):
+def reshape_array(time, arr, max_length=1000):
     arr_len = len(arr)
-    time = time.reshape(int(arr_len/1000), 1000)[0]
-    arr = arr.reshape(int(arr_len/1000), 1000)
+    time = time.reshape(int(arr_len/max_length), max_length)[0]
+    arr = arr.reshape(int(arr_len/max_length), max_length)
     arr = np.vstack((time, arr))
     return arr.T #[:, 0:2]
 
 def gmm_for_limb(angles_with_time, robotName, action, limb, num_components=5):
     for i in range(1, angles_with_time[0].shape[0]):
         variable_to_fit = extract_angle_vec(angles_with_time, i)
-        time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i))
-        smoth_angle_with_time = arange_time_array(time, smoothed_angles)
+        time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i), 7093, 7093)
+        smoth_angle_with_time = arange_time_array(time, smoothed_angles, 7093)
         eval(smoth_angle_with_time.T, avg_signal, robotName, action, limb + str(i), num_components)
 
 if __name__ == "__main__":
@@ -200,10 +199,10 @@ if __name__ == "__main__":
     flag = "gmm-on-angles-from-library"
     if flag=="gmm-on-angles-from-library":
         # users = np.arange(1, 21, 1)
-        users = [1, 2, 3, 6, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-        num_components = 4
+        users = [21]
+        num_components = 10
         # users = []
-        action = 'pressure_cooker'
+        action = 'arm_sides'
         robotName = "qt"
         lib_dict = {}
         t_x_left = []
@@ -216,8 +215,11 @@ if __name__ == "__main__":
         end_effector_dict = ["jointLeft_4", "jointRight_4", "jointHead_3"]
         file_path = "./robot_configuration_files/"+ robotName + ".yaml"
         pose_predictor = pose_prediction.Prediction(file_path, robotName)
-        df = pose_predictor.read_file("combined_actions")
+        # for old actions
+        # df = pose_predictor.read_file("combined_actions")
 
+        # for new actions
+        df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
         dict_pose_vec_left = []
         dict_pose_vec_right = []
         dict_pose_vec_head = []
@@ -229,7 +231,12 @@ if __name__ == "__main__":
             lib_dict[key] = read_library_from_file(key, robotName)
 
         for user in users:
-            _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
+            # for old actions
+            # _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
+
+            #for new actions
+            _, _, _, timestamps = pose_predictor.read_recorded_action_csv(df, action, user)
+
             cumulative_time = extract_time(timestamps)
 
             dict_pose = extract_action_from_library(str(user) + action, lib_dict)
@@ -270,9 +277,9 @@ if __name__ == "__main__":
         # plot_angles_vs_time(angles_right_with_time)
         # plot_angles_vs_time(angles_head_with_time)
 
-        # plot_3d_paths(left_side_with_time, "Left EE")
-        # plot_3d_paths(right_side_with_time, "Right EE")
-        # plot_3d_paths(head_with_time, "Head EE")
+        plot_3d_paths(left_side_with_time, "Left EE")
+        plot_3d_paths(right_side_with_time, "Right EE")
+        plot_3d_paths(head_with_time, "Head EE")
         gmm_for_limb(angles_left_with_time, robotName, action, "left_", num_components)
         gmm_for_limb(angles_right_with_time, robotName, action, "right_", num_components)
         gmm_for_limb(angles_head_with_time, robotName, action, "head_", num_components)

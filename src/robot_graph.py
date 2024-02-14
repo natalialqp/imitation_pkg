@@ -207,13 +207,13 @@ class Graph(object):
             return 0
 
     def save_path_in_library(self, trajectory, dependency, robotName, actionName):
-        with open(self.key + "_" + robotName + "_data.json", "a") as jsonfile:
+        with open("data/graphs/lib/" + self.key + "_" + robotName + "_data.json", "a") as jsonfile:
             pose = {"id": actionName, "path": trajectory, "joint_dependency": dependency}
             jsonfile.write(json.dumps(pose))
             jsonfile.write("\n")
 
     def save_graph_to_file(self, name, robot):
-        output_file = "./data/graphs/" + name + "_" + robot +".xml"
+        output_file = "./data/graphs/joints/" + name + "_" + robot +".xml"
 
         with open(output_file, "w", encoding="utf-8") as file:
             file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -272,7 +272,7 @@ class Graph(object):
         return (source, target), {"weight": float(weight), "occupied": occupied}
 
     def read_graph_from_file(self, name, robot):
-        file_path = "./data/graphs/" + name + "_" + robot + ".xml"
+        file_path = "data/graphs/joints/" + name + "_" + robot + ".xml"
         tree = ET.parse(file_path)
         root = tree.getroot()
         self.nodes_id = 0

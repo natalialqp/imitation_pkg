@@ -17,8 +17,6 @@ plt.rcParams.update({'font.size': 20})
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
-robot_head_dimensions = np.array([0, 0.0962])
-robot_arm_dimensions = np.array([0.08, 0.0445, 0.07708, 0.184])
 human_joints_head  = ['JOINT_LEFT_COLLAR', 'JOINT_NECK', 'JOINT_HEAD']
 human_joints_left  = ['JOINT_LEFT_COLLAR', 'JOINT_LEFT_SHOULDER', 'JOINT_LEFT_ELBOW', 'JOINT_LEFT_WRIST', 'JOINT_LEFT_HAND']
 human_joints_right = ['JOINT_RIGHT_COLLAR', 'JOINT_RIGHT_SHOULDER', 'JOINT_RIGHT_ELBOW', 'JOINT_RIGHT_WRIST', 'JOINT_RIGHT_HAND']
@@ -172,18 +170,6 @@ class Prediction(object):
         cartesian_points = np.column_stack((x, y, z))
         return cartesian_points
 
-    def human_to_robot(self, points, isArm):
-        #Calculate the n-th discrete difference along the given axis
-        vectors = np.diff(points, axis=0)
-        spherical_points = self.cartesian_to_spherical(vectors)
-        if isArm:
-            spherical_points[:, 0] = robot_arm_dimensions
-        else:
-            spherical_points[:, 0] = robot_head_dimensions
-        coordinates = self.spherical_to_cartesian(np.vstack((np.array([0, 0, 0]), spherical_points)), robot)
-        #Return the cumulative sum of the elements along a given axis
-        return np.cumsum(coordinates, axis=0)
-
     def extract_spherical_angles_from_human(self, left, right, head = []):
         left_theta, left_phi = self.cartesian_to_spherical(np.diff(left, axis=0))
         right_theta, right_phi = self.cartesian_to_spherical(np.diff(right, axis=0))
@@ -253,6 +239,34 @@ class Prediction(object):
             print(f"Error: {e}")
             # Handle the exception here if needed, e.g., return default values
 
+        return np.array(left_side), np.array(right_side), np.array(head), np.array(time)
+
+    def read_recorded_action_csv(self, df, action, user):
+        left_side = []
+        right_side = []
+        head = []
+        time = []
+        np_array = {'np': np, 'array': np.array}
+        try:
+           for i in range(len(df)):
+                time.append(df['timestamp'].iloc[i])
+
+                aux_arm = eval(df['left'].iloc[i], np_array)
+                result_list = [value.tolist() for value in aux_arm.values()]
+                left_side.append(result_list)
+
+                aux_arm = eval(df['right'].iloc[i], np_array)
+                result_list = [value.tolist() for value in aux_arm.values()]
+                right_side.append(result_list)
+
+                aux_head = eval(df['head'].iloc[i], np_array)
+                result_list = [aux_head[key].tolist() for key in aux_head.keys() if key in human_joints_head]
+                result_list.reverse()
+                head.append(result_list)
+
+        except KeyError as e:
+            print(f"Error: {e}")
+            # Handle the exception here if needed, e.g., return default values
         return np.array(left_side), np.array(right_side), np.array(head), np.array(time)
 
     def read_training_data(self, file_name):
@@ -726,9 +740,14 @@ if __name__ == "__main__":
     robot_pose = []
     robot_pose_2 = []
     left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
-    left_side = left_side * 1000
-    right_side = right_side * 1000
-    head = head * 1000
+
+    # left_side = left_side * 1000
+    # right_side = right_side * 1000
+    # head = head * 1000
+
+    df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
+    left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, "arm_sides", 21)
+
     angles_left_vec = []
     angles_right_vec = []
     angles_head_vec = []
@@ -780,10 +799,10 @@ if __name__ == "__main__":
         cartesian_right_vec.append(points5)
         cartesian_head_vec.append(points6)
 
-        points1, points2, points3 = pose_predictor.robot_embodiment(jointLeft_vectors[i], jointRight_vectors[i], jointHead_vectors[i])
-        cartesian_left_vec_2.append(points1)
+        # points1, points2, points3 = pose_predictor.robot_embodiment(jointLeft_vectors[i], jointRight_vectors[i], jointHead_vectors[i])
+        # cartesian_left_vec_2.append(points1)
         robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
-        robot_pose_2.append((points4, points5, points6, points1, points2, points3))
+        # robot_pose_2.append((points4, points5, points6, points1, points2, points3))
 
     pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
     # pose_predictor.plot_3d_paths(np.asarray(cartesian_right_vec))

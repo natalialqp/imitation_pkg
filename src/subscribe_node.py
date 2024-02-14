@@ -109,7 +109,7 @@ class SelfExploration(object):
                 collision = True
                 collision_joints.append("HeadYaw")
         # LeftShoulderPitch (+) torque after force applied to front, (-) torque after force applied to back
-        # LeftShoulderRoll (-) torque after fo  rce applied
+        # LeftShoulderRoll (-) torque after force applied
         # LeftElbowRoll (-) torque after force applied
         elif 'left' in self.key:
             if self.current_tor_arm[0] < -30:

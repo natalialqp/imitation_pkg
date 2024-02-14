@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 import sys
+import time
+import threading
 import rospy
 from qt_nuitrack_app.msg import Skeletons
 from migrave_skeleton_tools.tf_utils import TFUtils
 from migrave_skeleton_tools_ros.skeleton_utils import JointUtils
+from qt_robot_interface.srv import speech_say, speech_recognize
 
 import pose_prediction
 import numpy as np
@@ -11,15 +14,23 @@ from std_msgs.msg import Float64MultiArray
 from sensor_msgs.msg import JointState
 from visualization_msgs.msg import MarkerArray, Marker
 from graph_plot import PathPlanning
+import pandas as pd
 
 head_pub = rospy.Publisher('/qt_robot/head_position/command', Float64MultiArray, queue_size=10)
 right_pub = rospy.Publisher('/qt_robot/right_arm_position/command', Float64MultiArray, queue_size = 10)
 left_pub = rospy.Publisher('/qt_robot/left_arm_position/command', Float64MultiArray, queue_size = 10)
 
-rospy.sleep(1.0)
+human_skeletons_left = []
+human_skeletons_right = []
+human_skeletons_head = []
+timestamp = []
+robot_left_rec = []
+robot_right_rec = []
+robot_head_rec = []
+
+# rospy.sleep(1.0)
 
 class SkeletonMarkers(object):
-
     def __init__(self, id, skeleton_frame_id):
         self.id = id
         self.skeleton_frame_id = skeleton_frame_id
@@ -30,10 +41,51 @@ class SkeletonMarkers(object):
         self.left_leg_marker = self.get_marker(id_pad + 3)
         self.right_leg_marker = self.get_marker(id_pad + 4)
 
+class SpeechManager(object):
+    def __init__(self):
+        self.recognize_speech_proxy = rospy.ServiceProxy('/qt_robot/speech/recognize', speech_recognize)
+        self.speechSay = rospy.ServiceProxy('/qt_robot/speech/say', speech_say)
+        self.options = ["record", "stop"]
+        self.speechSay("INIT SPEECH RECOGNITION")
+
+        self.resp = None
+        self.last_cmd = []
+        self.speech_thread = None
+        self.is_alive = False
+
+    def start_recognition(self):
+        self.is_alive = True
+        self.speech_thread = threading.Thread(target=self.recognize_speech)
+        self.speech_thread.daemon = True
+        self.speech_thread.start()
+
+    def recognize_speech(self):
+        while self.is_alive:
+            print("QT is listening... Watch out")
+            self.resp = None
+            while self.resp is None:
+                self.resp = self.recognize_speech_proxy("en_US", self.options, 3)
+                self.last_cmd = self.resp.transcript
+            self.robot_say_response()
+
+    def robot_say_response(self):
+        rospy.loginfo("Speech recognition started")
+        if "record" in self.resp.transcript:
+            rospy.loginfo("Recording started")
+            self.speechSay("Recording started")
+        elif "stop" in self.resp.transcript:
+            rospy.loginfo("Recording stopped")
+            self.speechSay("Recording stopped")
+            self.is_alive = False
+        else:
+            rospy.loginfo("No valid option")
+            self.speechSay("No valid option")
+        return
+
 class HumanSkeleton(object):
     def __init__(self, pose_predictor, planner):
-        nuitrack_skeleton_topic = rospy.get_param('~nuitrack_skeleton_topic',
-                                                  '/qt_nuitrack_app/skeletons')
+        self.nuitrack_skeleton_topic = rospy.get_param('~nuitrack_skeleton_topic',
+                                                       '/qt_nuitrack_app/skeletons')
         self.cam_base_link_translation = rospy.get_param('~cam_base_link_translation', [0., 0., 0.])
         self.skeleton_frame_id = rospy.get_param('~skeleton_frame_id', 'base_link')
         self.cam_base_link_rot = rospy.get_param('cam_base_link_rot', [np.pi/2, 0., np.pi/2])
@@ -42,17 +94,27 @@ class HumanSkeleton(object):
         self.delta = 0
         self.cam_base_link_tf = TFUtils.get_homogeneous_transform(self.cam_base_link_rot,
                                                                   self.cam_base_link_translation)
-        self.skeleton_sub = rospy.Subscriber(nuitrack_skeleton_topic, Skeletons, self.capture_skeletons)
+        self.skeleton_sub = None
 
+    def start(self):
+        self.skeleton_sub = rospy.Subscriber(self.nuitrack_skeleton_topic,
+                                             Skeletons,
+                                             self.capture_skeletons)
+        rospy.sleep(0.5)
+
+    def stop(self):
+        if self.skeleton_sub is not None:
+            self.skeleton_sub.unregister()
+
+    def save_action(self, action_name, action):
+        # Save the action in a csv file
+        action_df = pd.DataFrame(action)
+        action_df.to_csv("data/QT_recordings/" + action_name + ".csv", index=False)
 
     def capture_skeletons(self, skeleton_collection_msg):
         cartesian_left_vec = []
         cartesian_right_vec = []
         cartesian_head_vec = []
-
-        human_skeletons_left = []
-        human_skeletons_right = []
-        human_skeletons_head = []
 
         for skeleton_msg in skeleton_collection_msg.skeletons:
             right_arm_points = {}
@@ -77,9 +139,12 @@ class HumanSkeleton(object):
             # Define the common first point for the head as the middle point between the shoulders
             head_points['JOINT_LEFT_COLLAR'] = left_arm_points['JOINT_LEFT_COLLAR']
 
+            current_time = rospy.Time.now().to_sec()
+
             human_skeletons_left.append(left_arm_points)
             human_skeletons_right.append(right_arm_points)
             human_skeletons_head.append(head_points)
+            timestamp.append(current_time)
 
             left_side, right_side, head = self.pose_predictor.dicts_to_lists(left_arm_points, right_arm_points, head_points)
             left_arm_pred, right_arm_pred, head_pred = self.pose_predictor.predict_pytorch(left_side, right_side, head)
@@ -91,14 +156,17 @@ class HumanSkeleton(object):
             cartesian_head_vec.append(head_cart)
             self.delta = self.delta + 1
 
-            if self.delta >= 10:
+            if self.delta >= 300:
                 self.delta = 0
                 predicted_angles_left, predicted_angles_right, predicted_angles_head = self.find_end_effector_angles(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
                 joint_angle_publisher(predicted_angles_left, predicted_angles_right, predicted_angles_head)
                 cartesian_left_vec = []
                 cartesian_right_vec = []
                 cartesian_head_vec = []
-            # joint_angle_publisher(np.rad2deg(left_arm_pred), np.rad2deg(right_arm_pred), np.rad2deg(head_pred))
+                robot_left_rec.append(predicted_angles_left)
+                robot_right_rec.append(predicted_angles_right)
+                robot_head_rec.append(predicted_angles_head)
+
         return
 
     def find_end_effector_angles(self, left_arm_pred, right_arm_pred, head_pred):
@@ -116,7 +184,7 @@ class HumanSkeleton(object):
 
 def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
     # Publish angles to robot
-        rospy.loginfo("publishing motor command...")
+        # rospy.loginfo("publishing motor command...")
         try:
             ref_head = Float64MultiArray()
             ref_right = Float64MultiArray()
@@ -124,10 +192,10 @@ def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
             ref_head.data = head_ang_pos
             ref_right.data = right_arm_ang_pos
             ref_left.data = left_arm_ang_pos
-            # head_pub.publish(ref_head)
             right_pub.publish(ref_right)
             left_pub.publish(ref_left)
-            rospy.sleep(0.1)
+            # head_pub.publish(ref_head)
+            rospy.sleep(0)
         except rospy.ROSInterruptException:
             rospy.logerr("could not publish motor command!")
         rospy.loginfo("motor command published")
@@ -148,14 +216,24 @@ def initialise():
 if __name__ == '__main__':
     rospy.init_node('real_time_pose_estimation_node')
     rospy.loginfo("real_time_pose_estimation_node started!")
+    speech = SpeechManager()
+    speech.start_recognition()
 
     pose_predictor, planner = initialise()
     skeleton = HumanSkeleton(pose_predictor, planner)
-    # define ros subscriber
 
     try:
-        rospy.spin()
+        # while not rospy.is_shutdown():
+        #     skeleton.start()
+        while not rospy.is_shutdown() and speech.is_alive:
+            if "record" in speech.last_cmd:
+                skeleton.start()
+            elif "stop" in speech.last_cmd:
+                skeleton.stop()
+                new_action_name = "arms_sides"
+                skeleton.save_action("robot/" + new_action_name, np.hstack((robot_left_rec, robot_right_rec, robot_head_rec)))
+                skeleton.save_action("human/" + new_action_name, np.hstack((timestamp, human_skeletons_left, human_skeletons_right, human_skeletons_head)))
     except KeyboardInterrupt:
         pass
-    rospy.loginfo("finsihed!")
+    rospy.loginfo("finished!")
 

@@ -368,9 +368,9 @@ if __name__ == "__main__":
     right = []
     head = []
     for i in range(0, 370, 10):
-        angles = np.array([np.deg2rad(-4.7), np.deg2rad(-77.7), np.deg2rad(-11.8),
-                           np.deg2rad(-4.5), np.deg2rad(-73), np.deg2rad(-11),
-                           np.deg2rad(0), np.deg2rad(2.2)])
+        angles = np.array([np.deg2rad(-60), np.deg2rad(-20), np.deg2rad(0),
+                           np.deg2rad(60), np.deg2rad(-20), np.deg2rad(0),
+                           np.deg2rad(0), np.deg2rad(0)])
 
         # NEGATIVE ANGLES RIGHT: SHOULDER_ROLL, ELBOWS and wrist
         # angles = np.array([np.deg2rad(80), np.deg2rad(20), np.deg2rad(-80), np.deg2rad(-60), np.deg2rad(0),

@@ -118,7 +118,7 @@ class PathPlanning:
             else:
                 node = self.find_closest_point(cartesian_points[key], kdtree)
                 dependencies = self.slice_dict(joint_angles, key.split('_'))
-            robot[key].set_attribute(node, dependencies)
+            self.robot_graphs[key].set_attribute(node, dependencies)
             # robot[key].add_one_node(node, att)  # delete the str to use with gml
             edges = self.find_edges_optimized_robot(self.robot_graphs[key])
             self.robot_graphs[key].add_edges(edges)
@@ -402,7 +402,7 @@ class PathPlanning:
 
     def read_library_from_file(self, name):
         try:
-            with open(name + "_" + self.robotName + "_data.json", "r") as jsonfile:
+            with open("data/graphs/lib/" + name + "_" + self.robotName + "_data.json", "r") as jsonfile:
                 data = [json.loads(line) for line in jsonfile.readlines()]
                 return data
         except FileNotFoundError:
@@ -455,10 +455,10 @@ class PathPlanning:
 if __name__ == "__main__":
 
     # flag = "path-planning"
-    # flag = "pose-predicition"
+    flag = "pose-predicition"
     # flag = "explore-world"
     # flag = "object-in-robot-graph"
-    flag = "read_library_paths"
+    # flag = "read_library_paths"
     planner = PathPlanning()
 
     if flag == "explore-world":
@@ -546,20 +546,28 @@ if __name__ == "__main__":
         file_name = "robot_angles_" + planner.robotName
         theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
         pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
-        df = pose_predictor.read_file("combined_actions")
-        actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
-        # actions = ['spoon']
-        users = np.arange(1, 21, 1)
+        # df = pose_predictor.read_file("combined_actions")
+        # actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
+        actions = ['arm_sides']
+        # users = np.arange(1, 21, 1)
+        users = [21]
         planner.fill_robot_graphs()
+
+        #for new actions
+        df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
 
         for user in tqdm(users):
             for action in actions:
                 dict_error = {}
                 robot_pose = []
-                left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
-                left_side = left_side * 1000
-                right_side = right_side * 1000
-                head = head * 1000
+                # left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
+                # left_side = left_side * 1000
+                # right_side = right_side * 1000
+                # head = head * 1000
+
+                # for new actions
+                left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, action, user)
+
                 angles_left_vec = []
                 angles_right_vec = []
                 angles_head_vec = []
@@ -590,7 +598,7 @@ if __name__ == "__main__":
                     tra, MSE, RMSE = planner.path_planning(generated_trajectory, planner.robot_graphs[key])
                     dep = planner.robot_graphs[key].select_joint_dependencies(tra)
                     planner.robot_graphs[key].save_path_in_library(tra, dep, planner.robotName, actionName)
-                    # plotPath(actionName, generated_trajectory, np.asarray(tra)) # key instead of user + action
+                    # planner.plotPath(actionName, generated_trajectory, np.asarray(tra)) # key instead of user + action
                     # dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
                 # plot_error(dict_error)
         for key in planner.robot_graphs:
@@ -615,8 +623,8 @@ if __name__ == "__main__":
                 planner.robot_graphs[key].new_object_in_world(object_nodes, object_name, True, layered_dependencies)
                 layered_dependencies.clear()
 
-        dict_pose = planner.extract_action_from_library("12salt_shaker", lib_dict)
-        dict_angles = planner.extract_angles_from_library("12salt_shaker", lib_dict)
+        dict_pose = planner.extract_action_from_library("21arm_sides", lib_dict)
+        dict_angles = planner.extract_angles_from_library("21arm_sides", lib_dict)
         new_path = {}
         angle_dep_new_path = {}
         angle_dep_old_path = {}
