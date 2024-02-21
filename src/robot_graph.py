@@ -316,7 +316,7 @@ class Graph(object):
         plt.title('Comparison of Lists for Each Key')
         plt.show()
 
-    def plot_graph(self, robotName, trajectory = [], candidates = []):
+    def plot_graph(self, robotName, nodes = '', trajectory = [], candidates = []):
         # Create the 3D figure
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
@@ -369,7 +369,7 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.savefig(self.key + "_" + robotName + "_object.pdf", format="pdf")
+        plt.savefig("data/test_qt/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
         plt.show()
 
     def find_neighbors(self, node):

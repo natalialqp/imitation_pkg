@@ -12,8 +12,9 @@ from sklearn.model_selection import train_test_split
 import robot_graph
 from scipy.spatial import KDTree
 import json
+import time
 
-plt.rcParams.update({'font.size': 20})
+plt.rcParams.update({'font.size': 10})
 
 number_arm_human_joints = 5
 number_head_human_joints = 3
@@ -446,6 +447,7 @@ class Prediction(object):
         validation_losses = []
         train_input_data, val_input_data, train_output_data_left, val_output_data_left, train_output_data_right, val_output_data_right, train_output_data_head, val_output_data_head = train_test_split(
         input_data, output_data_left, output_data_right, output_data_head, test_size=0.2, random_state=50)
+        start = time.perf_counter()
         for epoch in range(num_epochs):
             # Forward pass
             left_arm_pred, right_arm_pred, head_pred = model(train_input_data)
@@ -483,15 +485,21 @@ class Prediction(object):
                 if (epoch + 1) % 100 == 0:
                     print(f'Epoch [{epoch + 1}/{num_epochs}], Validation Loss: {total_val_loss.item()}')
 
+        end = time.perf_counter()
+        elapsed = end - start
+        print(f'Time taken: {elapsed:.6f} seconds')
+
         self.model = model
         # Plot the training loss
-        # plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
-        # plt.plot(range(1, num_epochs + 1), validation_losses, label='Validation Loss')
-        # plt.xlabel('Epoch')
-        # plt.ylabel('Loss')
-        # plt.legend()
-        # plt.grid()
-        # plt.show()
+        plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
+        plt.plot(range(1, num_epochs + 1), validation_losses, label='Validation Loss')
+        plt.title('Performance of the model with MSE loss & 16 hidden neurons - NAO')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.grid()
+        plt.savefig('nn_performace/MSELoss16-2000NAO.pdf', format='pdf')
+        plt.show()
 
     def dicts_to_lists(self, left, right, head):
         left_side = []
@@ -731,7 +739,7 @@ if __name__ == "__main__":
     #NN TRAINING
     file_name = "robot_angles_" + robotName
     theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 2000)
 
     #NN TESTING
     df = pose_predictor.read_file("combined_actions")
@@ -756,7 +764,7 @@ if __name__ == "__main__":
     cartesian_head_vec = []
     cartesian_left_vec_2 = []
     cartesian_right_vec_2 = []
-    robotName = 'qt'
+    robotName = 'nao'
     file_path = "./robot_configuration_files/" + robotName + ".yaml"
     qt = robot.Robot(robotName)
     qt.import_robot(file_path)

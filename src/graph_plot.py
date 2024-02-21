@@ -13,6 +13,7 @@ from sklearn.metrics import mean_squared_error
 import copy
 import pose_prediction
 import simulate_position
+import time
 
 plt.rcParams.update({'font.size': 18})
 
@@ -120,8 +121,8 @@ class PathPlanning:
                 dependencies = self.slice_dict(joint_angles, key.split('_'))
             self.robot_graphs[key].set_attribute(node, dependencies)
             # robot[key].add_one_node(node, att)  # delete the str to use with gml
-            edges = self.find_edges_optimized_robot(self.robot_graphs[key])
-            self.robot_graphs[key].add_edges(edges)
+            # edges = self.find_edges_optimized_robot(self.robot_graphs[key])
+            # self.robot_graphs[key].add_edges(edges)
         return self.robot_graphs
 
     def slice_dict(self, dict, details):
@@ -206,7 +207,7 @@ class PathPlanning:
         path_angles = graph.select_joint_dependencies(path[0])
         return path_angles[-1]
 
-    def plot_error(self, Dict):
+    def plot_error(self, Dict, iter):
         # Extracting data for plotting
         joints = list(Dict.keys())
         values_MSE = [sub_dict["MSE"] for sub_dict in Dict.values()]
@@ -223,12 +224,13 @@ class PathPlanning:
         # Adding labels and title
         ax.set_xlabel('Joints')
         ax.set_ylabel('Error')
-        ax.set_title('Values of MSE and RMSE for each Joint')
+        ax.set_title('Values of MSE and RMSE for each Joint in the iteration ' + str(iter))
         ax.set_xticks([i + bar_width/2 for i in index])
         ax.set_xticklabels(joints,  rotation=0, ha='center')
         ax.legend()
         plt.grid()
         # Show the plot
+        plt.savefig("error_values_iter_" + str(iter) + ".pdf", format="pdf")
         plt.show()
 
     def error_calculation(self, y_true, y_pred):
@@ -341,7 +343,7 @@ class PathPlanning:
         joint_angles = points[keys[0]]
         for count in range(1, len(keys)):
             joint_angles = np.hstack((joint_angles, points[keys[count]]))
-        return joint_angles
+        return joint_angles.astype(float)
 
     def learn_environment(self, cartesian_points, joint_angles_dict):
         for i in range(len(joint_angles_dict)):
@@ -455,8 +457,8 @@ class PathPlanning:
 if __name__ == "__main__":
 
     # flag = "path-planning"
-    flag = "pose-predicition"
-    # flag = "explore-world"
+    # flag = "pose-predicition"
+    flag = "explore-world"
     # flag = "object-in-robot-graph"
     # flag = "read_library_paths"
     planner = PathPlanning()
@@ -470,7 +472,8 @@ if __name__ == "__main__":
         # graph_world = world_graph.Graph()
         # graph_world.read_graph_from_file("test")
         # graph_world.plot_graph()
-        babbing_path = "self_exploration_qt_100.txt"
+        babbing_path = "test_qt/self_exploration/self_exploration_qt_30.txt"
+        start = time.time()
         joint_angles = planner.read_babbling(babbing_path)
         new_list = planner.angle_interpolation(joint_angles)
         print("AFTER INTERPOLATION")
@@ -481,11 +484,13 @@ if __name__ == "__main__":
         cartesian_points = planner.myRobot.pos_mat_to_robot_mat_dict(pos_left, pos_right, pos_head)
         joint_angles_dict = planner.myRobot.angular_mat_to_mat_dict(new_list)
         robot_world = planner.learn_environment(cartesian_points, joint_angles_dict)
+        end = time.time()
+        print("TIME: ", (end - start)/60, "minutes")
         print("BEFORE SAVING THE GRAPHS")
         for key in tqdm(robot_world):
             robot_world[key].save_graph_to_file(key, planner.robotName)
             # robot_world[key].read_graph_from_file(key, robotName)
-            robot_world[key].plot_graph(planner.robotName)
+            robot_world[key].plot_graph(planner.robotName, str(30))
 
     elif flag == "create-object":
         lowEdge = np.array([-60, 100, 140])
@@ -546,27 +551,28 @@ if __name__ == "__main__":
         file_name = "robot_angles_" + planner.robotName
         theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
         pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
-        # df = pose_predictor.read_file("combined_actions")
-        # actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
-        actions = ['arm_sides']
-        # users = np.arange(1, 21, 1)
-        users = [21]
+
+        df = pose_predictor.read_file("combined_actions")
+        actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
+        users = np.arange(1, 21, 1)
         planner.fill_robot_graphs()
 
         #for new actions
-        df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
+        # actions = ['arm_sides']
+        # users = [21]
+        # df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
 
         for user in tqdm(users):
             for action in actions:
                 dict_error = {}
                 robot_pose = []
-                # left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
-                # left_side = left_side * 1000
-                # right_side = right_side * 1000
-                # head = head * 1000
+                left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
+                left_side = left_side * 1000
+                right_side = right_side * 1000
+                head = head * 1000
 
                 # for new actions
-                left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, action, user)
+                # left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, action, user)
 
                 angles_left_vec = []
                 angles_right_vec = []
@@ -599,8 +605,9 @@ if __name__ == "__main__":
                     dep = planner.robot_graphs[key].select_joint_dependencies(tra)
                     planner.robot_graphs[key].save_path_in_library(tra, dep, planner.robotName, actionName)
                     # planner.plotPath(actionName, generated_trajectory, np.asarray(tra)) # key instead of user + action
-                    # dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
-                # plot_error(dict_error)
+                    dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
+                planner.plot_error(dict_error, 1)
+
         for key in planner.robot_graphs:
             planner.robot_graphs[key].save_graph_to_file(key, planner.robotName)
 

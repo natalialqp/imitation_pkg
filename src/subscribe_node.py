@@ -8,10 +8,11 @@ import json
 import robot
 import os
 import random
+import time
 
 class SelfExploration(object):
 
-    def __init__(self):
+    def __init__(self, robot_name):
         self.motor_babbling_recording = {'left': [], 'right': [], 'head': []}
         self.right_pub = rospy.Publisher('/qt_robot/right_arm_position/command', Float64MultiArray, queue_size = 10)
         self.left_pub = rospy.Publisher('/qt_robot/left_arm_position/command', Float64MultiArray, queue_size = 10)
@@ -21,23 +22,26 @@ class SelfExploration(object):
         self.current_tor_head = np.zeros((2))
         self.current_tor_arm = np.zeros((3))
         self.key = ''
+        self.robot_name = robot_name
 
     def import_robot(self, file_path):
         #Read robot configuration from the .yaml file
-        self.rob = robot.Robot()
+        self.rob = robot.Robot(self.robot_name)
         self.rob.import_robot(file_path)
 
     def motor_babbling(self, delta_angle, sequence_len):
+        self.joint_angle_publisher()
         waiting = 0
         for key in self.motor_babbling_recording:
             self.key = key
+            start = time.perf_counter()
             while len(self.motor_babbling_recording[key]) < sequence_len:
+                print(len(self.motor_babbling_recording[key]))
                 self.joint_state_sub = rospy.Subscriber('/qt_robot/joints/state', JointState, self.qt_joint_state_cb)
                 while self.current_ang_pos_arm[2] == 0:
                     waiting += 1
                 # random_move = self.random_distribution(delta_angle)
                 random_move = self.random_angles(delta_angle)
-                rospy.loginfo("STATE ANGLES")
                 if "head" in key:
                     # new_ang_pos_head = np.array(self.current_ang_pos_head) + random_move
                     new_ang_pos_head = random_move
@@ -50,19 +54,19 @@ class SelfExploration(object):
                     added = self.add_config(new_ang_pos_arm)
                     if added:
                         self.current_ang_pos_arm = new_ang_pos_arm.copy()
-                    rospy.loginfo(new_ang_pos_arm)
                 self.joint_angle_publisher()
+
+            end = time.perf_counter()
+            elapsed = (end - start) / 60
+            print(f'Time taken {key}: {elapsed:.4f} minutes')
 
     def add_config(self, candidate_pos):
         added = False
         candidate_pos = list(np.round(candidate_pos, decimals = 2))
         inside_limits = self.check_limits(candidate_pos)
-        rospy.loginfo(self.key)
-        rospy.loginfo(self.motor_babbling_recording[self.key])
         if inside_limits:
             if candidate_pos not in self.motor_babbling_recording[self.key]:
                 self.motor_babbling_recording[self.key].append(candidate_pos)
-                rospy.loginfo(candidate_pos)
                 added = True
         return added
 
@@ -85,15 +89,15 @@ class SelfExploration(object):
         if 'head' in self.key:
             self.current_ang_pos_head = [joint_state_msg.position[0], joint_state_msg.position[1]]
             self.current_tor_head = [joint_state_msg.effort[0], joint_state_msg.effort[1]]
-            rospy.loginfo(self.current_ang_pos_head)
+            # rospy.loginfo(self.current_ang_pos_head)
         elif 'left' in self.key:
             self.current_ang_pos_arm = [joint_state_msg.position[3], joint_state_msg.position[4], joint_state_msg.position[2]]
             self.current_tor_arm = [joint_state_msg.effort[3], joint_state_msg.effort[4], joint_state_msg.effort[2]]
-            rospy.loginfo(self.current_ang_pos_arm)
+            # rospy.loginfo(self.current_ang_pos_arm)
         elif 'right' in self.key:
             self.current_ang_pos_arm = [joint_state_msg.position[6], joint_state_msg.position[7], joint_state_msg.position[5]]
             self.current_tor_arm = [joint_state_msg.effort[6], joint_state_msg.effort[7], joint_state_msg.effort[5]]
-            rospy.loginfo(self.current_ang_pos_arm)
+            # rospy.loginfo(self.current_ang_pos_arm)
 
     def check_torque(self):
         #torque for HeadPitch (+) torque after force applied
@@ -175,11 +179,9 @@ class SelfExploration(object):
                     zeros = -np.abs(zeros)
         return np.array(zeros)
 
-
     def random_angles(self, delta_angle):
         collision, joint_list = self.check_torque()
         zeros = []
-
         if "head" in self.key:
             limits = self.rob.physical_limits_head
             for key in limits:
@@ -253,13 +255,12 @@ if __name__ == '__main__':
     robot_name = 'qt'
     file_path = directory  + "/robot_configuration_files/" + robot_name + ".yaml"
 
-    delta_angle = 10
-    amount_of_points = 100
-    self_explorator = SelfExploration()
+    delta_angle = 5
+    amount_of_points = 150
+    self_explorator = SelfExploration(robot_name)
     self_explorator.import_robot(file_path)
     self_explorator.execute_online(delta_angle, amount_of_points)
-    rospy.loginfo(self_explorator.motor_babbling_recording)
 
-    file_path = directory  + "/data/self_exploration_qt.txt"
+    file_path = directory  + "/data/test_qt/self_exploration/self_exploration_qt_" + str(amount_of_points) + ".txt"
     with open(file_path, 'w') as file:
-        json.dump(self_explorator.motor_babbling_recording, file)
+        json.dump(str(self_explorator.motor_babbling_recording), file)

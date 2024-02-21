@@ -5,6 +5,7 @@ from scipy.signal import savgol_filter
 import json
 from sklearn.model_selection import train_test_split
 from GMPlotter import eval
+from Gaussian_processes import gpr_sklearn, gpr_pytorch, gpr_rbf_kernel
 
 def plot_3d_paths(trajectories, title):
     fig = plt.figure()
@@ -188,9 +189,12 @@ def reshape_array(time, arr, max_length=1000):
 def gmm_for_limb(angles_with_time, robotName, action, limb, num_components=5):
     for i in range(1, angles_with_time[0].shape[0]):
         variable_to_fit = extract_angle_vec(angles_with_time, i)
-        time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i), 7093, 7093)
-        smoth_angle_with_time = arange_time_array(time, smoothed_angles, 7093)
-        eval(smoth_angle_with_time.T, avg_signal, robotName, action, limb + str(i), num_components)
+        time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i)) #7093, 7093
+        smooth_angle_with_time = arange_time_array(time, smoothed_angles) #7093
+        eval(smooth_angle_with_time.T, avg_signal, robotName, action, limb + str(i), num_components)
+        # gpr_sklearn(np.rad2deg(smoothed_angles), time)
+        # gpr_rbf_kernel(time, smoothed_angles, 5)
+        # gpr_pytorch(np.rad2deg(smoothed_angles))
 
 if __name__ == "__main__":
 
@@ -198,11 +202,11 @@ if __name__ == "__main__":
     #GMM applied on the output of the neural network
     flag = "gmm-on-angles-from-library"
     if flag=="gmm-on-angles-from-library":
-        # users = np.arange(1, 21, 1)
-        users = [21]
+        users = np.arange(1, 21, 1)
+        # users = [21]
         num_components = 10
         # users = []
-        action = 'arm_sides'
+        action = 'spoon'
         robotName = "qt"
         lib_dict = {}
         t_x_left = []
@@ -216,10 +220,10 @@ if __name__ == "__main__":
         file_path = "./robot_configuration_files/"+ robotName + ".yaml"
         pose_predictor = pose_prediction.Prediction(file_path, robotName)
         # for old actions
-        # df = pose_predictor.read_file("combined_actions")
+        df = pose_predictor.read_file("combined_actions")
 
         # for new actions
-        df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
+        # df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
         dict_pose_vec_left = []
         dict_pose_vec_right = []
         dict_pose_vec_head = []
@@ -232,10 +236,10 @@ if __name__ == "__main__":
 
         for user in users:
             # for old actions
-            # _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
+            _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
 
             #for new actions
-            _, _, _, timestamps = pose_predictor.read_recorded_action_csv(df, action, user)
+            # _, _, _, timestamps = pose_predictor.read_recorded_action_csv(df, action, user)
 
             cumulative_time = extract_time(timestamps)
 
@@ -277,9 +281,10 @@ if __name__ == "__main__":
         # plot_angles_vs_time(angles_right_with_time)
         # plot_angles_vs_time(angles_head_with_time)
 
-        plot_3d_paths(left_side_with_time, "Left EE")
-        plot_3d_paths(right_side_with_time, "Right EE")
-        plot_3d_paths(head_with_time, "Head EE")
+        # plot_3d_paths(left_side_with_time, "Left EE")
+        # plot_3d_paths(right_side_with_time, "Right EE")
+        # plot_3d_paths(head_with_time, "Head EE")
+
         gmm_for_limb(angles_left_with_time, robotName, action, "left_", num_components)
         gmm_for_limb(angles_right_with_time, robotName, action, "right_", num_components)
         gmm_for_limb(angles_head_with_time, robotName, action, "head_", num_components)

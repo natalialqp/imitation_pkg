@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-'''
- Copyright (C) 2018 LuxAI S.A
- Authors: Ali Paikan
- CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
-'''
 import sys
 import rospy
 from std_msgs.msg import Float64MultiArray
