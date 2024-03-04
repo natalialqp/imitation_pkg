@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import json
 import re
 from scipy.optimize import minimize
+from math import radians
 
 plt.rcParams.update({"font.size": 20})
 
@@ -39,7 +40,10 @@ class Graph(object):
 
     def set_attribute(self, node, angles):
         # new_node = self.list_to_string(node)
-        keyList = np.arange(1, self.n_dependecies, 1)
+        if len(angles) > 0:
+            keyList = np.arange(1, self.n_dependecies - 1, 1)
+        else:
+            keyList = []
         dependencies = {"angle_" + str(keyList[i]): round(angles[i], 2) for i in range(len(keyList))}
         self.add_one_node(node, [dependencies])
 
@@ -206,14 +210,14 @@ class Graph(object):
             # Handle JSON decoding error if necessary
             return 0
 
-    def save_path_in_library(self, trajectory, dependency, robotName, actionName):
-        with open("data/graphs/lib/" + self.key + "_" + robotName + "_data.json", "a") as jsonfile:
+    def save_path_in_library(self, trajectory, dependency, robotName, actionName, babbling_file):
+        with open("./data/test_" + robotName + "/paths_lib/" + self.key + "_" + babbling_file + ".json", "a") as jsonfile:
             pose = {"id": actionName, "path": trajectory, "joint_dependency": dependency}
             jsonfile.write(json.dumps(pose))
             jsonfile.write("\n")
 
-    def save_graph_to_file(self, name, robot):
-        output_file = "./data/graphs/joints/" + name + "_" + robot +".xml"
+    def save_graph_to_file(self, name, robot, babbled_nodes):
+        output_file = "./data/test_" + robot + "/graphs/joints_graphs_lib/" + name + "_" + babbled_nodes + ".xml"
 
         with open(output_file, "w", encoding="utf-8") as file:
             file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -271,8 +275,8 @@ class Graph(object):
         occupied = element.get("occupied")
         return (source, target), {"weight": float(weight), "occupied": occupied}
 
-    def read_graph_from_file(self, name, robot):
-        file_path = "data/graphs/joints/" + name + "_" + robot + ".xml"
+    def read_graph_from_file(self, name, robot, babbled_nodes):
+        file_path = "./data/test_" + robot + "/graphs/joints_graphs_lib/" + name + "_" + babbled_nodes + ".xml"
         tree = ET.parse(file_path)
         root = tree.getroot()
         self.nodes_id = 0
@@ -305,15 +309,15 @@ class Graph(object):
 
     def plot_dict_of_dependencies(self, dict_old, dict_new):
         for key in dict_new.keys():
-            plt.plot(dict_old[key], label=f'Old angles - {key}', marker='o')
-            plt.plot(dict_new[key], label=f'New angles - {key}', marker='x')
+            plt.plot(np.radians(np.array(dict_old[key])), label=f'Old angles - {key}', marker='o')
+            plt.plot(np.radians(np.array(dict_new[key])), label=f'New angles - {key}', marker='x')
 
         # Adding labels and legend
         plt.grid()
         plt.xlabel('Frames')
-        plt.ylabel('Angle in Degrees')
-        plt.legend()
-        plt.title('Comparison of Lists for Each Key')
+        plt.ylabel('Angle in Radians')
+        plt.legend(loc='upper right')
+        plt.title('Old vs new angles after Path Repair')
         plt.show()
 
     def plot_graph(self, robotName, nodes = '', trajectory = [], candidates = []):
@@ -369,8 +373,8 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.savefig("data/test_qt/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
-        plt.show()
+        plt.savefig("data/test_gen3/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
+        # plt.show()
 
     def find_neighbors(self, node):
         return self.G.neighbors(self.list_to_string(node))
@@ -454,11 +458,11 @@ class Graph(object):
                     if not self.has_node(point) and point not in missing_nodes:
                         missing_nodes.append(point)
             else:
-                # print("NO PATH")
+                print("NO PATH")
                 missing_nodes = None
         else:
-            # print("NO INITAL OR FINAL NODE")
-            # print(path[0], path[-1])
+            print("NO INITAL OR FINAL NODE")
+            print(path[0], path[-1])
             missing_nodes = None
         return missing_nodes
 

@@ -112,3 +112,7 @@ robot-angular-dict:
 
   jointHead_0: [0, 0, 0]
   jointHead_1: [0, 0, 0]
+
+  # robot's workspace limits
+  # lowEdge = np.array([-300, -350, -200])
+  # highEdge = np.array([300, 350, 400])

@@ -18,8 +18,8 @@ import time
 plt.rcParams.update({'font.size': 18})
 
 class PathPlanning:
-    def __init__(self, delta = 10):
-        self.robotName = 'qt'
+    def __init__(self, delta = 15):
+        self.robotName = 'nao'
         file_path = "./robot_configuration_files/" + self.robotName + ".yaml"
         self.myRobot = robot.Robot(self.robotName)
         self.myRobot.import_robot(file_path)
@@ -113,35 +113,46 @@ class PathPlanning:
     def findJointsGraph(self, cartesian_points, joint_angles):
         kdtree = KDTree(self.graph_world.get_nodes())
         for key in cartesian_points:
-            if "0" in key or "1" in key:
-                node = cartesian_points[key]
-                dependencies = []
+            if self.robotName == "gen3":
+                if "0" in key or "1" in key or "2" in key:
+                    node = cartesian_points[key]
+                    dependencies = []
+                else:
+                    node = self.find_closest_point(cartesian_points[key], kdtree)
+                    dependencies = self.slice_dict(joint_angles, key.split('_'))
             else:
-                node = self.find_closest_point(cartesian_points[key], kdtree)
-                dependencies = self.slice_dict(joint_angles, key.split('_'))
+                if "0" in key or "1" in key:
+                    node = cartesian_points[key]
+                    dependencies = []
+                else:
+                    node = self.find_closest_point(cartesian_points[key], kdtree)
+                    dependencies = self.slice_dict(joint_angles, key.split('_'))
             self.robot_graphs[key].set_attribute(node, dependencies)
             # robot[key].add_one_node(node, att)  # delete the str to use with gml
-            # edges = self.find_edges_optimized_robot(self.robot_graphs[key])
-            # self.robot_graphs[key].add_edges(edges)
+            edges = self.find_edges_optimized_robot(self.robot_graphs[key])
+            self.robot_graphs[key].add_edges(edges)
         return self.robot_graphs
 
     def slice_dict(self, dict, details):
         sub_list = []
         for i in dict:
-            if details[0] in i and len(sub_list) <= int(details[1]) - 2:
-                sub_list.append(dict[i])
+            if self.robotName == "gen3":
+                if details[0] in i and len(sub_list) <= int(details[1]) - 3:
+                    sub_list.append(dict[i])
+            else:
+                if details[0] in i and len(sub_list) <= int(details[1]) - 2:
+                    sub_list.append(dict[i])
         return sub_list
 
     def createRobotGraphs(self):
         joint_dic = {}
         for i in range(len(self.myRobot.leftArmAngles)):
             joint_dic["jointLeft_" + str(i)] = robot_graph.Graph(i, "jointLeft_" + str(i))
-
         for i in range(len(self.myRobot.rightArmAngles)):
             joint_dic["jointRight_" + str(i)] = robot_graph.Graph(i, "jointRight_" + str(i))
-
-        for i in range(len(self.myRobot.headAngles)):
-            joint_dic["jointHead_" + str(i)] = robot_graph.Graph(i, "jointHead_" + str(i))
+        if self.robotName != "gen3":
+            for i in range(len(self.myRobot.headAngles)):
+                joint_dic["jointHead_" + str(i)] = robot_graph.Graph(i, "jointHead_" + str(i))
         return joint_dic
 
     # def path_planning(demonstration, graph):
@@ -190,7 +201,8 @@ class PathPlanning:
             node = self.find_closest_point(candidate_node, kdtree)
             path.append(tuple(node))
             prev_node = node
-        MSE, RMSE = self.error_calculation(demonstration, path)
+        # MSE, RMSE = self.error_calculation(demonstration, path)
+        MSE, RMSE = 0, 0
         return path, MSE, RMSE
 
     def path_planning_online(self, demonstration, graph, max_distance = 30):
@@ -257,7 +269,7 @@ class PathPlanning:
         vector = np.reshape(vector, (amount_points, 3), order='F')
         return vector
 
-    def plotPath(self, key, demonstration, path, candidates = []):
+    def plotPath(self, key, demonstration, path, candidates=[]):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
         xdem = demonstration[:, 0]
@@ -268,11 +280,11 @@ class PathPlanning:
         zpath = path[:, 2]
 
         # Scatter plots for the points
-        ax.scatter3D(xdem[1:-1], ydem[1:-1], zdem[1:-1], c='blue', marker='o', label='User demonstration')
+        ax.scatter3D(xdem[1:-1], ydem[1:-1], zdem[1:-1], c='blue', marker='o', label='Original path')
         ax.scatter3D(xdem[0], ydem[0], zdem[0], c='green', marker='*')
         ax.scatter3D(xdem[-1], ydem[-1], zdem[-1], c='red', marker='*')
 
-        ax.scatter3D(xpath[1:-1], ypath[1:-1], zpath[1:-1], c='pink', marker='o', label='Path planning')
+        ax.scatter3D(xpath[1:-1], ypath[1:-1], zpath[1:-1], c='red', marker='o', label='Repaired path')
         ax.scatter3D(xpath[0], ypath[0], zpath[0], c='green', marker='*', label='Starting point')
         ax.scatter3D(xpath[-1], ypath[-1], zpath[-1], c='red', marker='*', label='Ending point')
 
@@ -284,19 +296,23 @@ class PathPlanning:
 
         # Plot edges between the points
         for i in range(len(xdem) - 1):
-            ax.plot([xdem[i], xdem[i+1]], [ydem[i], ydem[i+1]], [zdem[i], zdem[i+1]], c='grey')
+            ax.plot([xdem[i], xdem[i + 1]], [ydem[i], ydem[i + 1]], [zdem[i], zdem[i + 1]], c='grey')
         for i in range(len(xpath) - 1):
-            ax.plot([xpath[i], xpath[i+1]], [ypath[i], ypath[i+1]], [zpath[i], zpath[i+1]], c='lightblue')
+            ax.plot([xpath[i], xpath[i + 1]], [ypath[i], ypath[i + 1]], [zpath[i], zpath[i + 1]], c='lightblue')
+
+        max_range = max(np.ptp(arr) for arr in [xdem, ydem, zdem, xpath, ypath, zpath])
+
+        # Set equal aspect ratio for all axes
+        ax.set_box_aspect([max_range, max_range, max_range])
 
         ax.set_title(key)
         ax.set_xlabel("\n X [mm]", linespacing=3.2)
         ax.set_ylabel("\n Y [mm]", linespacing=3.2)
         ax.set_zlabel("\n Z [mm]", linespacing=3.2)
 
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
         ax.legend()
         fig.tight_layout()
-        # plt.savefig(key + "_world_path.pdf", format="pdf")
         plt.show()
 
     def printRobotGraphs(self, robot):
@@ -346,7 +362,7 @@ class PathPlanning:
         return joint_angles.astype(float)
 
     def learn_environment(self, cartesian_points, joint_angles_dict):
-        for i in range(len(joint_angles_dict)):
+        for i in tqdm(range(len(joint_angles_dict))):
             self.robot_graphs = self.findJointsGraph(cartesian_points[i], joint_angles_dict[i])
         return self.robot_graphs
 
@@ -379,16 +395,20 @@ class PathPlanning:
         return object_nodes, object_nodes_str
 
     def match_object_in_world(self, objectName):
-        lowEdge = np.array([-450, -450, 100])
-        highEdge = np.array([450, 450, 700])
+        #nao
+        lowEdge = np.array([-300, -350, -200])
+        highEdge = np.array([300, 350, 400])
+        #qt
+        # lowEdge = np.array([-450, -450, 100])
+        # highEdge = np.array([450, 450, 700])
         self.createWorldCubes(lowEdge, highEdge)
         object = world_graph.Graph()
         object2 = world_graph.Graph()
         object_name = objectName
-        object.read_object_from_file(object_name)
+        object.read_object_from_file(self.robotName, object_name)
         object_nodes, _ = self.find_object_in_world(object)
         object2.add_nodes(object_nodes)
-        object2.save_object_to_file(objectName + "_nodes")
+        object2.save_object_to_file(self.robotName, objectName + "_nodes")
 
     def find_trajectory_in_world(self, tra):
         kdtree = cKDTree(self.graph_world.get_nodes())
@@ -402,13 +422,13 @@ class PathPlanning:
                 world_nodes.append(closest_point)
         return world_nodes
 
-    def read_library_from_file(self, name):
+    def read_library_from_file(self, name, babbled_file):
         try:
-            with open("data/graphs/lib/" + name + "_" + self.robotName + "_data.json", "r") as jsonfile:
+            with open("data/test_" + self.robotName + "/paths_lib/" + name + "_" + babbled_file + ".json", "r") as jsonfile:
                 data = [json.loads(line) for line in jsonfile.readlines()]
                 return data
         except FileNotFoundError:
-            print(f"File {name}_data.json not found.")
+            print(f"File {name}.json not found.")
             return []
 
     def extract_action_from_library(self, actionName, library):
@@ -449,63 +469,76 @@ class PathPlanning:
         s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
         s.animate()
 
-    def fill_robot_graphs(self):
+    def fill_robot_graphs(self, babbling_file):
         for key in self.robot_graphs:
-            self.robot_graphs[key].read_graph_from_file(key, self.robotName)
+            self.robot_graphs[key].read_graph_from_file(key, self.robotName, babbling_file)
             # self.robot_graphs[key].plot_graph(self.robotName)
+
+    def identify_new_nodes(self, old_path, new_path):
+        new_nodes = []
+        for node in new_path:
+            if node not in old_path and node not in new_nodes:
+                new_nodes.append(node)
+        return new_nodes
 
 if __name__ == "__main__":
 
     # flag = "path-planning"
+    # flag = "planning_on_known_paths"
     # flag = "pose-predicition"
-    flag = "explore-world"
+    # flag = "explore-world"
     # flag = "object-in-robot-graph"
-    # flag = "read_library_paths"
+    flag = "read_library_paths"
+    # flag = "create-object"
     planner = PathPlanning()
 
     if flag == "explore-world":
         # Define parameter of the world and create one with cubic structure
-        lowEdge = np.array([-450, -450, 100])
-        highEdge = np.array([450, 450, 700])
+        # lowEdge = np.array([-300, -350, -200])
+        # highEdge = np.array([300, 350, 400])
+        lowEdge = np.array([-500, -1200, 100])
+        highEdge = np.array([1100, 1200, 1700])
+
         planner.createWorldCubes(lowEdge, highEdge)
         # graph_world.save_graph_to_file("test")
         # graph_world = world_graph.Graph()
         # graph_world.read_graph_from_file("test")
         # graph_world.plot_graph()
-        babbing_path = "test_qt/self_exploration/self_exploration_qt_30.txt"
+        babbing_path = "test_gen3/self_exploration/self_exploration_gen3_30.txt"
         start = time.time()
         joint_angles = planner.read_babbling(babbing_path)
         new_list = planner.angle_interpolation(joint_angles)
         print("AFTER INTERPOLATION")
         pos_left, pos_right, pos_head = planner.forward_kinematics_n_frames(new_list)
-        print("AFTER FK")
         # s = simulate_position.RobotSimulation(pos_left, pos_right, pos_head)
         # # s.animate()
         cartesian_points = planner.myRobot.pos_mat_to_robot_mat_dict(pos_left, pos_right, pos_head)
         joint_angles_dict = planner.myRobot.angular_mat_to_mat_dict(new_list)
+        print("AFTER FK")
         robot_world = planner.learn_environment(cartesian_points, joint_angles_dict)
         end = time.time()
         print("TIME: ", (end - start)/60, "minutes")
         print("BEFORE SAVING THE GRAPHS")
         for key in tqdm(robot_world):
-            robot_world[key].save_graph_to_file(key, planner.robotName)
+            robot_world[key].save_graph_to_file(key, planner.robotName, str(30))
             # robot_world[key].read_graph_from_file(key, robotName)
             robot_world[key].plot_graph(planner.robotName, str(30))
 
     elif flag == "create-object":
-        lowEdge = np.array([-60, 100, 140])
-        highEdge = np.array([50, 170, 160])
+        lowEdge = np.array([40, 120, 20])
+        highEdge = np.array([120, 180, 100])
         object = planner.createObject(lowEdge, highEdge)
-        object.save_object_to_file("object_1")
-        # object.read_object_from_file("object_1")
-        object.plot_graph()
+        object.save_object_to_file(planner.robotName, "object_2")
+        # object.read_object_from_file("object_7")
+        planner.match_object_in_world("object_2")
+        # object.plot_graph()
 
     elif flag == "object-in-robot-graph":
-        lowEdge = np.array([-450, -450, 100])
-        highEdge = np.array([450, 450, 700])
+        lowEdge = np.array([-300, -350, -200])
+        highEdge = np.array([300, 350, 400])
         object = planner.createObject(lowEdge, highEdge)
         object = world_graph.Graph()
-        object.read_object_from_file("object_1")
+        object.read_object_from_file(planner.robotName, "object_1")
         _, object_nodes = planner.find_object_in_world(object)
         for key in planner.robot_graphs:
             planner.robot_graphs[key].read_graph_from_file(key, planner.robotName)
@@ -520,8 +553,8 @@ if __name__ == "__main__":
 
     elif flag == "path-planning":
         dict_error = {}
-        lowEdge = np.array([-450, -450, 100])
-        highEdge = np.array([450, 450, 700])
+        lowEdge = np.array([-300, -350, -200])
+        highEdge = np.array([300, 350, 400])
         planner.createWorldCubes(lowEdge, highEdge)
 
         for key in planner.robot_graphs:
@@ -541,9 +574,67 @@ if __name__ == "__main__":
                 dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
         planner.plot_error(dict_error)
 
+    elif flag == "planning_on_known_paths":
+        # lowEdge = np.array([-450, -450, 100])
+        # highEdge = np.array([450, 450, 700])
+        # planner.createWorldCubes(lowEdge, highEdge)
+
+        file_path = "./robot_configuration_files/"+ planner.robotName + ".yaml"
+        pose_predictor = pose_prediction.Prediction(file_path, planner.robotName)
+        file_name = "robot_angles_" + planner.robotName
+        theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
+        pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+
+        df = pose_predictor.read_file("combined_actions")
+        # actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
+        actions = ['teacup']
+        # users = np.arange(9, 21, 1)
+        planner.fill_robot_graphs(str(150))
+        users = [16]
+        for user in tqdm(users):
+            for action in actions:
+                dict_error = {}
+                robot_pose = []
+                left_side, right_side, head, time_ = pose_predictor.read_csv_combined(df, action, user)
+                left_side = left_side * 1000
+                right_side = right_side * 1000
+                head = head * 1000
+                angles_left_vec = []
+                angles_right_vec = []
+                angles_head_vec = []
+                cartesian_left_vec = []
+                cartesian_right_vec = []
+                cartesian_head_vec = []
+                actionName = str(user) + action
+
+                for i in range(len(left_side)):
+                    angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
+                    angles_left_vec.append(angles_left)
+                    angles_right_vec.append(angles_right)
+                    angles_head_vec.append(angles_head)
+
+                    points4, points5, points6 = pose_predictor.robot_embodiment(angles_left, angles_right, angles_head)
+                    cartesian_left_vec.append(points4)
+                    cartesian_right_vec.append(points5)
+                    cartesian_head_vec.append(points6)
+                    robot_pose.append((left_side[i], right_side[i], head[i], points4, points5, points6))
+                pose_predictor.mat_to_dict_per_joint(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
+
+                start = time.time()
+                for key in planner.robot_graphs:
+                    generated_trajectory = pose_predictor.robot.robotDict[key]
+                    #path planning
+                    # new_tra_world = planner.find_trajectory_in_world(generated_trajectory)
+                    tra, MSE, RMSE = planner.path_planning(generated_trajectory, planner.robot_graphs[key])
+                    # dep = planner.robot_graphs[key].select_joint_dependencies(tra)
+                    if int(key[-1]) > 2:
+                        planner.plotPath(actionName + " " + key, generated_trajectory, np.asarray(tra)) # key instead of user + action
+        end = time.time()
+        print("TIME: ", (end-start), "seconds")
+
     elif flag == "pose-predicition":
-        lowEdge = np.array([-450, -450, 100])
-        highEdge = np.array([450, 450, 700])
+        lowEdge = np.array([-300, -350, -200])
+        highEdge = np.array([300, 350, 400])
         planner.createWorldCubes(lowEdge, highEdge)
 
         file_path = "./robot_configuration_files/"+ planner.robotName + ".yaml"
@@ -555,24 +646,24 @@ if __name__ == "__main__":
         df = pose_predictor.read_file("combined_actions")
         actions = ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
         users = np.arange(1, 21, 1)
-        planner.fill_robot_graphs()
+        planner.fill_robot_graphs(str(150))
 
         #for new actions
         # actions = ['arm_sides']
         # users = [21]
         # df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
-
+        start = time.time()
         for user in tqdm(users):
             for action in actions:
                 dict_error = {}
                 robot_pose = []
-                left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
+                left_side, right_side, head, time_ = pose_predictor.read_csv_combined(df, action, user)
                 left_side = left_side * 1000
                 right_side = right_side * 1000
                 head = head * 1000
 
                 # for new actions
-                # left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, action, user)
+                # left_side, right_side, head, time_ = pose_predictor.read_recorded_action_csv(df, action, user)
 
                 angles_left_vec = []
                 angles_right_vec = []
@@ -603,39 +694,44 @@ if __name__ == "__main__":
                     planner.robot_graphs[key].adding_candidates_to_graph(planner.myRobot, planner.length, candidate_nodes)
                     tra, MSE, RMSE = planner.path_planning(generated_trajectory, planner.robot_graphs[key])
                     dep = planner.robot_graphs[key].select_joint_dependencies(tra)
-                    planner.robot_graphs[key].save_path_in_library(tra, dep, planner.robotName, actionName)
+                    planner.robot_graphs[key].save_path_in_library(tra, dep, planner.robotName, actionName, str(150))
                     # planner.plotPath(actionName, generated_trajectory, np.asarray(tra)) # key instead of user + action
-                    dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
-                planner.plot_error(dict_error, 1)
-
+                    # dict_error[key] = {"MSE": MSE, "RMSE": RMSE}
+                # planner.plot_error(dict_error, 1)
+        end = time.time()
+        print("TIME: ", (end - start)/60, "minutes")
         for key in planner.robot_graphs:
-            planner.robot_graphs[key].save_graph_to_file(key, planner.robotName)
+            planner.robot_graphs[key].plot_graph(planner.robotName, str(150_3))
+            planner.robot_graphs[key].save_graph_to_file(key, planner.robotName, str(150))
 
     elif flag == "read_library_paths":
         lib_dict = {}
         file_path = "./robot_configuration_files/"+ planner.robotName + ".yaml"
         pose_predictor = pose_prediction.Prediction(file_path, planner.robotName)
-
-        object_name = "object_6"
+        babbling_points = str(150)
+        object_name = "object_2_nodes"
         object = world_graph.Graph()
-        object.read_object_from_file(object_name)
+        object.read_object_from_file(planner.robotName, object_name)
         object_nodes = object.get_nodes_as_string()
         layered_dependencies = []
         for key in planner.robot_graphs:
-            planner.robot_graphs[key].read_graph_from_file(key, planner.robotName)
-            lib_dict[key] = planner.read_library_from_file(key)
+            planner.robot_graphs[key].read_graph_from_file(key, planner.robotName, babbling_points)
+            lib_dict[key] = planner.read_library_from_file(key, babbling_points)
             if key not in planner.end_effectors_keys:
                 layered_dependencies.extend(planner.robot_graphs[key].new_object_in_world(object_nodes, object_name, False))
             else:
                 planner.robot_graphs[key].new_object_in_world(object_nodes, object_name, True, layered_dependencies)
                 layered_dependencies.clear()
-
-        dict_pose = planner.extract_action_from_library("21arm_sides", lib_dict)
-        dict_angles = planner.extract_angles_from_library("21arm_sides", lib_dict)
+            # planner.robot_graphs[key].plot_graph(planner.robotName, babbling_points)
+        dict_pose = planner.extract_action_from_library("6spoon", lib_dict)
+        dict_angles = planner.extract_angles_from_library("6spoon", lib_dict)
         new_path = {}
         angle_dep_new_path = {}
         angle_dep_old_path = {}
+        start = time.time()
         for key in planner.end_effectors_keys:
+        # for key in planner.robot_graphs:
+            # planner.robot_graphs[key].plot_graph(planner.robotName, babbling_points)
             missing_nodes = planner.robot_graphs[key].verify_path_in_graph(dict_pose[key])
             new_path[key] = planner.robot_graphs[key].re_path_end_effector(missing_nodes, dict_pose[key])
             angle_dep_old_path[key] = dict_angles[key]
@@ -645,9 +741,8 @@ if __name__ == "__main__":
                 angle_dep_new_path[key] = []
             angles_new_path = planner.robot_graphs[key].dict_of_dep_to_dict_of_lists(angle_dep_new_path[key])
             angles_old_path = planner.robot_graphs[key].dict_of_dep_to_dict_of_lists(angle_dep_old_path[key])
-            planner.robot_graphs[key].plot_dict_of_dependencies(angles_old_path, angles_new_path)
-            planner.plotPath(key, np.asarray(dict_pose[key]), np.asarray(dict_pose[key]))
-
-            # plotPath(key, np.asarray(dict_pose[key]), np.asarray(new_path[key]))
-        # find_fk_from_dict(angle_dep_new_path, qt, robotName)
-        planner.find_fk_from_dict(angle_dep_old_path)
+            # planner.robot_graphs[key].plot_dict_of_dependencies(angles_old_path, angles_new_path)
+            # planner.plotPath(key, np.asarray(dict_pose[key]), np.asarray(new_path[key]))
+        end = time.time()
+        print("TIME: ", (end - start), "seconds")
+        # planner.find_fk_from_dict(angles_old_path)

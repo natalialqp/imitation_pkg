@@ -13,6 +13,7 @@ import robot_graph
 from scipy.spatial import KDTree
 import json
 import time
+import torch.optim.lr_scheduler as lr_scheduler
 
 plt.rcParams.update({'font.size': 10})
 
@@ -415,15 +416,15 @@ class Prediction(object):
         class MultiOutputModel(nn.Module):
             def __init__(self):
                 super(MultiOutputModel, self).__init__()
-                self.shared_layer1 = nn.Linear(20, 16)
+                self.shared_layer1 = nn.Linear(20, 128)
                 # self.shared_layer2 = nn.Linear(128, 128)
-                self.left_arm_layer = nn.Linear(16, robot.dof_arm)
-                self.right_arm_layer = nn.Linear(16, robot.dof_arm)
-                self.head_layer = nn.Linear(16, 2)
+                self.left_arm_layer = nn.Linear(128, robot.dof_arm)
+                self.right_arm_layer = nn.Linear(128, robot.dof_arm)
+                self.head_layer = nn.Linear(128, 2)
 
             def forward(self, x):
                 x = torch.relu(self.shared_layer1(x))
-                # x = torch.relu(self.shared_layer2(x))
+                # x = torch.tanh(self.shared_layer2(x))
                 left_arm_output = self.left_arm_layer(x)
                 right_arm_output = self.right_arm_layer(x)
                 head_output = self.head_layer(x)
@@ -434,6 +435,7 @@ class Prediction(object):
 
         # Define the optimizer and loss function
         optimizer = optim.Adam(model.parameters(), lr=0.001)
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.5)
         criterion = nn.MSELoss()
 
         # Prepare training data as PyTorch tensors
@@ -464,6 +466,7 @@ class Prediction(object):
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
+            scheduler.step()
             training_losses.append(total_loss.item())
 
             if (epoch + 1) % 100 == 0:
@@ -498,8 +501,8 @@ class Prediction(object):
         plt.ylabel('Loss')
         plt.legend()
         plt.grid()
-        plt.savefig('nn_performace/MSELoss16-2000NAO.pdf', format='pdf')
-        plt.show()
+        # plt.savefig('nn_performace/MSELoss16-2000NAO.pdf', format='pdf')
+        # plt.show()
 
     def dicts_to_lists(self, left, right, head):
         left_side = []
@@ -515,6 +518,8 @@ class Prediction(object):
 
     def predict_pytorch(self, left_input, right_input, head_input):
         theta_left, phi_left, theta_right, phi_right, theta_head, phi_head = self.extract_spherical_angles_from_human(left_input, right_input, head_input)
+        theta_head = [0, 0]
+        phi_head = [0, 0]
         input_data = torch.Tensor(np.concatenate((theta_left, phi_left, theta_right, phi_right, theta_head, phi_head), axis=None))
 
         with torch.no_grad():
@@ -611,6 +616,18 @@ class Prediction(object):
         plt.tight_layout()
         plt.show()
 
+    def linear_angular_mapping_gen3(self, vec):
+        new_vec = []
+        new_angle_vec = np.zeros_like(vec[0])
+        for l in vec:
+            for i in range(len(l)):
+                if l[i] > 0:
+                    new_angle_vec[i] = l[i]
+                else:
+                    new_angle_vec[i] = 2*np.pi + l[i]
+            new_vec.append(new_angle_vec)
+        return new_vec
+
     def plot_animation_3d_labeling(self, point_clouds_list, initial_ra):
         limits = list(self.robot.physical_limits_left.values()) + list(self.robot.physical_limits_right.values()) + list(self.robot.physical_limits_head.values())
         if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
@@ -703,7 +720,7 @@ class Prediction(object):
         plt.ioff()
 
 if __name__ == "__main__":
-    robotName = "qt"
+    robotName = "gen3"
     file_path = "./robot_configuration_files/"+ robotName + ".yaml"
     pose_predictor = Prediction(file_path, robotName)
 
@@ -739,22 +756,24 @@ if __name__ == "__main__":
     #NN TRAINING
     file_name = "robot_angles_" + robotName
     theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 2000)
+    if robotName == "gen3":
+        right_arm_robot = pose_predictor.linear_angular_mapping_gen3(right_arm_robot)
+        left_arm_robot = pose_predictor.linear_angular_mapping_gen3(left_arm_robot)
+    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
 
     #NN TESTING
     df = pose_predictor.read_file("combined_actions")
-    action = "sugar_bowl"
-    user = 3
+    action = "spoon"
+    user = 16
     robot_pose = []
     robot_pose_2 = []
     left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)
 
-    # left_side = left_side * 1000
-    # right_side = right_side * 1000
-    # head = head * 1000
-
-    df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
-    left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, "arm_sides", 21)
+    left_side = left_side * 1000
+    right_side = right_side * 1000
+    head = head * 1000
+    # df = pose_predictor.read_file("/QT_recordings/human/robot_angles_")
+    # left_side, right_side, head, time = pose_predictor.read_recorded_action_csv(df, "arm_sides", 21)
 
     angles_left_vec = []
     angles_right_vec = []
@@ -764,27 +783,28 @@ if __name__ == "__main__":
     cartesian_head_vec = []
     cartesian_left_vec_2 = []
     cartesian_right_vec_2 = []
-    robotName = 'nao'
+
     file_path = "./robot_configuration_files/" + robotName + ".yaml"
     qt = robot.Robot(robotName)
     qt.import_robot(file_path)
     robot_graphs = createRobotGraphs(qt)
     lib_dict = {}
     dep_dict = {}
-    length = 10
-    end_effector_dict = find_end_effectors_keys(robot_graphs)
+    length = 15
 
-    for key in end_effector_dict:
-        lib_dict[key] = read_library_from_file(key, robotName)
-        robot_graphs[key].read_graph_from_file(key, robotName)
+    # end_effector_dict = find_end_effectors_keys(robot_graphs)
+
+    # for key in end_effector_dict:
+    #     lib_dict[key] = read_library_from_file(key, robotName)
+    #     robot_graphs[key].read_graph_from_file(key, robotName)
         # robot_graphs[key].plot_graph(key)
 
-    dict_pose = extract_action_from_library(str(user) + action, lib_dict)
-    dep_dict = extract_angles_from_library(str(user) + action, lib_dict)
+    # dict_pose = extract_action_from_library(str(user) + action, lib_dict)
+    # dep_dict = extract_angles_from_library(str(user) + action, lib_dict)
 
-    jointLeft_vectors = extract_vectors(dep_dict[end_effector_dict[0]])
-    jointRight_vectors = extract_vectors(dep_dict[end_effector_dict[1]])
-    jointHead_vectors = extract_vectors(dep_dict[end_effector_dict[2]])
+    # jointLeft_vectors = extract_vectors(dep_dict[end_effector_dict[0]])
+    # jointRight_vectors = extract_vectors(dep_dict[end_effector_dict[1]])
+    # jointHead_vectors = extract_vectors(dep_dict[end_effector_dict[2]])
 
     # for key in end_effector_dict:
     #     dep_dict[key] = robot_graphs[key].select_joint_dependencies(dict_pose[key])
@@ -798,6 +818,7 @@ if __name__ == "__main__":
 
     for i in range(len(left_side)):
         angles_left, angles_right, angles_head = pose_predictor.predict_pytorch(left_side[i], right_side[i], head[i])
+
         angles_left_vec.append(angles_left)
         angles_right_vec.append(angles_right)
         angles_head_vec.append(angles_head)

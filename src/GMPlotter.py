@@ -4,15 +4,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import linalg
 from sklearn import mixture
-from scipy.interpolate import CubicSpline
 from scipy.interpolate import make_interp_spline
 import os
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from gmr import MVN, GMM, plot_error_ellipses
+plt.rcParams.update({'font.size': 18})
 
-color_iter = itertools.cycle(["navy", "c", "cornflowerblue", "gold", "darkorange"])
+color_iter = itertools.cycle(["deepskyblue", "cornflowerblue", "darkturquoise",
+                               "lightblue", "mediumturquoise", "powderblue", "skyblue"])
 
 class GaussianMixturePlotter:
-    def __init__(self, robotName, actionName, angleId, n_components=10, covariance_type="full", max_iter=150, random_state=2):
+    def __init__(self, robotName, actionName, angleId, n_components=10, babbled_points = 30, covariance_type="full", max_iter=150, random_state=2):
         self.n_components = n_components
         self.covariance_type = covariance_type
         self.max_iter = max_iter
@@ -20,6 +24,7 @@ class GaussianMixturePlotter:
         self.robotName = robotName
         self.actionName = actionName
         self.angleId = angleId
+        self.babbled_points = babbled_points
 
     def fit_gaussian_mixture(self, X):
         gmm = mixture.GaussianMixture(
@@ -30,22 +35,28 @@ class GaussianMixturePlotter:
         ).fit(X)
         return gmm
 
-    def fit_bayesian_gaussian_mixture(self, X, weight_concentration_prior=1e-2,
-                                      weight_concentration_prior_type="dirichlet_process",
-                                      mean_precision_prior=1e-2, covariance_prior=1e0 * np.eye(2),
-                                      init_params="random"):
-        dpgmm = mixture.BayesianGaussianMixture(
-            n_components=self.n_components,
-            covariance_type=self.covariance_type,
-            weight_concentration_prior=weight_concentration_prior,
-            weight_concentration_prior_type=weight_concentration_prior_type,
-            mean_precision_prior=mean_precision_prior,
-            covariance_prior=covariance_prior,
-            init_params=init_params,
-            max_iter=self.max_iter,
-            random_state=self.random_state
-        ).fit(X)
-        return dpgmm
+    def save_gmr(self, x_smooth_range, y_smooth_range):
+        file_path = "data/test_" + self.robotName + "/GMM_learned_actions/" + "GMR_" + str(self.babbled_points) + "_" + self.actionName + '.csv'
+        if not os.path.isfile(file_path):
+            header = 'time'
+            np.savetxt(file_path, x_smooth_range, delimiter=',', header=header, comments='')
+            existing_header = [header]
+        else:
+            existing_header = pd.read_csv(file_path, index_col=0).columns.tolist()
+            existing_header.insert(0, 'time')
+        existing_data = np.genfromtxt(file_path, delimiter=',',  skip_header=1)  # Skip the header row
+        # Check if self.angleId exists in the header
+        if self.angleId in existing_header:
+            # If self.angleId exists, overwrite the corresponding column
+            angle_id_index = np.where(np.array(existing_header) == self.angleId)[0][0]
+            existing_data[:, angle_id_index] = y_smooth_range
+        else:
+            # If self.angleId does not exist, create the header and append the new column
+            header_list = list(existing_header)
+            header_list.append(self.angleId)
+            header = ','.join(header_list)
+            existing_data = np.column_stack((existing_data, y_smooth_range))
+            np.savetxt(file_path, existing_data, delimiter=',', header=header, comments='')
 
     def smooth_curve(self, x, y, window_size=10):
         # Apply a simple moving average to smooth the curve
@@ -61,7 +72,7 @@ class GaussianMixturePlotter:
             u = w[0] / linalg.norm(w[0])
             if not np.any(Y == i):
                 continue
-            plt.scatter(X[Y == i, 0], X[Y == i, 1], 0.8, color=color, label=f'Component {i + 1}')
+            plt.scatter(X[Y == i, 0], X[Y == i, 1], color=color)
             angle = np.arctan(u[1] / u[0])
             angle = 180.0 * angle / np.pi
             ell = mpl.patches.Ellipse(mean, v[0], v[1], angle=180.0 + angle, color=color)
@@ -88,90 +99,76 @@ class GaussianMixturePlotter:
         spl = make_interp_spline(sorted_centroids[:, 0], sorted_centroids[:, 1], k=2)
         x_smooth_range = np.linspace(sorted_centroids[:, 0].min(), sorted_centroids[:, 0].max(), 100)
         y_smooth_range = spl(x_smooth_range)
-
-        file_path = 'GMM_learned_actions/' + self.robotName + '_' + self.actionName + '.csv'
-        if not os.path.isfile(file_path):
-            header = 'time'
-            np.savetxt(file_path, x_smooth_range, delimiter=',', header=header, comments='')
-            existing_header = [header]
-        else:
-            existing_header = pd.read_csv(file_path, index_col=0).columns.tolist()
-            existing_header.insert(0, 'time')
-        existing_data = np.genfromtxt(file_path, delimiter=',',  skip_header=1)  # Skip the header row
-        # Check if self.angleId exists in the header
-        if self.angleId in existing_header:
-            # If self.angleId exists, overwrite the corresponding column
-            angle_id_index = np.where(np.array(existing_header) == self.angleId)[0][0]
-            existing_data[:, angle_id_index] = y_smooth_range
-        else:
-            # If self.angleId does not exist, create the header and append the new column
-            header_list = list(existing_header)
-            header_list.append(self.angleId)
-            header = ','.join(header_list)
-            existing_data = np.column_stack((existing_data, y_smooth_range))
-            np.savetxt(file_path, existing_data, delimiter=',', header=header, comments='')
+        # self.save_gmr(x_smooth_range, y_smooth_range)
         # Apply moving average to smooth the curve
-        plt.plot(x_smooth_range, y_smooth_range, color='red', linestyle='-', linewidth=2, label='Smoothed Line Across Clusters')
-
-        plt.title(title)
+        plt.plot(x_smooth_range, y_smooth_range, color='red', linestyle='-', linewidth=2, label='Curve without regression - ' + str(self.babbled_points) + " Babbling points")
+        plt.xlabel("Normalized Time")
+        plt.ylabel("Angle [rad]")
+        plt.title("Gaussian Mixture Model " + title)
         plt.grid(True)
         plt.legend()
-
-    def plot_samples(self, X, Y, n_components, index, title):
-        plt.subplot(5, 1, 4 + index)
-        for i, color in zip(range(n_components), color_iter):
-            if not np.any(Y == i):
-                continue
-            plt.scatter(X[Y == i, 0], X[Y == i, 1], 0.8, color=color, label=f'Component {i + 1}')
-
-        plt.title(title)
-        plt.grid(True)
-        plt.ylabel('Value')
-        plt.xlabel('Time')
 
     def impute_nan_values(self, data):
         from sklearn.impute import SimpleImputer
         imputer = SimpleImputer(strategy='mean')
         return imputer.fit_transform(data)
 
-def eval(X, avg_signal, robotName, actionName, angleId, n_components):
+    def test_gmr(self, data, time, title, n_components=3):
+        X = np.ndarray((len(time), 2))
+        X[:, 0] = time
+        X[:, 1] = data
+        n_samples = 1000
+        X_test = np.linspace(0, n_samples, n_samples)
+        # plt.figure(figsize=(10, 5))
+        gmm = GMM(n_components=n_components, random_state=0)
+        gmm.from_samples(X)
+        Y = gmm.predict(np.array([0]), X_test[:, np.newaxis])
+        plt.subplot(2, 1, 2)
+        plt.title("Gaussian Mixture Regression " + title)
+        plt.scatter(X[:, 0], X[:, 1])
+        plot_error_ellipses(plt.gca(), gmm, colors=color_iter)
+        plt.plot(X_test, Y.ravel(), c="blue", lw=2, label="Curve with regression - " + str(self.babbled_points) + " Babbling points")
+        plt.xlabel("Normalized Time")
+        plt.ylabel("Angle [rad]")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.legend()
+        plt.savefig("data/test_" + self.robotName + "/GMM_plots/" + "GMR_" + self.actionName + "_" + self.angleId + "_" + str(self.babbled_points) + '.pdf')
+        plt.show()
+        self.save_gmr(X_test, Y.ravel())
+
+def arange_time_array(time, arr, chunk_size=100):
+    time = np.array(time)
+    time = time.reshape(int(time.shape[0]/chunk_size), chunk_size)
+    add = np.linspace(0, 0.0001, chunk_size)
+    add = np.tile(add, (time.shape[0], 1)).T + time.T
+    reordered_time = add.T.reshape(-1).tolist()
+    arr = np.array(arr)
+    arr = arr.reshape(int(arr.shape[0]/chunk_size), chunk_size)
+    reordered_list = arr.reshape(-1).tolist()
+    return np.vstack((reordered_time, reordered_list)).T
+
+def eval(time, smoothed_angles, avg_signal, babbled_points, robotName, actionName, angleId, n_components):
+    X = arange_time_array(time, smoothed_angles)
+    title = " - " + robotName.upper() + " Joint " + angleId + " - " + actionName
     plt.figure(figsize=(10, 10))
     plt.subplots_adjust(
         bottom=0.04, top=0.95, hspace=0.2, wspace=0.05, left=0.03, right=0.97
     )
-    plotter = GaussianMixturePlotter(robotName, actionName, angleId, n_components)
+    plotter = GaussianMixturePlotter(robotName, actionName, angleId, n_components, babbled_points)
 
     # Fit a Gaussian mixture with EM using ten components
     gmm = plotter.fit_gaussian_mixture(X)
 
-    plotter.plot_results(X, gmm.predict(X), avg_signal, gmm.means_, gmm.covariances_, 0, "Expectation-maximization")
+    plotter.plot_results(X,
+                         gmm.predict(X),
+                         avg_signal,
+                         gmm.means_,
+                         gmm.covariances_,
+                         0,
+                         title)
 
-    # Fit Bayesian Gaussian mixture models with a Dirichlet process prior
-    # dpgmm = plotter.fit_bayesian_gaussian_mixture(X)
-    # plotter.plot_results(
-        # X,
-        # dpgmm.predict(X),
-        # dpgmm.means_,
-        # dpgmm.covariances_,
-        # 1,
-        # "Bayesian Gaussian mixture models with a Dirichlet process prior "
-        # r"for $\gamma_0=0.01$.",
-    # )
-
-    # Fit Bayesian Gaussian mixture models with a Dirichlet process prior for $\gamma_0=100$
-    dpgmm = plotter.fit_bayesian_gaussian_mixture(X, weight_concentration_prior=1e2, init_params="kmeans")
-    plotter.plot_results(
-        X,
-        dpgmm.predict(X),
-        avg_signal,
-        dpgmm.means_,
-        dpgmm.covariances_,
-        1,
-        "Bayesian Gaussian mixture models with a Dirichlet process prior "
-        r"for $\gamma_0=100$",
-    )
-    plt.legend()
-    plt.show()
+    plotter.test_gmr(smoothed_angles, time, title, 3)
 
 if __name__ == "__main__":
     n_samples = 100

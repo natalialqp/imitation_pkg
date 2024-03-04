@@ -4,7 +4,6 @@ import sys
 import rospy
 from std_msgs.msg import Float64MultiArray
 import pandas as pd
-import numpy as np
 from math import degrees
 
 left_columns = ['left_1', 'left_2', 'left_3']
@@ -16,7 +15,7 @@ right_angle_sequence = []
 head_angle_sequence = []
 
 def read_action_from_file(file_path):
-    df = pd.read_csv("GMM_learned_actions/" + file_path)
+    df = pd.read_csv(file_path)
     time_column = df['time']
     signal_columns = df.drop(columns=['time'])
     for index, row in df.iterrows():
@@ -48,12 +47,17 @@ def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
 
 if __name__ == '__main__':
     rospy.init_node('qt_motor_command')
-
+    action = "teacup_left"
+    bps = "30"
+    dir = './data/test_qt/GMM_learned_actions/for_execution/'
+    # dir = './data/old_test_qt/GMM_learned_actions/'
+    file_name = dir + "GMR_" + bps + "_" + action + ".csv"
+    # file_name = dir + "qt_sugar_bowl_for_execution.csv"
     # create a publisher
     left_pub = rospy.Publisher('/qt_robot/left_arm_position/command', Float64MultiArray, queue_size=1)
     right_pub = rospy.Publisher('/qt_robot/right_arm_position/command', Float64MultiArray, queue_size=1)
     head_pub = rospy.Publisher('/qt_robot/head_arm_position/command', Float64MultiArray, queue_size=1)
-    left_angle_sequence, right_angle_sequence, head_angle_sequence = read_action_from_file("qt_teacup_left_for_execution.csv")
+    left_angle_sequence, right_angle_sequence, head_angle_sequence = read_action_from_file(file_name)
 
     # wait for publisher/subscriber connections
     for i in range(len(left_angle_sequence)):

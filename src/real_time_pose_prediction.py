@@ -28,7 +28,7 @@ robot_left_rec = []
 robot_right_rec = []
 robot_head_rec = []
 
-# rospy.sleep(1.0)
+rospy.sleep(1.0)
 
 class SkeletonMarkers(object):
     def __init__(self, id, skeleton_frame_id):
@@ -156,7 +156,8 @@ class HumanSkeleton(object):
             cartesian_head_vec.append(head_cart)
             self.delta = self.delta + 1
 
-            if self.delta >= 300:
+            if self.delta >= 250:
+                rospy.loginfo(self.delta)
                 self.delta = 0
                 predicted_angles_left, predicted_angles_right, predicted_angles_head = self.find_end_effector_angles(cartesian_left_vec, cartesian_right_vec, cartesian_head_vec)
                 joint_angle_publisher(predicted_angles_left, predicted_angles_right, predicted_angles_head)
@@ -184,7 +185,7 @@ class HumanSkeleton(object):
 
 def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
     # Publish angles to robot
-        # rospy.loginfo("publishing motor command...")
+        rospy.loginfo("publishing motor command...")
         try:
             ref_head = Float64MultiArray()
             ref_right = Float64MultiArray()
@@ -195,7 +196,7 @@ def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
             right_pub.publish(ref_right)
             left_pub.publish(ref_left)
             # head_pub.publish(ref_head)
-            rospy.sleep(0)
+            # rospy.sleep(0.05)
         except rospy.ROSInterruptException:
             rospy.logerr("could not publish motor command!")
         rospy.loginfo("motor command published")
@@ -205,7 +206,8 @@ def initialise():
     file_path = "./robot_configuration_files/" +robotName + ".yaml"
     planner = PathPlanning(file_path)
     pose_predictor = pose_prediction.Prediction(file_path, robotName)
-    planner.fill_robot_graphs()
+    babbling_points = str(30)
+    planner.fill_robot_graphs(babbling_points)
 
     #NN TRAINING
     file_name = "robot_angles_" + robotName
@@ -216,24 +218,26 @@ def initialise():
 if __name__ == '__main__':
     rospy.init_node('real_time_pose_estimation_node')
     rospy.loginfo("real_time_pose_estimation_node started!")
-    speech = SpeechManager()
-    speech.start_recognition()
+    # speech = SpeechManager()
+    # speech.start_recognition()
 
     pose_predictor, planner = initialise()
     skeleton = HumanSkeleton(pose_predictor, planner)
+    while not rospy.is_shutdown():
+        skeleton.start()
 
-    try:
-        # while not rospy.is_shutdown():
-        #     skeleton.start()
-        while not rospy.is_shutdown() and speech.is_alive:
-            if "record" in speech.last_cmd:
-                skeleton.start()
-            elif "stop" in speech.last_cmd:
-                skeleton.stop()
-                new_action_name = "arms_sides"
-                skeleton.save_action("robot/" + new_action_name, np.hstack((robot_left_rec, robot_right_rec, robot_head_rec)))
-                skeleton.save_action("human/" + new_action_name, np.hstack((timestamp, human_skeletons_left, human_skeletons_right, human_skeletons_head)))
-    except KeyboardInterrupt:
-        pass
+    # try:
+    #     while not rospy.is_shutdown():
+    #         skeleton.start()
+        # while not rospy.is_shutdown() and speech.is_alive:
+        #     if "record" in speech.last_cmd:
+        #         skeleton.start()
+        #     elif "stop" in speech.last_cmd:
+        #         skeleton.stop()
+        #         new_action_name = "dummy"
+        #         skeleton.save_action("robot/" + new_action_name, np.hstack((robot_left_rec, robot_right_rec, robot_head_rec)))
+        #         skeleton.save_action("human/" + new_action_name, np.hstack((timestamp, human_skeletons_left, human_skeletons_right, human_skeletons_head)))
+    # except KeyboardInterrupt:
+    #     pass
     rospy.loginfo("finished!")
 

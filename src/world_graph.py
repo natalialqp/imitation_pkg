@@ -41,24 +41,24 @@ class Graph(object):
         u, v = tuple(u), tuple(v)
         return self.G.has_edge(u, v)
 
-    def read_object_from_file(self, name):
+    def read_object_from_file(self, robotName, name):
         aux_graph = nx.Graph()
-        aux_graph = nx.read_graphml("./data/objects/" + name + ".net")
+        aux_graph = nx.read_graphml("./data/test_" + robotName + "/objects/" + name + ".net")
 
         for node in tqdm(aux_graph.nodes()):
             self.G.add_node(ast.literal_eval(node))
         for edges in tqdm(aux_graph.edges()):
             self.G.add_edge(ast.literal_eval(edges[0]), ast.literal_eval(edges[1]))
 
-    def save_object_to_file(self, name):
-        nx.write_graphml_lxml(self.G, "./data/objects/" + name + ".net")
+    def save_object_to_file(self, robotName, name):
+        nx.write_graphml_lxml(self.G, "./data/test_" +  robotName + "/objects/" + name + ".net")
 
-    def save_graph_to_file(self, name):
-        nx.write_graphml_lxml(self.G, "./data/graphs/" + name + ".net")
+    def save_graph_to_file(self, robotName,  name):
+        nx.write_graphml_lxml(self.G, "./data/test_" + robotName + "/graphs/" + name + ".net")
 
-    def read_graph_from_file(self, name):
+    def read_graph_from_file(self, robotName, name):
         aux_graph = nx.Graph()
-        aux_graph = nx.read_graphml("./data/graphs/" + name + ".net")
+        aux_graph = nx.read_graphml("./data/test_" + robotName + "/graphs/" + name + ".net")
 
         for node in tqdm(aux_graph.nodes()):
             self.G.add_node(ast.literal_eval(node))

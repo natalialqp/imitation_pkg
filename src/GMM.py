@@ -5,7 +5,6 @@ from scipy.signal import savgol_filter
 import json
 from sklearn.model_selection import train_test_split
 from GMPlotter import eval
-from Gaussian_processes import gpr_sklearn, gpr_pytorch, gpr_rbf_kernel
 
 def plot_3d_paths(trajectories, title):
     fig = plt.figure()
@@ -136,9 +135,9 @@ def plot_axis_vs_time(vec, axis, max_length =1000, target_length=100, window_len
     # return np.vstack([np.array(time_as_array), np.array(data_as_array)]), avg_signal
     return np.array(time_as_array), np.array(data_as_array), avg_signal
 
-def read_library_from_file(name, robotName):
+def read_library_from_file(name, robotName, babbled_points):
     try:
-        with open("data/graphs/lib/" + name + "_" + robotName + "_data.json", "r") as jsonfile:
+        with open("data/test_"+ robotName + "/paths_lib/" + name + "_" + str(babbled_points) + ".json", "r") as jsonfile:
             data = [json.loads(line) for line in jsonfile.readlines()]
             return data
     except FileNotFoundError:
@@ -154,18 +153,6 @@ def reshape_array(arr2):
         else:
             arr = np.dstack([arr, v])
     return arr
-
-def arange_time_array(time, arr, chunk_size=100):
-    time = np.array(time)
-    time = time.reshape(int(time.shape[0]/chunk_size), chunk_size)
-    add = np.linspace(0, 0.0001, chunk_size)
-    add = np.tile(add, (time.shape[0], 1)).T + time.T
-    reordered_time = add.T.reshape(-1).tolist()
-
-    arr = np.array(arr)
-    arr = arr.reshape(int(arr.shape[0]/chunk_size), chunk_size)
-    reordered_list = arr.reshape(-1).tolist()
-    return np.vstack((reordered_time, reordered_list))
 
 def plot_time_vs_signal(time, signal, xlabel='Time', ylabel='Signal', title='Time vs Signal'):
     # Plot the time vs signal
@@ -186,28 +173,24 @@ def reshape_array(time, arr, max_length=1000):
     arr = np.vstack((time, arr))
     return arr.T #[:, 0:2]
 
-def gmm_for_limb(angles_with_time, robotName, action, limb, num_components=5):
+def gmm_for_limb(angles_with_time, robotName, action, limb, babbled_points, num_components=5):
     for i in range(1, angles_with_time[0].shape[0]):
         variable_to_fit = extract_angle_vec(angles_with_time, i)
         time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i)) #7093, 7093
-        smooth_angle_with_time = arange_time_array(time, smoothed_angles) #7093
-        eval(smooth_angle_with_time.T, avg_signal, robotName, action, limb + str(i), num_components)
-        # gpr_sklearn(np.rad2deg(smoothed_angles), time)
-        # gpr_rbf_kernel(time, smoothed_angles, 5)
-        # gpr_pytorch(np.rad2deg(smoothed_angles))
+        eval(time, smoothed_angles, avg_signal, str(babbled_points), robotName, action, limb + str(i), num_components)
 
 if __name__ == "__main__":
 
-    robotName = 'qt'
+    robotName = 'nao'
     #GMM applied on the output of the neural network
     flag = "gmm-on-angles-from-library"
     if flag=="gmm-on-angles-from-library":
         users = np.arange(1, 21, 1)
-        # users = [21]
-        num_components = 10
-        # users = []
-        action = 'spoon'
-        robotName = "qt"
+        users = [1, 6, 8, 9, 13, 16, 20]
+        # users =  [4]
+        num_components = 5
+        action = 'dinner_plate'
+        babbled_points = 150
         lib_dict = {}
         t_x_left = []
         t_y_left = []
@@ -216,7 +199,7 @@ if __name__ == "__main__":
         right_side_with_time = []
         head_with_time = []
 
-        end_effector_dict = ["jointLeft_4", "jointRight_4", "jointHead_3"]
+        end_effector_dict = ["jointRight_6", "jointRight_6", "jointHead_3"]
         file_path = "./robot_configuration_files/"+ robotName + ".yaml"
         pose_predictor = pose_prediction.Prediction(file_path, robotName)
         # for old actions
@@ -232,7 +215,7 @@ if __name__ == "__main__":
         angles_head_with_time = []
 
         for key in end_effector_dict:
-            lib_dict[key] = read_library_from_file(key, robotName)
+            lib_dict[key] = read_library_from_file(key, robotName, babbled_points)
 
         for user in users:
             # for old actions
@@ -285,31 +268,6 @@ if __name__ == "__main__":
         # plot_3d_paths(right_side_with_time, "Right EE")
         # plot_3d_paths(head_with_time, "Head EE")
 
-        gmm_for_limb(angles_left_with_time, robotName, action, "left_", num_components)
-        gmm_for_limb(angles_right_with_time, robotName, action, "right_", num_components)
-        gmm_for_limb(angles_head_with_time, robotName, action, "head_", num_components)
-
-            #gmm from git
-
-            # smoothed_angle_left = a
-            # gmm.fit(smoothed_angle_left)
-            # timeInput = np.linspace(0, np.max(smoothed_angle_left[0, :]), 1000)
-            # gmm.predict(timeInput)
-            # fig = plt.figure()
-            # fig.suptitle("Axis 1 vs axis 0")
-            # ax1 = fig.add_subplot(221)
-            # plt.title("Data")
-            # gmm.plot(ax=ax1, plotType="Data")
-            # ax2 = fig.add_subplot(222)
-            # plt.title("Gaussian States")
-            # gmm.plot(ax=ax2, plotType="Clusters")
-            # ax3 = fig.add_subplot(223)
-            # plt.title("Regression")
-            # gmm.plot(ax=ax3, plotType="Regression")
-            # ax4 = fig.add_subplot(224)
-            # plt.title("Clusters + Regression")
-            # gmm.plot(ax=ax4, plotType="Clusters")
-            # gmm.plot(ax=ax4, plotType="Regression")
-            # predictedMatrix = gmm.getPredictedMatrix()
-            # # print(predictedMatrix)
-            # plt.show()
+        gmm_for_limb(angles_left_with_time, robotName, action + "", "left_", babbled_points, num_components)
+        gmm_for_limb(angles_right_with_time, robotName, action + "", "right_", babbled_points, num_components)
+        gmm_for_limb(angles_head_with_time, robotName, action + "", "head_", babbled_points, num_components)

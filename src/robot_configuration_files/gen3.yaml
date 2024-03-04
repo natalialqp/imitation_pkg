@@ -100,20 +100,20 @@ angles-right-arm:
 
 real-angles-left-arm:
   shoulder_link: [-180, 180]
-  half_arm_1_link: [-128.9, 128.9]
+  half_arm_1_link: [-128, 128]
   half_arm_2_link: [-180, 180]
-  forearm_link: [-147.8, 147.8]
+  forearm_link: [-147, 147]
   spherical_wrist_1_link: [-180, 180]
-  spherical_wrist_2_link: [-120.3, 120.3]
+  spherical_wrist_2_link: [-120, 120]
   bracelet_link: [-180, 180]
 
 real-angles-right-arm:
   shoulder_link: [-180, 180]
-  half_arm_1_link: [-128.9, 128.9]
+  half_arm_1_link: [-128, 128]
   half_arm_2_link: [-180, 180]
-  forearm_link: [-147.8, 147.8]
+  forearm_link: [-147, 147]
   spherical_wrist_1_link: [-180, 180]
-  spherical_wrist_2_link: [-120.3, 120.3]
+  spherical_wrist_2_link: [-120, 120]
   bracelet_link: [-180, 180]
 
 real-angles-head:
@@ -136,8 +136,6 @@ robot-dict:
   jointRight_5: [0, 0, 0]
   jointRight_6: [0, 0, 0]
 
-  jointHead_0: [0, 0, 0]
-
 robot-angular-dict:
   jointLeft_0: [0, 0, 0]
   jointLeft_1: [0, 0, 0]
@@ -155,4 +153,6 @@ robot-angular-dict:
   jointRight_5: [0, 0, 0]
   jointRight_6: [0, 0, 0]
 
-  jointHead_0: [0, 0, 0]
+# freddy's workspace
+# lowEdge = np.array([-500, -1200, 100])
+# highEdge = np.array([1100, 1200, 1700])

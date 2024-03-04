@@ -92,3 +92,7 @@ robot-angular-dict:
 
   jointHead_0:
   jointHead_1:
+
+# world range
+  #   lowEdge = np.array([-450, -450, 100])
+  #   highEdge = np.array([450, 450, 700])

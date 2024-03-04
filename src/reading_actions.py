@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
+import os
 
 class SignalAnalyzer:
     def __init__(self, csv_file_path):
-        self.df = pd.read_csv("GMM_learned_actions/" + csv_file_path)
+        self.df = pd.read_csv(csv_file_path)
         self.time_column = self.df['time']
         self.signal_columns = self.df.drop(columns=['time'])
         self.change_points = []
@@ -26,14 +27,19 @@ class SignalAnalyzer:
         last_change_point = {'time': last_time, **{self.signal_columns.columns[i]: value for i, value in enumerate(last_values)}}
         self.change_points.append(last_change_point)
 
-    def save_results(self, name):
-        output_file='GMM_learned_actions/' + name + '_for_execution' + '.csv'
+    def save_results(self, dir, name):
+        output_file= dir + 'for_execution/' + name
         change_points_df = pd.DataFrame(self.change_points)
         change_points_df.to_csv(output_file, index=False)
 
 # Example usage:
-name = 'qt_teapot_left'
-csv_file_path = name + '.csv'  # Replace with the actual path to your CSV file
-analyzer = SignalAnalyzer(csv_file_path)
-analyzer.analyze_signals()
-analyzer.save_results(name)
+# name = 'qt_arm_sides'
+robotName = 'nao'
+dir = 'data/test_' + robotName + '/GMM_learned_actions/'
+# dir = './data/old_test_qt/GMM_learned_actions/'
+csv_file_path = os.listdir(dir)
+for name in csv_file_path:
+    if name != "for_execution":
+        analyzer = SignalAnalyzer(dir + name)
+        analyzer.analyze_signals()
+        analyzer.save_results(dir, name)
