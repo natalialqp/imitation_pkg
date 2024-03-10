@@ -1,5 +1,5 @@
 <!--
-* Learning from Demonstration Framework
+* Learning from Demonstration Framework <sup>®</sup>
 *
 * Copyright (c) 2018 Natalia Quiroga Perez. All rights reserved.
 *
@@ -15,7 +15,7 @@
 <a id="markdown-description" name="description"></a>
 # Description
 
-The official repository contains documentation and datasets for QTrobot, NAO and Kinova gen3<sup>®</sup> This Framework runs in Python.
+The official repository contains documentation and datasets for QTrobot, NAO and Kinova gen3. This Framework runs in Python.
 The repository has been tested on Ubuntu 20.04.
 
 <h1>Table of Contents</h1>
@@ -24,12 +24,6 @@ The repository has been tested on Ubuntu 20.04.
 
 - [Description](#description)
 - [Licensing](#licensing)
-- [Role of Google Protocol Buffer in Kortex API](#role-of-google-protocol-buffer-in-kortex-api)
-  - [Quick Start for C++ users](#quick-start-for-c-users)
-  - [Quick Start for Python users](#quick-start-for-python-users)
-  - [Quick Start for modbus users](#quick-start-for-modbus-users)
-- [Download links](#download-links)
-- [Build and Run instructions](#build-and-run-instructions)
 - [Reference](#reference)
       - [Useful Links](#useful-links)
 
@@ -52,47 +46,14 @@ Google Protocol Buffer offers structured data objects with standard methods for 
 + many helpers (e.g. serialize/deserialize, I/O functions)
   
 
-When using the Kortex API a developer will need to understand the Google Protocol Buffer feature set to maximize their efficiency.  
-
-<a id="markdown-quick-start-howto-cpp" name="quick-start-howto-cpp"></a>
-## Quick Start for C++ users
-  The following links provide some helpful guidance for C++ developer. You will find information about Kortex mechanism and some code examples.
-
-+ [API mechanism](./linked_md/cpp_api_mechanism.md)
-+ [Transport / Router / Session / Notification](./linked_md/cpp_transport_router_session_notif.md)
-+ [Device routing](./linked_md/cpp_device_routing.md)
-+ [Servoing modes](./linked_md/cpp_servoing_modes.md)
-+ [Error management](./linked_md/cpp_error_management.md)
-+ [Examples](./api_cpp/examples/readme.md)
-
 <a id="markdown-quick-start-howto-python" name="quick-start-howto-python"></a>
-## Quick Start for Python users
+## Quick Start 
 
   To run the Python examples you will need to install the Python interpreter and the pip installation module.
 
-  Note that for C++ developers it could be useful to install the Python Kortex API to allow for quick tests and validations.
-
   Here is some general information about the Python interpreter and the pip module manager.  
-  - [Python General Information](./linked_md/python_quick_start.md)
-  - [API mechanism](./linked_md/python_api_mechanism.md)
-  - [Transport / Router / Session / Notification](./linked_md/python_transport_router_session_notif.md)
-  - [Device routing](./linked_md/python_device_routing.md)
-  - [Servoing modes](./linked_md/python_servoing_modes.md)
   - [Error management](./linked_md/python_error_management.md)
   - [Examples](./api_python/examples/readme.md)
-
-<a id="markdown-quick-start-howto-modbus" name="quick-start-howto-modbus"></a>
-## Quick Start for modbus users
-Since release 2.3.0, the Kortex API offers a modbus interface to communicate with the robot.
-
-All the data is formatted according to this:
-- byte order: Big endian
-- word order: Little endian
-
-- [Modbus ICD](./linked_md/modbus_icd.md)
-- [Modbus examples](./modbus/examples/readme.md)
-
-
 
 <a id="markdown-api-download-links" name="api-download-links"></a>
 # Download links
@@ -112,28 +73,9 @@ When following the link to Artifactory, to download the correct C++ API, you hav
 <p>
 <ul>
 <li>
-Release 2.5.0 for Gen3: <a href="https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3/2.4.0/Gen3-2.4.0.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.5.0">Kortex API</a>
-</li>
-<li>
 Release 2.3.2 for Gen3 lite: <a href="https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3Lite/2.3.2/Gen3-lite-2.3.2.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.3.0">Kortex API</a>
 </li>
 <li>
-Release 2.3.1 for Gen3 lite: <a href="https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3Lite/2.3.1/Gen3-lite-2.3.1.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.3.0">Kortex API</a>
-</li>
-<li>
-Release 2.3.0 for Gen3: <a href="https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3/2.3.0/Gen3-2.3.0.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.3.0">Kortex API</a>
-</li>
-<li>
-Release 2.2.0 for Gen3: <a href="https://artifactory.kinovaapps.com/artifactory/generic-public/kortex/gen3/2.2.0/Gen3-2.2.0.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public%2Fkortex%2FAPI%2F2.2.0">Kortex API</a>
-</li>
-<li>
-Release 2.1.1 for Gen3 lite: <a href="https://artifactory.kinovaapps.com/artifactory/generic-local-public/kortex/gen3Lite/2.1.1/Gen3Lite-2.1.1.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/artifactory/generic-local-public/kortex/API/2.1.0/kortex_api_2.1.0.zip">Kortex API</a>
-</li>
-<li>
-Release 2.0.1 for Gen3: <a href="https://artifactory.kinovaapps.com/artifactory/generic-public/kortex/gen3/2.0.1/Gen3-2.0.1.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/artifactory/generic-local-public/kortex/API/2.0.0/kortex_api_2.0.0.zip">Kortex API</a>
-</li>
-<li>
-Release 2.0.0 for Gen3: <a href="https://artifactory.kinovaapps.com/artifactory/generic-local-public/kortex/gen3/2.0.0/Gen3-2.0.0.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/artifactory/generic-local-public/kortex/API/2.0.0/kortex_api_2.0.0.zip">Kortex API</a>
 </li>
 </ul>
 </p>
@@ -145,9 +87,7 @@ Release 2.0.0 for Gen3: <a href="https://artifactory.kinovaapps.com/artifactory/
 [C++ API](./api_cpp/examples/readme.md)  
 [Python API](./api_python/examples/readme.md) 
 
-<a id="markdown-reference" name="reference"></a>
 # Reference
-<a id="markdown-useful-links" name="useful-links"></a>
 #### Useful Links
 |  |  |
 | ---: | --- |
