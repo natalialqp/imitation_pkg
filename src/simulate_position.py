@@ -42,8 +42,4 @@ class RobotSimulation:
 
     def animate(self):
         ani = FuncAnimation(self.fig, self.update, frames=self.num_frames, interval=1000)
-        # If you want to save the animation as a video file (e.g., mp4)
-        # You need to have ffmpeg or another video writer installed.
-        # ani.save('animation.mp4', writer='ffmpeg', fps=1)
-        # Show the animation (Note: The animation will not display correctly in some IDEs, use plt.show() instead)
         plt.show()

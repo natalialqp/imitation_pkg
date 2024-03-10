@@ -11,12 +11,10 @@ class Graph(object):
 
     def add_nodes(self, connections):
         for i in connections:
-            node_label = tuple(i)  # Convert ndarray to tuple
+            node_label = tuple(i)
             self.G.add_node(node_label)
 
     def add_one_node(self, node):
-         # Convert ndarray to tuple
-        # new_node = self.list_to_string(node)
         self.G.add_node(tuple(node))
 
     def list_to_string(self, vec):
@@ -29,12 +27,12 @@ class Graph(object):
         return [self.list_to_string(node) for node in nodes]
 
     def add_one_edge(self, edge):
-        u, v = tuple(edge[0]), tuple(edge[1])  # Convert ndarrays to tuples
+        u, v = tuple(edge[0]), tuple(edge[1])
         self.G.add_edge(u, v)
 
     def add_edges(self, edges):
         for i in tqdm(edges):
-            u, v = tuple(i[0]), tuple(i[1])  # Convert ndarrays to tuples
+            u, v = tuple(i[0]), tuple(i[1])
             self.G.add_edge(u, v)
 
     def has_edge(self, u, v):
@@ -92,7 +90,6 @@ class Graph(object):
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
             xyz_rounded = tuple(round(coord, 2) for coord in xyz)
             ax.scatter(*xyz_rounded, s=100, ec="w")
-            # ax.text(*xyz_rounded, f"Node: {xyz_rounded}", ha="center", va="center")
 
         # Plot the edges
         for edge in self.get_edges():
@@ -100,12 +97,6 @@ class Graph(object):
             y = [edge[0][1], edge[1][1]]
             z = [edge[0][2], edge[1][2]]
             ax.plot(x, y, z, color='grey')
-            # Calculate the length of the edge
-            # length = ((x[1] - x[0])**2 + (y[1] - y[0])**2 + (z[1] - z[0])**2)**0.5
-            # Calculate the midpoint of the edge
-            # midpoint = ((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, (z[0] + z[1]) / 2)
-            # Add the length as a text annotation at the midpoint
-            # ax.text(midpoint[0], midpoint[1], midpoint[2], f"Length: {length:.2f}", ha='center', va='center')
 
         def _format_axes(ax):
             """Visualization options for the 3D axes"""

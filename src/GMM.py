@@ -59,13 +59,26 @@ def add_time_to_angles(vec, time):
     return np.insert(vec, 0, time, axis=1).T
     # return np.array([trajectory[angle, :] for trajectory in vec])
 
-def extract_vectors(data):
+def linear_angular_mapping_gen3(vec):
+    new_angle_vec = np.zeros_like(vec)
+    for i in range(len(vec)):
+        if vec[i] >=  0:
+            new_angle_vec[i] = vec[i]
+        else:
+            new_angle_vec[i] = 2*np.pi + vec[i]
+    return new_angle_vec
+
+def extract_vectors(data, robotName):
     angles = data[0].keys()
     # Create vectors for each angle
     angle_vectors = []
     for point in data:
         values = [point[i] for i in angles]
-        angle_vectors.append(np.deg2rad(values))
+        if robotName == "gen3":
+            new_values = linear_angular_mapping_gen3(np.deg2rad(values))
+            angle_vectors.append(new_values)
+        else:
+            angle_vectors.append(np.deg2rad(values))
     return angle_vectors
 
 def extract_axis(vec, axis):
@@ -181,93 +194,83 @@ def gmm_for_limb(angles_with_time, robotName, action, limb, babbled_points, num_
 
 if __name__ == "__main__":
 
-    robotName = 'nao'
-    #GMM applied on the output of the neural network
-    flag = "gmm-on-angles-from-library"
-    if flag=="gmm-on-angles-from-library":
-        users = np.arange(1, 21, 1)
-        users = [1, 6, 8, 9, 13, 16, 20]
-        # users =  [4]
-        num_components = 5
-        action = 'dinner_plate'
-        babbled_points = 150
-        lib_dict = {}
-        t_x_left = []
-        t_y_left = []
-        t_z_left = []
-        left_side_with_time = []
-        right_side_with_time = []
-        head_with_time = []
-
-        end_effector_dict = ["jointRight_6", "jointRight_6", "jointHead_3"]
-        file_path = "./robot_configuration_files/"+ robotName + ".yaml"
-        pose_predictor = pose_prediction.Prediction(file_path, robotName)
+    robotName = 'gen3'
+    # users = np.arange(1, 21, 1)
+    users = [1, 6, 9, 13, 16, 20]
+    # users =  [4]
+    num_components = 5
+    action = 'spoon'
+    babbled_points = 150
+    lib_dict = {}
+    t_x_left = []
+    t_y_left = []
+    t_z_left = []
+    left_side_with_time = []
+    right_side_with_time = []
+    head_with_time = []
+    end_effector_dict = ["jointRight_9", "jointRight_9"]
+    file_path = "./robot_configuration_files/"+ robotName + ".yaml"
+    pose_predictor = pose_prediction.Prediction(file_path, robotName)
+    # for old actions
+    df = pose_predictor.read_file("combined_actions")
+    # for new actions
+    # df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
+    dict_pose_vec_left = []
+    dict_pose_vec_right = []
+    dict_pose_vec_head = []
+    angles_left_with_time = []
+    angles_right_with_time = []
+    angles_head_with_time = []
+    for key in end_effector_dict:
+        lib_dict[key] = read_library_from_file(key, robotName, babbled_points)
+    for user in users:
         # for old actions
-        df = pose_predictor.read_file("combined_actions")
-
-        # for new actions
-        # df = pose_predictor.read_file("/QT_recordings/human/arms_sides_2")
-        dict_pose_vec_left = []
-        dict_pose_vec_right = []
-        dict_pose_vec_head = []
-        angles_left_with_time = []
-        angles_right_with_time = []
-        angles_head_with_time = []
-
-        for key in end_effector_dict:
-            lib_dict[key] = read_library_from_file(key, robotName, babbled_points)
-
-        for user in users:
-            # for old actions
-            _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
-
-            #for new actions
-            # _, _, _, timestamps = pose_predictor.read_recorded_action_csv(df, action, user)
-
-            cumulative_time = extract_time(timestamps)
-
-            dict_pose = extract_action_from_library(str(user) + action, lib_dict)
-            cartesian_left_vec = dict_pose[end_effector_dict[0]]
-            cartesian_right_vec = dict_pose[end_effector_dict[1]]
+        _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
+        #for new actions
+        # _, _, _, timestamps = pose_predictor.read_recorded_action_csv(df, action, user)
+        cumulative_time = extract_time(timestamps)
+        dict_pose = extract_action_from_library(str(user) + action, lib_dict)
+        cartesian_left_vec = dict_pose[end_effector_dict[0]]
+        cartesian_right_vec = dict_pose[end_effector_dict[1]]
+        if robotName != "gen3":
             cartesian_head_vec = dict_pose[end_effector_dict[2]]
-
-            dep_dict = extract_angles_from_library(str(user) + action, lib_dict)
-            jointLeft_vectors = extract_vectors(dep_dict[end_effector_dict[0]])
-            jointRight_vectors = extract_vectors(dep_dict[end_effector_dict[1]])
+        dep_dict = extract_angles_from_library(str(user) + action, lib_dict)
+        jointLeft_vectors = extract_vectors(dep_dict[end_effector_dict[0]], robotName)
+        jointRight_vectors = extract_vectors(dep_dict[end_effector_dict[1]], robotName)
+        if robotName != "gen3":
             jointHead_vectors = extract_vectors(dep_dict[end_effector_dict[2]])
-
-            if len(cumulative_time) > 1:
-                aux_left = add_time_to_angles(cartesian_left_vec, cumulative_time)
-                aux_right = add_time_to_angles(cartesian_right_vec, cumulative_time)
+        if len(cumulative_time) > 1:
+            aux_left = add_time_to_angles(cartesian_left_vec, cumulative_time)
+            aux_right = add_time_to_angles(cartesian_right_vec, cumulative_time)
+            if robotName != "gen3":
                 aux_head = add_time_to_angles(cartesian_head_vec, cumulative_time)
-
-                aux_left_angles = add_time_to_angles(jointLeft_vectors, cumulative_time)
-                aux_right_angles = add_time_to_angles(jointRight_vectors, cumulative_time)
+            aux_left_angles = add_time_to_angles(jointLeft_vectors, cumulative_time)
+            aux_right_angles = add_time_to_angles(jointRight_vectors, cumulative_time)
+            if robotName != "gen3":
                 aux_head_angles = add_time_to_angles(jointHead_vectors, cumulative_time)
-
-                angles_left_with_time.append(aux_left_angles)
-                angles_right_with_time.append(aux_right_angles)
+            angles_left_with_time.append(aux_left_angles)
+            angles_right_with_time.append(aux_right_angles)
+            if robotName != "gen3":
                 angles_head_with_time.append(aux_head_angles)
-
-                t_x_left.append(extract_axis(aux_left, "x"))
-                t_y_left.append(extract_axis(aux_left, "y"))
-                t_z_left.append(extract_axis(aux_left, "z"))
-                left_side_with_time.append(aux_left)
-                right_side_with_time.append(aux_right)
+            t_x_left.append(extract_axis(aux_left, "x"))
+            t_y_left.append(extract_axis(aux_left, "y"))
+            t_z_left.append(extract_axis(aux_left, "z"))
+            left_side_with_time.append(aux_left)
+            right_side_with_time.append(aux_right)
+            if robotName != "gen3":
                 head_with_time.append(aux_head)
-
-            dict_pose_vec_left.append(jointLeft_vectors)
-            dict_pose_vec_right.append(jointRight_vectors)
+        dict_pose_vec_left.append(jointLeft_vectors)
+        dict_pose_vec_right.append(jointRight_vectors)
+        if robotName != "gen3":
             dict_pose_vec_head.append(jointHead_vectors)
-        # print("angles_left_with_time: ", angles_left_with_time)
-        # plot_angles_vs_time(angles_left_with_time)
-        # plot_angles_vs_time(angles_right_with_time)
-        # plot_angles_vs_time(angles_head_with_time)
-
-        # plot_3d_paths(left_side_with_time, "Left EE")
-        # plot_3d_paths(right_side_with_time, "Right EE")
-        # plot_3d_paths(head_with_time, "Head EE")
-
-        gmm_for_limb(angles_left_with_time, robotName, action + "", "left_", babbled_points, num_components)
-        gmm_for_limb(angles_right_with_time, robotName, action + "", "right_", babbled_points, num_components)
+    # print("angles_left_with_time: ", angles_left_with_time)
+    # plot_angles_vs_time(angles_left_with_time)
+    # plot_angles_vs_time(angles_right_with_time)
+    # plot_angles_vs_time(angles_head_with_time)
+    # plot_3d_paths(left_side_with_time, "Left EE")
+    # plot_3d_paths(right_side_with_time, "Right EE")
+    # plot_3d_paths(head_with_time, "Head EE")
+    gmm_for_limb(angles_left_with_time, robotName, action + "", "left_", babbled_points, num_components)
+    gmm_for_limb(angles_right_with_time, robotName, action + "", "right_", babbled_points, num_components)
+    if robotName != "gen3":
         gmm_for_limb(angles_head_with_time, robotName, action + "", "head_", babbled_points, num_components)

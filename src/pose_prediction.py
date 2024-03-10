@@ -466,7 +466,6 @@ class Prediction(object):
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
-            scheduler.step()
             training_losses.append(total_loss.item())
 
             if (epoch + 1) % 100 == 0:
@@ -496,7 +495,7 @@ class Prediction(object):
         # Plot the training loss
         plt.plot(range(1, num_epochs + 1), training_losses, label='Training Loss')
         plt.plot(range(1, num_epochs + 1), validation_losses, label='Validation Loss')
-        plt.title('Performance of the model with MSE loss & 16 hidden neurons - NAO')
+        plt.title('Performance of the model with MSE loss & 128 hidden neurons - Freddy')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.legend()
@@ -618,15 +617,15 @@ class Prediction(object):
 
     def linear_angular_mapping_gen3(self, vec):
         new_vec = []
-        new_angle_vec = np.zeros_like(vec[0])
         for l in vec:
+            new_angle_vec = np.zeros_like(l)
             for i in range(len(l)):
-                if l[i] > 0:
+                if l[i] >=  0:
                     new_angle_vec[i] = l[i]
                 else:
                     new_angle_vec[i] = 2*np.pi + l[i]
             new_vec.append(new_angle_vec)
-        return new_vec
+        return np.array(new_vec)
 
     def plot_animation_3d_labeling(self, point_clouds_list, initial_ra):
         limits = list(self.robot.physical_limits_left.values()) + list(self.robot.physical_limits_right.values()) + list(self.robot.physical_limits_head.values())
@@ -754,17 +753,17 @@ if __name__ == "__main__":
     # pose_predictor.plot_animation_3d_labeling(robot_pose, ra)
 
     #NN TRAINING
-    file_name = "robot_angles_" + robotName
+    file_name = "robot_angles_or_" + robotName
     theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
     if robotName == "gen3":
         right_arm_robot = pose_predictor.linear_angular_mapping_gen3(right_arm_robot)
         left_arm_robot = pose_predictor.linear_angular_mapping_gen3(left_arm_robot)
-    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1500)
 
     #NN TESTING
     df = pose_predictor.read_file("combined_actions")
     action = "spoon"
-    user = 16
+    user = 4
     robot_pose = []
     robot_pose_2 = []
     left_side, right_side, head, time = pose_predictor.read_csv_combined(df, action, user)

@@ -95,8 +95,7 @@ class SelfExploration(object):
             if vec[i] > 0:
                 new_angle_vec[i] = vec[i]
             else:
-                new_angle_vec[i] = 360 - vec[i]
-
+                new_angle_vec[i] = 360 + vec[i]
         return new_angle_vec
 
     def motor_publisher(self, base):

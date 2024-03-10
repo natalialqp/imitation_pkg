@@ -326,7 +326,6 @@ class Robot(object):
         left_distances = [np.linalg.norm(self.leftArmDistance[i]) for i in self.leftArmDistance]
         right_distances = [np.linalg.norm(self.rightArmDistance[i]) for i in self.rightArmDistance]
         head_distances = [np.linalg.norm(self.headDistance[i]) for i in self.headDistance]
-        #delete the first element to return the vectors
         return left_distances, right_distances, head_distances
 
 def linear_angular_mapping_gen3(vec):
@@ -341,73 +340,20 @@ def linear_angular_mapping_gen3(vec):
 if __name__ == "__main__":
     robotName = "gen3"
     file_path = "./robot_configuration_files/" + robotName + ".yaml"
-    qt = Robot(robotName)
-    qt.import_robot(file_path)
-    # angles = np.array([ 1.52367249, -1.29154365, -0.2268928, -1.54636169, -1.41022609, -0.14137168, 0.03839724, 0.00523599])
-    #default
-    # angles = np.array([np.deg2rad(90.3), np.deg2rad(-57.3), np.deg2rad(-34.8), np.deg2rad(-90), np.deg2rad(-57.7), np.deg2rad(-34.2), np.deg2rad(0), np.deg2rad(2.2)])
-    #left front
-    # angles = np.array([np.deg2rad(10.7), np.deg2rad(-74.3), np.deg2rad(-6.5), np.deg2rad(-92), np.deg2rad(-78.5), np.deg2rad(-22.4), np.deg2rad(0), np.deg2rad(2.2)])
-    #head
-    # angles = np.array([np.deg2rad(-74.3), np.deg2rad(-45.3), np.deg2rad(-70.7), np.deg2rad(74), np.deg2rad(-44.9), np.deg2rad(-69.4), np.deg2rad(0), np.deg2rad(2.2)])
-    # #sides
-    # angles = np.array([np.deg2rad(-100), np.deg2rad(-12), np.deg2rad(-4.2), np.deg2rad(107.9), np.deg2rad(-12.7), np.deg2rad(-4.8), np.deg2rad(0), np.deg2rad(2.2)])
-    # #belly
-    # angles = np.array([np.deg2rad(39.1), np.deg2rad(-67.4), np.deg2rad(-74), np.deg2rad(-39.4), np.deg2rad(-60.9), np.deg2rad(-77.9), np.deg2rad(0), np.deg2rad(2.2)])
-    # angles = np.array([np.deg2rad(-74.3), np.deg2rad(-45.3), np.deg2rad(-70.7), np.deg2rad(74), np.deg2rad(-44.9), np.deg2rad(-69.4), np.deg2rad(0), np.deg2rad(2.2)])
-
-    # nao angles
-    # angles = np.array([np.deg2rad(-90), np.deg2rad(50), np.deg2rad(-0), np.deg2rad(-88), np.deg2rad(-100),
-                    #    np.deg2rad(-90), np.deg2rad(-50), np.deg2rad(-0), np.deg2rad(88), np.deg2rad(-100),
-                    #    np.deg2rad(0), np.deg2rad(0)])
-
-    le = np.array([
-        [0.17101007, -0.03015369, 0.98480775],
-        [0.5629971, -0.81728662, -0.1227878],
-        [0.80857271, 0.57544186, -0.1227878]])
-
-    ri = np.array([
-        [0.15405787, -0.02716456, 0.98768834],
-        [-0.71221313, -0.69591499, 0.09194987],
-        [0.68484935, -0.71761021, -0.12655814]])
-
-    r = R.from_matrix(ri.T)
-    l = R.from_matrix(le.T)
-    # print(l.as_euler('xyz', degrees=False))
-    # print(r.as_euler('xyz', degrees=False))
-
-    # qt.leftArmAngles["base"] = l.as_euler('zyx', degrees=False)
-    # qt.rightArmAngles["base"] = r.as_euler('zyx', degrees=False)
-
-    # qt.leftArmAngles["base"] = [0, np.deg2rad(97.5), np.deg2rad(45)] #= l.as_euler('xyz', degrees=False)
-    # qt.rightArmAngles["base"] = [0, np.deg2rad(97.5), np.deg2rad(-45)] #= r.as_euler('xyz', degrees=False)
+    myRobot = Robot(robotName)
+    myRobot.import_robot(file_path)
 
     left = []
     right = []
     head = []
     for i in range(0, 370, 10):
-        angles = np.array([ 1.43989663,  0.78539816,  2.75033203,  1.22173048,  1.25956629,  1.74602669,  -2.86233997, -1.43989663, 0.78539816, -2.72103979,  1.22173048, -1.28781237,  1.73033442,  1.76278254])
-        angles = np.array([ 1.43989663,  0.78539816, -1.55458098, 1.89771864 , 0.63187545, 0.16110732, 1.73556517, -1.43989663, 0.78539816, 1.32233537,  1.73033442,  0., 0.05649218, -0.73303829])
+        angles = np.array( [6.283185307179586, 0.08539816, 4.204237027179586, 5.588849777179586, 6.283185307179586, 6.283185307179586, 6.283185307179586,
+                            6.283185307179586, 5.4977871471795865, 5.351358157179586, 4.8236190171795865, 6.283185307179586, 6.283185307179586, 6.283185307179586])
         angles = linear_angular_mapping_gen3(angles)
 
-        # NEGATIVE ANGLES RIGHT: SHOULDER_ROLL, ELBOWS and wrist
-        # angles = np.array([np.deg2rad(0), np.deg2rad(90), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
-        #                    np.deg2rad(-90), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
-        #                    np.deg2rad(0), np.deg2rad(0)])
-
-        # angles = np.array([np.deg2rad(-90), np.deg2rad(50), np.deg2rad(-0), np.deg2rad(-88), np.deg2rad(-100),
-        #                np.deg2rad(-90), np.deg2rad(-50), np.deg2rad(-0), np.deg2rad(88), np.deg2rad(-100),
-        #                np.deg2rad(0), np.deg2rad(0)])
-
-        # angles = np.array([np.deg2rad(80.18695652), np.deg2rad(-71.84782609), np.deg2rad(-10.6), np.deg2rad(-73.8), np.deg2rad(-68.94782609), np.deg2rad(-7.34347826), np.deg2rad(23.76086957), np.deg2rad(23.34347826)])
-        # angles = np.array([np.deg2rad(79.99130435), np.deg2rad(-71.56521739), np.deg2rad(-11.6), np.deg2rad(-73.3), np.deg2rad(-69.16521739), np.deg2rad(-7.49565217), np.deg2rad(23.67391304), np.deg2rad(22.49565217)])
-        # angles = np.array([np.deg2rad(80.5), np.deg2rad(-72.3), np.deg2rad(-9.0), np.deg2rad(-74.6), np.deg2rad(-68.6), np.deg2rad(-7.1), np.deg2rad(23.9), np.deg2rad(24.7)])
-        pos_left, pos_right, pos_head = qt.forward_kinematics_gen3(angles)
+        pos_left, pos_right, pos_head = myRobot.forward_kinematics_gen3(angles)
         left.append(pos_left)
         right.append(pos_right)
         head.append(pos_head)
-    # print(pos_left, pos_right, pos_head)
-
-    # s = simulate_position.RobotSimulation([pos_left], [pos_right], [pos_head])
     s = simulate_position.RobotSimulation(left, right, head)
     s.animate()

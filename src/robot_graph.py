@@ -79,8 +79,6 @@ class Graph(object):
     def add_edges(self, edges):
         for i in edges:
             self.add_one_edge(i)
-            # u, v = tuple(i[0]), tuple(i[1])  # Convert ndarrays to tuples
-            # self.G.add_edge(u, v)
 
     def has_edge(self, u, v):
         u, v = tuple(u), tuple(v)
@@ -136,9 +134,6 @@ class Graph(object):
 
     def new_object_in_world(self, object_nodes, object_name, end_effector, prev_joint_angles = []):
         storage_graph = nx.Graph()
-        # print("Before adding object:")
-        # print("Number of nodes:", self.G.number_of_nodes())
-        # print("Number of edges:", self.G.number_of_edges())
         if end_effector and prev_joint_angles:
             aux = self.find_nodes_with_angle_tolerance(prev_joint_angles)
             object_nodes.extend(aux)
@@ -153,34 +148,21 @@ class Graph(object):
                 if end_effector == False:
                     future_dependencies.extend(node_attr["joint_dependency"])
         self.objects_in_world[object_name] = storage_graph
-        # print("After adding object:")
-        # print("Number of nodes:", self.G.number_of_nodes())
-        # print("Number of edges:", self.G.number_of_edges())
         return future_dependencies
 
     def remove_object_from_world(self, name):
-        # print("After adding an object:")
-        # print("Number of nodes:", self.G.number_of_nodes())
-        # print("Number of edges:", self.G.number_of_edges())
         self.find_subgraphs()
         # self.plot_graph()
         deleted_object = self.objects_in_world[name]
         self.G.add_nodes_from(deleted_object.nodes.items())
         self.G.add_edges_from(deleted_object.edges)
         del self.objects_in_world[name]
-        # print("After removing object:")
-        # print("Number of nodes:", self.G.number_of_nodes())
-        # print("Number of edges:", self.G.number_of_edges())
         self.find_subgraphs()
         # self.plot_graph()
 
     def get_nodes_values(self):
         nodes = self.G.nodes()
-        # vec_nodes = []
-        # for node in nodes:
-        #     vec_nodes.append(self.get_node_attr(node, "value"))
         return [self.get_node_attr(node, "value") for node in nodes]
-        # return vec_nodes
 
     def get_edges(self):
         return self.G.edges()
@@ -344,7 +326,6 @@ class Graph(object):
         for node, xyz in zip(self.get_nodes(), self.get_nodes()):
             xyz_rounded = tuple(round(coord, 2) for coord in self.get_node_attr(xyz, "value"))
             ax.scatter(*xyz_rounded, s=100, ec="w", cmap="Greens")
-            # ax.text(*xyz_rounded, f"Node: {xyz_rounded}", ha="center", va="center")
 
         # Plot the edges
         for edge in self.get_edges():
@@ -354,12 +335,6 @@ class Graph(object):
             y = [first_edge[1], second_edge[1]]
             z = [first_edge[2], second_edge[2]]
             ax.plot(x, y, z, color="grey")
-            # Calculate the length of the edge
-            # length = ((x[1] - x[0])**2 + (y[1] - y[0])**2 + (z[1] - z[0])**2)**0.5
-            # Calculate the midpoint of the edge
-            # midpoint = ((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, (z[0] + z[1]) / 2)
-            # Add the length as a text annotation at the midpoint
-            # ax.text(midpoint[0], midpoint[1], midpoint[2], f"Length: {length:.2f}", ha="center", va="center")
 
         def _format_axes(ax):
             """Visualization options for the 3D axes."""
@@ -373,7 +348,7 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.savefig("data/test_gen3/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
+        plt.savefig("data/test_"+ robotName + "/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
         # plt.show()
 
     def find_neighbors(self, node):
@@ -540,9 +515,8 @@ class Graph(object):
             return original_path
         elif missing_nodes == None:
             print("Impossible to execute the path")
-            return None # read the actual position of the robot and keep it there for the rest of the action
+            return None
         else:
-            # return self.find_closest_path_in_graph(missing_nodes, original_path)
             return self.find_new_path(missing_nodes, original_path)
 
     def gauss_newton_angle_estimation(self, robot, initial_angles, cartesian_point):
