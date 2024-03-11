@@ -1,7 +1,7 @@
 <!--
-* Learning from Demonstration Framework <sup>®</sup>
+* Graph-Based Learning from Demonstration Framework
 *
-* Copyright (c) 2018 Natalia Quiroga Perez. All rights reserved.
+* Copyright (c) 2024 Natalia Quiroga Perez. All rights reserved.
 *
 * This software may be modified and distributed
 * under the terms of the BSD 3-Clause license.
@@ -54,38 +54,6 @@ Google Protocol Buffer offers structured data objects with standard methods for 
   Here is some general information about the Python interpreter and the pip module manager.  
   - [Error management](./linked_md/python_error_management.md)
   - [Examples](./api_python/examples/readme.md)
-
-<a id="markdown-api-download-links" name="api-download-links"></a>
-# Download links
-
-The latest download links for each arm type are reported in the table below:
-
-| Arm type       | Firmware     | Release notes      | API |
-| :------------- | :----------: | :-----------: | :-----------:|
-| Gen3 | [2.5.2](https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3/2.5.2/Gen3-2.5.2.swu) | [2.5.2](https://artifactory.kinovaapps.com:443/artifactory/generic-public/Documentation/Gen3/Technical%20documentation/Release%20notes/EN-eRN-001-Gen3-Ultralight-release-notes.pdf)    | [2.6.0](https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.6.0)|
-| Gen3 lite   | [2.3.2](https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3Lite/2.3.2/Gen3-lite-2.3.2.swu) | [2.3.2](https://artifactory.kinovaapps.com:443/artifactory/generic-public/Documentation/Gen3%20lite/Technical%20documentation/Release%20Notes/Gen3_lite_Release_Notes_2_3_2%20-%20R01.pdf) | [2.3.0](https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.3.0)|
-
-When following the link to Artifactory, to download the correct C++ API, you have to select the package for your architecture on the left-hand side tree view and then click Download on the right-hand side:
-
- ![Artifactory](./linked_md/artifactory.png)
-
-<details><summary>Previous releases</summary>
-<p>
-<ul>
-<li>
-Release 2.3.2 for Gen3 lite: <a href="https://artifactory.kinovaapps.com:443/artifactory/generic-public/kortex/gen3Lite/2.3.2/Gen3-lite-2.3.2.swu">Firmware</a>, <a href="https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex/API/2.3.0">Kortex API</a>
-</li>
-<li>
-</li>
-</ul>
-</p>
-</details>
-<a id="markdown-build-and-run-instructions" name="build-and-run-instructions"></a>
-
-# Build and Run instructions
-
-[C++ API](./api_cpp/examples/readme.md)  
-[Python API](./api_python/examples/readme.md) 
 
 # Reference
 #### Useful Links
