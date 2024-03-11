@@ -32,6 +32,22 @@ rospy.sleep(1.0)
 
 class SkeletonMarkers(object):
     def __init__(self, id, skeleton_frame_id):
+        """
+        Initializes an instance of the RealTimePosePrediction class.
+
+        Args:
+            id (int): The ID of the instance.
+            skeleton_frame_id (str): The ID of the skeleton frame.
+
+        Attributes:
+            id (int): The ID of the instance.
+            skeleton_frame_id (str): The ID of the skeleton frame.
+            upper_body_marker: The marker for the upper body.
+            left_hand_marker: The marker for the left hand.
+            right_hand_marker: The marker for the right hand.
+            left_leg_marker: The marker for the left leg.
+            right_leg_marker: The marker for the right leg.
+        """
         self.id = id
         self.skeleton_frame_id = skeleton_frame_id
         id_pad = self.id * 100
@@ -43,6 +59,13 @@ class SkeletonMarkers(object):
 
 class SpeechManager(object):
     def __init__(self):
+        """
+        Initializes the RealTimePosePrediction class.
+
+        This function sets up the necessary service proxies for speech recognition and speech synthesis.
+        It also initializes the options for speech recognition and sets the initial speech message.
+        The function also initializes variables for storing the speech response, the last command, and the speech thread.
+        """
         self.recognize_speech_proxy = rospy.ServiceProxy('/qt_robot/speech/recognize', speech_recognize)
         self.speechSay = rospy.ServiceProxy('/qt_robot/speech/say', speech_say)
         self.options = ["record", "stop"]
@@ -54,12 +77,27 @@ class SpeechManager(object):
         self.is_alive = False
 
     def start_recognition(self):
+        """
+        Starts the speech recognition process in a separate thread.
+
+        This method sets the `is_alive` flag to True and starts a new thread to run the `recognize_speech` method.
+        The thread is set as a daemon thread to allow the program to exit even if the thread is still running.
+
+        """
         self.is_alive = True
         self.speech_thread = threading.Thread(target=self.recognize_speech)
         self.speech_thread.daemon = True
         self.speech_thread.start()
 
     def recognize_speech(self):
+        """
+        Recognizes speech using a speech recognition proxy.
+        
+        This function continuously listens for speech input using a speech recognition proxy.
+        It waits for a response and assigns it to the `resp` attribute of the object.
+        The last recognized command is stored in the `last_cmd` attribute.
+        After receiving a response, it calls the `robot_say_response` function to process the response.
+        """
         while self.is_alive:
             print("QT is listening... Watch out")
             self.resp = None
@@ -69,6 +107,16 @@ class SpeechManager(object):
             self.robot_say_response()
 
     def robot_say_response(self):
+        """
+        Performs speech recognition and responds accordingly.
+
+        If the transcript contains the word "record", it starts recording and says "Recording started".
+        If the transcript contains the word "stop", it stops recording and says "Recording stopped".
+        If the transcript doesn't contain any valid option, it says "No valid option".
+
+        Returns:
+            None
+        """
         rospy.loginfo("Speech recognition started")
         if "record" in self.resp.transcript:
             rospy.loginfo("Recording started")
@@ -84,6 +132,27 @@ class SpeechManager(object):
 
 class HumanSkeleton(object):
     def __init__(self, pose_predictor, planner):
+        """
+        Initializes the RealTimePosePrediction class.
+
+        Args:
+            pose_predictor: The pose predictor object.
+            planner: The planner object.
+
+        Attributes:
+            nuitrack_skeleton_topic (str): The topic for receiving skeleton data from Nuitrack.
+            cam_base_link_translation (list): The translation values for the camera base link.
+            skeleton_frame_id (str): The frame ID for the skeleton data.
+            cam_base_link_rot (list): The rotation values for the camera base link.
+            pose_predictor: The pose predictor object.
+            planner: The planner object.
+            delta (int): The delta value.
+            cam_base_link_tf (numpy.ndarray): The homogeneous transform matrix for the camera base link.
+            skeleton_sub: The subscriber object for receiving skeleton data.
+
+        Returns:
+            None
+        """
         self.nuitrack_skeleton_topic = rospy.get_param('~nuitrack_skeleton_topic',
                                                        '/qt_nuitrack_app/skeletons')
         self.cam_base_link_translation = rospy.get_param('~cam_base_link_translation', [0., 0., 0.])
@@ -97,21 +166,49 @@ class HumanSkeleton(object):
         self.skeleton_sub = None
 
     def start(self):
+        """
+        Starts the real-time pose prediction.
+
+        This function subscribes to the Nuitrack skeleton topic and captures the skeletons
+        for further processing.
+
+        """
         self.skeleton_sub = rospy.Subscriber(self.nuitrack_skeleton_topic,
                                              Skeletons,
                                              self.capture_skeletons)
         rospy.sleep(0.5)
 
     def stop(self):
-        if self.skeleton_sub is not None:
-            self.skeleton_sub.unregister()
+            """
+            Stops the skeleton subscription.
+
+            Unregisters the skeleton subscriber if it is not None.
+            """
+            if self.skeleton_sub is not None:
+                self.skeleton_sub.unregister()
 
     def save_action(self, action_name, action):
-        # Save the action in a csv file
+        """
+        Save the action in a CSV file.
+
+        Parameters:
+        - action_name (str): The name of the action.
+        - action (list): The action data to be saved.
+
+        Returns:
+        None
+        """
         action_df = pd.DataFrame(action)
         action_df.to_csv("data/QT_recordings/" + action_name + ".csv", index=False)
 
     def capture_skeletons(self, skeleton_collection_msg):
+        """
+        Captures and processes skeleton data from a skeleton collection message.
+        Args:
+            skeleton_collection_msg (SkeletonCollectionMsg): The skeleton collection message containing the skeleton data.
+        Returns:
+            None
+        """
         cartesian_left_vec = []
         cartesian_right_vec = []
         cartesian_head_vec = []
@@ -138,14 +235,11 @@ class HumanSkeleton(object):
                     right_arm_points[joint_name] = position_base_link
             # Define the common first point for the head as the middle point between the shoulders
             head_points['JOINT_LEFT_COLLAR'] = left_arm_points['JOINT_LEFT_COLLAR']
-
             current_time = rospy.Time.now().to_sec()
-
             human_skeletons_left.append(left_arm_points)
             human_skeletons_right.append(right_arm_points)
             human_skeletons_head.append(head_points)
             timestamp.append(current_time)
-
             left_side, right_side, head = self.pose_predictor.dicts_to_lists(left_arm_points, right_arm_points, head_points)
             left_arm_pred, right_arm_pred, head_pred = self.pose_predictor.predict_pytorch(left_side, right_side, head)
             left_cart, right_cart, head_cart = self.pose_predictor.robot_embodiment(left_arm_pred, right_arm_pred, head_pred)
@@ -155,7 +249,6 @@ class HumanSkeleton(object):
             cartesian_right_vec.append(right_cart)
             cartesian_head_vec.append(head_cart)
             self.delta = self.delta + 1
-
             if self.delta >= 250:
                 rospy.loginfo(self.delta)
                 self.delta = 0
@@ -167,10 +260,20 @@ class HumanSkeleton(object):
                 robot_left_rec.append(predicted_angles_left)
                 robot_right_rec.append(predicted_angles_right)
                 robot_head_rec.append(predicted_angles_head)
-
         return
 
     def find_end_effector_angles(self, left_arm_pred, right_arm_pred, head_pred):
+        """
+        Finds the angles of the end effectors for the left arm, right arm, and head based on the given predictions.
+        Parameters:
+        - left_arm_pred (dict): Predicted values for the left arm.
+        - right_arm_pred (dict): Predicted values for the right arm.
+        - head_pred (dict): Predicted values for the head.
+        Returns:
+        - angles_left (list): List of angles for the left arm end effectors.
+        - angles_right (list): List of angles for the right arm end effectors.
+        - angles_head (list): List of angles for the head end effectors.
+        """
         angles_left = []
         angles_right = []
         angles_head = []
@@ -184,24 +287,42 @@ class HumanSkeleton(object):
         return list(angles_left.values()), list(angles_right.values()), list(angles_head.values())
 
 def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
+    """
+    Publishes the joint angles to the robot.
+
+    Args:
+        left_arm_ang_pos (list): List of joint angles for the left arm.
+        right_arm_ang_pos (list): List of joint angles for the right arm.
+        head_ang_pos (list): List of joint angles for the head.
+
+    Returns:
+        None
+    """
     # Publish angles to robot
-        rospy.loginfo("publishing motor command...")
-        try:
-            ref_head = Float64MultiArray()
-            ref_right = Float64MultiArray()
-            ref_left = Float64MultiArray()
-            ref_head.data = head_ang_pos
-            ref_right.data = right_arm_ang_pos
-            ref_left.data = left_arm_ang_pos
-            right_pub.publish(ref_right)
-            left_pub.publish(ref_left)
-            # head_pub.publish(ref_head)
-            # rospy.sleep(0.05)
-        except rospy.ROSInterruptException:
-            rospy.logerr("could not publish motor command!")
-        rospy.loginfo("motor command published")
+    rospy.loginfo("publishing motor command...")
+    try:
+        ref_head = Float64MultiArray()
+        ref_right = Float64MultiArray()
+        ref_left = Float64MultiArray()
+        ref_head.data = head_ang_pos
+        ref_right.data = right_arm_ang_pos
+        ref_left.data = left_arm_ang_pos
+        right_pub.publish(ref_right)
+        left_pub.publish(ref_left)
+        # head_pub.publish(ref_head)
+        # rospy.sleep(0.05)
+    except rospy.ROSInterruptException:
+        rospy.logerr("could not publish motor command!")
+    rospy.loginfo("motor command published")
 
 def initialise():
+    """
+    Initializes the pose predictor and planner for real-time pose prediction.
+
+    Returns:
+        pose_predictor (Prediction): The pose predictor object.
+        planner (PathPlanning): The planner object.
+    """
     robotName = "qt"
     file_path = "./robot_configuration_files/" +robotName + ".yaml"
     planner = PathPlanning(file_path)

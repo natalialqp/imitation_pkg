@@ -4,12 +4,34 @@ import os
 
 class SignalAnalyzer:
     def __init__(self, csv_file_path):
+        """
+        Initialize the ReadingActions object.
+
+        Parameters:
+        csv_file_path (str): The file path of the CSV file containing the data.
+
+        Attributes:
+        df (pandas.DataFrame): The DataFrame containing the data from the CSV file.
+        time_column (pandas.Series): The column representing the time values.
+        signal_columns (pandas.DataFrame): The DataFrame containing the signal columns.
+        change_points (list): A list to store the change points.
+        """
         self.df = pd.read_csv(csv_file_path)
         self.time_column = self.df['time']
         self.signal_columns = self.df.drop(columns=['time'])
         self.change_points = []
 
     def analyze_signals(self):
+        """
+        Analyzes the signals and detects change points.
+
+        This method analyzes the signals stored in the `signal_columns` attribute and detects change points
+        where the slope of any signal changes. It updates the `change_points` attribute with the detected
+        change points.
+
+        Returns:
+            None
+        """
         # Initialize previous_slopes with the slopes for each signal
         previous_slopes = {signal_name: np.sign(self.signal_columns[signal_name].values[1] - self.signal_columns[signal_name].values[0]) for signal_name in self.signal_columns.columns}
 
@@ -28,7 +50,17 @@ class SignalAnalyzer:
         self.change_points.append(last_change_point)
 
     def save_results(self, dir, name):
-        output_file= dir + 'for_execution/' + name
+        """
+        Save the change points to a CSV file.
+
+        Args:
+            dir (str): The directory path where the file will be saved.
+            name (str): The name of the file.
+
+        Returns:
+            None
+        """
+        output_file = dir + 'for_execution/' + name
         change_points_df = pd.DataFrame(self.change_points)
         change_points_df.to_csv(output_file, index=False)
 

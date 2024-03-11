@@ -7,6 +7,16 @@ from sklearn.model_selection import train_test_split
 from GMPlotter import eval
 
 def plot_3d_paths(trajectories, title):
+    """
+    Plots 3D paths of trajectories.
+
+    Parameters:
+    - trajectories (list): List of numpy arrays representing trajectories.
+    - title (str): Title of the plot.
+
+    Returns:
+    None
+    """
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     # Plot each trajectory
@@ -24,6 +34,16 @@ def plot_3d_paths(trajectories, title):
     plt.show()
 
 def extract_action_from_library(actionName, library):
+    """
+    Extracts the robot pose for a given action name from a library.
+
+    Parameters:
+    actionName (str): The name of the action to extract the robot pose for.
+    library (dict): The library containing the robot poses for different actions.
+
+    Returns:
+    dict: A dictionary where the keys are the robot pose names and the values are the corresponding paths.
+    """
     robot_pose = {}
     for key in library:
         for item in library[key]:
@@ -32,6 +52,16 @@ def extract_action_from_library(actionName, library):
     return robot_pose
 
 def extract_angles_from_library(actionName, library):
+    """
+    Extracts the joint angles from a library of actions based on the given action name.
+
+    Parameters:
+    - actionName (str): The name of the action to extract joint angles for.
+    - library (dict): The library of actions containing joint angles.
+
+    Returns:
+    - robot_pose (dict): A dictionary mapping joint names to their corresponding joint angles.
+    """
     robot_pose = {}
     for key in library:
         for item in library[key]:
@@ -40,35 +70,93 @@ def extract_angles_from_library(actionName, library):
     return robot_pose
 
 def extract_action(df, actionName):
+    """
+    Extracts rows from a DataFrame that correspond to a specific action.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame containing the data.
+        actionName (str): The name of the action to extract.
+
+    Returns:
+        pandas.DataFrame: The extracted DataFrame containing only rows with the specified action.
+    """
     df = df.loc[df['action'] == actionName]
     users = np.arange(1, 21, 1)
     return df
 
 def extract_time(timestamp):
+    """
+    Extracts the time differences between consecutive timestamps.
+
+    Args:
+        timestamp (list): A list of timestamps.
+
+    Returns:
+        numpy.ndarray: An array of time differences between consecutive timestamps.
+    """
     timestamps_seconds = np.array([float(ts) for ts in timestamp]) / 1e6 # miliseconds, use 1e9 for seconds
     #  Calculate the time difference between consecutive timestamps
     time_diff_seconds = np.diff(timestamps_seconds)
     return np.insert(np.cumsum(time_diff_seconds), 0, 0)
 
 def extract_end_effector_path(vec, time):
+    """
+    Extracts the end effector path from a given vector of trajectories.
+
+    Args:
+        vec (list): A list of trajectories, where each trajectory is a list of vectors.
+        time (float): The time value associated with the end effector path.
+
+    Returns:
+        numpy.ndarray: The end effector path, where each row represents a vector and the first column represents the time value.
+    """
     last_vectors = np.array([trajectory[-1] for trajectory in vec])
     return np.insert(last_vectors, 0, time, axis=1).T
 
 def add_time_to_angles(vec, time):
+    """
+    Add time to the angles vector.
+
+    Args:
+        vec (list or numpy.ndarray): The angles vector.
+        time (float or int): The time value to be added.
+
+    Returns:
+        numpy.ndarray: The modified angles vector with time added.
+
+    """
     vec = np.array(vec)
     return np.insert(vec, 0, time, axis=1).T
-    # return np.array([trajectory[angle, :] for trajectory in vec])
 
 def linear_angular_mapping_gen3(vec):
+    """
+    Maps the given vector of angles to the range [0, 2*pi].
+
+    Args:
+        vec (numpy.ndarray): The input vector of angles.
+
+    Returns:
+        numpy.ndarray: The mapped vector of angles in the range [0, 2*pi].
+    """
     new_angle_vec = np.zeros_like(vec)
     for i in range(len(vec)):
-        if vec[i] >=  0:
+        if vec[i] >= 0:
             new_angle_vec[i] = vec[i]
         else:
-            new_angle_vec[i] = 2*np.pi + vec[i]
+            new_angle_vec[i] = 2 * np.pi + vec[i]
     return new_angle_vec
 
 def extract_vectors(data, robotName):
+    """
+    Extracts angle vectors from the given data.
+
+    Parameters:
+    - data: A list of dictionaries representing data points.
+    - robotName: A string representing the name of the robot.
+
+    Returns:
+    - angle_vectors: A list of angle vectors extracted from the data.
+    """
     angles = data[0].keys()
     # Create vectors for each angle
     angle_vectors = []
@@ -82,6 +170,16 @@ def extract_vectors(data, robotName):
     return angle_vectors
 
 def extract_axis(vec, axis):
+    """
+    Extracts the values of a specific axis from a given vector.
+
+    Parameters:
+    vec (numpy.ndarray): The input vector containing time and axis values.
+    axis (str): The axis to extract values from. Can be "x", "y", or "z".
+
+    Returns:
+    numpy.ndarray: A new vector containing time and the values of the specified axis.
+    """
     time = vec[0, :]
     if axis == "x":
         axis_values = vec[1, :]
@@ -92,12 +190,41 @@ def extract_axis(vec, axis):
     return np.vstack((time, axis_values))
 
 def extract_angle(vec, angle):
-    return vec[[0,angle], :]
+    """
+    Extracts the specified angle from a given vector.
+
+    Args:
+        vec (numpy.ndarray): The input vector.
+        angle (int): The angle to extract from the vector.
+
+    Returns:
+        numpy.ndarray: The extracted angle from the vector.
+    """
+    return vec[[0, angle], :]
 
 def extract_angle_vec(mat, angle):
+    """
+    Extracts the specified angle from each sublist in the given matrix.
+
+    Args:
+        mat (list): The matrix containing sublists.
+        angle (float): The angle to extract from each sublist.
+
+    Returns:
+        list: A list of angles extracted from each sublist.
+    """
     return [extract_angle(sub_list, angle) for sub_list in mat]
 
 def plot_angles_vs_time(arrays):
+    """
+    Plot angles vs time for multiple arrays.
+
+    Args:
+        arrays (list): List of arrays containing time and variable values.
+
+    Returns:
+        None
+    """
     for i in range(1, arrays[0].shape[1]):
         plt.figure()
         plt.title(f"Variable {i} vs Time")
@@ -111,7 +238,21 @@ def plot_angles_vs_time(arrays):
         plt.legend()
         plt.show()
 
-def plot_axis_vs_time(vec, axis, max_length =1000, target_length=100, window_length=5, polyorder=3):
+def plot_axis_vs_time(vec, axis, max_length=1000, target_length=100, window_length=5, polyorder=3):
+    """
+    Plots the smoothed variable with respect to time for multiple arrays and calculates the average signal.
+
+    Args:
+        vec (list): List of arrays containing time and variable values.
+        axis (str): The variable to plot.
+        max_length (int, optional): The maximum length of the time axis. Defaults to 1000.
+        target_length (int, optional): The desired length of the interpolated signal. Defaults to 100.
+        window_length (int, optional): The length of the window used for smoothing. Defaults to 5.
+        polyorder (int, optional): The order of the polynomial used for smoothing. Defaults to 3.
+
+    Returns:
+        tuple: A tuple containing the time values, data values, and average signal.
+    """
     variable_to_plot = axis
     data_as_array = []
     time_as_array = []
@@ -145,10 +286,24 @@ def plot_axis_vs_time(vec, axis, max_length =1000, target_length=100, window_len
     plt.ylabel(f'{variable_to_plot.capitalize()} Values (Smoothed)')
     plt.legend()
     plt.show()
-    # return np.vstack([np.array(time_as_array), np.array(data_as_array)]), avg_signal
     return np.array(time_as_array), np.array(data_as_array), avg_signal
 
 def read_library_from_file(name, robotName, babbled_points):
+    """
+    Read a library of paths from a file.
+
+    Args:
+        name (str): The name of the file.
+        robotName (str): The name of the robot.
+        babbled_points (int): The number of babbled points.
+
+    Returns:
+        list: A list of dictionaries representing the paths read from the file.
+
+    Raises:
+        FileNotFoundError: If the specified file is not found.
+
+    """
     try:
         with open("data/test_"+ robotName + "/paths_lib/" + name + "_" + str(babbled_points) + ".json", "r") as jsonfile:
             data = [json.loads(line) for line in jsonfile.readlines()]
@@ -158,6 +313,15 @@ def read_library_from_file(name, robotName, babbled_points):
         return []
 
 def reshape_array(arr2):
+    """
+    Reshapes a 2D array into a 3D array by splitting each row into smaller chunks.
+
+    Parameters:
+    arr2 (ndarray): The input 2D array to be reshaped.
+
+    Returns:
+    ndarray: The reshaped 3D array.
+    """
     array_shape = arr2.shape
     for i in range(array_shape[0]):
         v = arr2[i].reshape(int(array_shape[1]/100), 100)
@@ -168,6 +332,16 @@ def reshape_array(arr2):
     return arr
 
 def plot_time_vs_signal(time, signal, xlabel='Time', ylabel='Signal', title='Time vs Signal'):
+    """
+    Plot the relationship between time and signal.
+
+    Parameters:
+    time (array-like): The time values.
+    signal (array-like): The signal values.
+    xlabel (str, optional): The label for the x-axis. Defaults to 'Time'.
+    ylabel (str, optional): The label for the y-axis. Defaults to 'Signal'.
+    title (str, optional): The title of the plot. Defaults to 'Time vs Signal'.
+    """
     # Plot the time vs signal
     plt.scatter(time, signal)
 
@@ -180,6 +354,18 @@ def plot_time_vs_signal(time, signal, xlabel='Time', ylabel='Signal', title='Tim
     plt.show()
 
 def reshape_array(time, arr, max_length=1000):
+    """
+    Reshapes a given array and time vector into a 2D array with a maximum length.
+
+    Parameters:
+    time (numpy.ndarray): The time vector.
+    arr (numpy.ndarray): The array to be reshaped.
+    max_length (int, optional): The maximum length of each row in the reshaped array. Default is 1000.
+
+    Returns:
+    numpy.ndarray: The reshaped array.
+
+    """
     arr_len = len(arr)
     time = time.reshape(int(arr_len/max_length), max_length)[0]
     arr = arr.reshape(int(arr_len/max_length), max_length)
@@ -187,6 +373,20 @@ def reshape_array(time, arr, max_length=1000):
     return arr.T #[:, 0:2]
 
 def gmm_for_limb(angles_with_time, robotName, action, limb, babbled_points, num_components=5):
+    """
+    Fits a Gaussian Mixture Model (GMM) to the given angles with time data for a specific limb of a robot.
+
+    Parameters:
+    - angles_with_time (numpy.ndarray): Array of angles with time data.
+    - robotName (str): Name of the robot.
+    - action (str): Name of the action.
+    - limb (str): Name of the limb.
+    - babbled_points (int): Number of babbled points.
+    - num_components (int, optional): Number of components in the GMM. Default is 5.
+
+    Returns:
+    None
+    """
     for i in range(1, angles_with_time[0].shape[0]):
         variable_to_fit = extract_angle_vec(angles_with_time, i)
         time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i)) #7093, 7093

@@ -4,6 +4,14 @@ from matplotlib.animation import FuncAnimation
 
 class RobotSimulation:
     def __init__(self, list1, list2, list3):
+        """
+        Initialize the SimulatePosition class.
+
+        Args:
+            list1 (list): The first list.
+            list2 (list): The second list.
+            list3 (list): The third list.
+        """
         self.list1 = list1
         self.list2 = list2
         self.list3 = list3
@@ -16,10 +24,26 @@ class RobotSimulation:
         self.ax = self.fig.add_subplot(111, projection='3d')
 
     def plot_chain(self, chain, color='b'):
+        """
+        Plots a chain of points in 3D space.
+
+        Args:
+            chain (list): List of tuples representing the coordinates of each point in the chain.
+            color (str, optional): Color of the plotted chain. Defaults to 'b'.
+        """
         x, y, z = zip(*chain)
         self.ax.plot(x, y, z, color=color, marker='o', linestyle='-', markersize=5)
 
     def update(self, frame):
+        """
+        Update the plot with the data for the given frame.
+
+        Parameters:
+        - frame (int): The frame number to update the plot with.
+
+        Returns:
+        None
+        """
         self.ax.cla()  # Clear the previous plot
         self.plot_chain(self.list1[frame], color='b')
         self.plot_chain(self.list2[frame], color='g')
@@ -41,5 +65,17 @@ class RobotSimulation:
         self.ax.set_zlim(0, self.max_range)
 
     def animate(self):
+        """
+        Animates the position simulation.
+
+        This function creates an animation of the position simulation using the `FuncAnimation` class from the `matplotlib.animation` module.
+        It calls the `update` method for each frame and displays the animation using `plt.show()`.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         ani = FuncAnimation(self.fig, self.update, frames=self.num_frames, interval=1000)
         plt.show()

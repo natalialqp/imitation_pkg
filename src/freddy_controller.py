@@ -1,4 +1,8 @@
 # -*- encoding: UTF-8 -*-
+# CLONE THE KORTEX REPOSITORY TO GET THE KORTEX ENVIRONMENT OUTSIDE OF THE IMITATION WORKSPACE
+# PASTE THIS FILE IN THE FOLLOWING DIRECTORY: kortex/api_python/examples/python/102-Movement_high_level/
+# PASTE THE DEPENDENCIES FILES: simulate_position.py, robot.py, homogeneous_transformation.py and robot_configuration_files/gen3.yaml
+# RUN THE FILE FROM THE KORTEX DIRECTORY CONNECTED TO THE ROBOT, MAKE SURE THE ROBOT IS TURNED ON AND CONNECTED TO THE NETWORK AND THE COMPUTER WITH THE RESPECT API
 
 import sys
 import time
@@ -16,21 +20,54 @@ from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
 
-
 class SelfExploration(object):
     def __init__(self, robot_name):
-        # self.motor_babbling_recording = {'left': [], 'right': []}
-        self.motor_babbling_recording = {'left': []}
+        """
+        Initialize the FreddyController class.
+
+        Parameters:
+        - robot_name (str): The name of the robot.
+
+        Attributes:
+        - motor_babbling_recording (dict): A dictionary to store motor babbling recordings for the left and right arms.
+        - current_ang_pos_Larm (numpy.ndarray): An array to store the current angular positions of the left arm.
+        - current_ang_pos_Rarm (numpy.ndarray): An array to store the current angular positions of the right arm.
+        - key (str): A variable to store a key value.
+        - robot_name (str): The name of the robot.
+
+        Returns:
+        - None
+        """
+        self.motor_babbling_recording = {'left': [], 'right': []}
         self.current_ang_pos_Larm = np.zeros((7))
         self.current_ang_pos_Rarm = np.zeros((7))
         self.key = ''
         self.robot_name = robot_name
 
     def import_robot(self, file_path):
-        self.rob = robot.Robot(self.robot_name)
-        self.rob.import_robot(file_path)
+            """
+            Imports a robot from a given file path.
+
+            Args:
+                file_path (str): The path to the file containing the robot information.
+
+            Returns:
+                None
+            """
+            self.rob = robot.Robot(self.robot_name)
+            self.rob.import_robot(file_path)
 
     def random_angles(self, delta_angle, limbType):
+        """
+        Generate an array of random angles within the specified delta angle range for a given limb type.
+
+        Parameters:
+        delta_angle (int): The range of angles to generate, specified in degrees.
+        limbType (str): The type of limb for which to generate random angles. Can be "left" or "right".
+
+        Returns:
+        numpy.ndarray: An array of random angles within the specified range for the given limb type.
+        """
         zeros = []
         limits = np.zeros((7))
         if limbType == "left":
@@ -42,6 +79,17 @@ class SelfExploration(object):
         return np.array(zeros)
 
     def motor_babbling(self, base, delta_angle, sequence_len):
+        """
+        Perform motor babbling by randomly moving the arms and recording the configurations.
+
+        Args:
+            base (float): The base value for motor movement.
+            delta_angle (float): The maximum angle by which the arms can move randomly.
+            sequence_len (int): The desired length of the motor babbling sequence.
+
+        Returns:
+            bool: True if motor babbling is successfully performed.
+        """
         for key in self.motor_babbling_recording:
             self.key = key
             start = time.time()
@@ -69,8 +117,17 @@ class SelfExploration(object):
         return True
 
     def add_config(self, candidate_pos):
+        """
+        Adds a candidate position to the motor babbling recording if it is within the limits and not already present.
+
+        Args:
+            candidate_pos (list): The candidate position to be added.
+
+        Returns:
+            bool: True if the candidate position was added successfully, False otherwise.
+        """
         added = False
-        candidate_pos = list(np.round(candidate_pos, decimals = 2))
+        candidate_pos = list(np.round(candidate_pos, decimals=2))
         inside_limits = self.check_limits(candidate_pos)
         if inside_limits:
             if candidate_pos not in self.motor_babbling_recording[self.key]:
@@ -79,6 +136,15 @@ class SelfExploration(object):
         return added
 
     def check_limits(self, candidate_pos):
+        """
+        Check if the candidate position is within the physical limits of the robot.
+
+        Args:
+            candidate_pos (list): The candidate position to be checked.
+
+        Returns:
+            bool: True if the candidate position is within the limits, False otherwise.
+        """
         inside_limits = True
         if self.key == "right":
             limits = self.rob.physical_limits_right
@@ -90,6 +156,16 @@ class SelfExploration(object):
         return inside_limits
 
     def robot_range(self, vec):
+        """
+        Converts the given vector of angles to a new vector where negative angles are converted to positive angles.
+        Kinova gen3 accepts only possitive angles.
+
+        Args:
+            vec (numpy.ndarray): The input vector of angles.
+
+        Returns:
+            numpy.ndarray: The new vector with converted angles.
+        """
         new_angle_vec = np.zeros_like(vec)
         for i in range(len(vec)):
             if vec[i] > 0:
@@ -99,8 +175,15 @@ class SelfExploration(object):
         return new_angle_vec
 
     def motor_publisher(self, base):
+        """
+        Publishes motor commands to control the robot's movement.
 
-        # print("Starting angular action movement ...")
+        Args:
+            base: The base object representing the robot's base.
+
+        Returns:
+            None
+        """
         action = Base_pb2.Action()
         action.name = "Example angular action movement"
         action.application_data = ""
@@ -137,12 +220,6 @@ class SelfExploration(object):
         finished = e.wait(TIMEOUT_DURATION)
         base.Unsubscribe(notification_handle)
 
-        # if finished:
-        #     print("Angular movement completed")
-        # else:
-        #     print("Timeout on action notification wait")
-
-        # Create closure to set an event after an END or an ABORT
     def check_for_end_or_abort(self, e):
         """Return a closure checking for END or ABORT notifications
 
@@ -159,6 +236,16 @@ class SelfExploration(object):
         return check
 
     def robot_config(self, delta_angle, sequence_len):
+        """
+        Configures the robot by creating a connection to the device and executing motor babbling.
+
+        Args:
+            delta_angle (float): The angle by which the robot's motors will be moved during motor babbling.
+            sequence_len (int): The length of the motor babbling sequence.
+
+        Returns:
+            int: 0 if the robot configuration is successful, 1 otherwise.
+        """
         # Import the utilities helper module
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
         import utilities
@@ -188,6 +275,7 @@ if __name__ == "__main__":
 
     delta_angle = 10
     amount_of_points = 30
+
     self_explorator = SelfExploration(robot_name)
     self_explorator.import_robot(file_path)
     self_explorator.robot_config(delta_angle, amount_of_points)

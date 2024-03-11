@@ -4,7 +4,6 @@ from matplotlib.animation import FuncAnimation
 import pandas as pd
 import robot
 from matplotlib.widgets import Slider, Button
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -17,6 +16,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 
 plt.rcParams.update({'font.size': 10})
 
+#HUMAN PARAMETERS
 number_arm_human_joints = 5
 number_head_human_joints = 3
 human_joints_head  = ['JOINT_LEFT_COLLAR', 'JOINT_NECK', 'JOINT_HEAD']
@@ -24,6 +24,16 @@ human_joints_left  = ['JOINT_LEFT_COLLAR', 'JOINT_LEFT_SHOULDER', 'JOINT_LEFT_EL
 human_joints_right = ['JOINT_RIGHT_COLLAR', 'JOINT_RIGHT_SHOULDER', 'JOINT_RIGHT_ELBOW', 'JOINT_RIGHT_WRIST', 'JOINT_RIGHT_HAND']
 
 def createRobotGraphs(robot):
+    """
+    Create robot graphs based on the given robot object.
+
+    Args:
+        robot: The robot object containing information about the joint angles.
+
+    Returns:
+        joint_dic: A dictionary containing the robot graphs, where the keys are the joint names
+                   and the values are instances of the Graph class.
+    """
     joint_dic = {}
     for i in range(len(robot.leftArmAngles)):
         joint_dic["jointLeft_" + str(i)] = robot_graph.Graph(i, "jointLeft_" + str(i))
@@ -36,8 +46,16 @@ def createRobotGraphs(robot):
     return joint_dic
 
 def extract_vectors(data):
+    """
+    Extracts angle vectors from the given data.
+
+    Args:
+        data (list): A list of dictionaries containing angle values.
+
+    Returns:
+        list: A list of angle vectors in radians.
+    """
     angles = data[0].keys()
-    # Create vectors for each angle
     angle_vectors = []
     for point in data:
         values = [point[i] for i in angles]
@@ -45,20 +63,52 @@ def extract_vectors(data):
     return angle_vectors
 
 def find_closest_point(new_point, kdtree):
+    """
+    Finds the closest point to the given new_point in the provided kdtree.
+
+    Args:
+        new_point (array-like): The coordinates of the new point.
+        kdtree (scipy.spatial.cKDTree): The kdtree containing the points.
+
+    Returns:
+        array-like: The coordinates of the closest point in the kdtree.
+    """
     distance, index = kdtree.query(new_point)
     return kdtree.data[index]
 
 def path_planning(demonstration, graph):
+    """
+    Plans a path based on a given demonstration and a graph.
+
+    Args:
+        demonstration (iterable): The demonstration data.
+        graph (Graph): The graph representing the environment.
+
+    Returns:
+        list: The planned path as a list of tuples.
+
+    """
     kdtree = KDTree(graph.get_nodes_values())
     path = []
     demonstration = list(demonstration)
     for i in demonstration:
         node = find_closest_point(i, kdtree)
         path.append(tuple(node))
-    # MSE, RMSE = error_calculation(demonstration, path)
     return path
 
 def plotPath(key, demonstration, predicted_path, path_from_library):
+    """
+    Plots the path of a robot in a 3D space.
+
+    Parameters:
+    - key (str): The key or name of the path.
+    - demonstration (ndarray): The coordinates of the points in the user demonstration.
+    - predicted_path (ndarray): The coordinates of the points in the predicted path.
+    - path_from_library (ndarray): The coordinates of the points in the path from the library.
+
+    Returns:
+    None
+    """
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     xdem = demonstration[:, 0]
@@ -103,6 +153,16 @@ def plotPath(key, demonstration, predicted_path, path_from_library):
     plt.show()
 
 def extract_action_from_library(actionName, library):
+    """
+    Extracts the robot pose for a given action name from the library.
+
+    Args:
+        actionName (str): The name of the action.
+        library (dict): The library containing the robot poses.
+
+    Returns:
+        dict: A dictionary containing the robot pose for each key in the library.
+    """
     robot_pose = {}
     for key in library:
         for item in library[key]:
@@ -111,6 +171,16 @@ def extract_action_from_library(actionName, library):
     return robot_pose
 
 def extract_angles_from_library(actionName, library):
+    """
+    Extracts the angles from a library of robot poses based on the given action name.
+
+    Parameters:
+    actionName (str): The name of the action to extract angles for.
+    library (dict): The library of robot poses.
+
+    Returns:
+    dict: A dictionary containing the extracted angles for each joint dependency.
+    """
     robot_pose = {}
     for key in library:
         for item in library[key]:
@@ -119,6 +189,20 @@ def extract_angles_from_library(actionName, library):
     return robot_pose
 
 def read_library_from_file(name, robotName):
+    """
+    Read library data from a file.
+
+    Args:
+        name (str): The name of the library.
+        robotName (str): The name of the robot.
+
+    Returns:
+        list: The library data read from the file.
+
+    Raises:
+        FileNotFoundError: If the file is not found.
+
+    """
     try:
         with open(name + "_" + robotName + "_data.json", "r") as jsonfile:
             data = [json.loads(line) for line in jsonfile.readlines()]
@@ -128,6 +212,15 @@ def read_library_from_file(name, robotName):
         return []
 
 def find_end_effectors_keys(dict):
+    """
+    Finds the keys corresponding to the maximum values of the 'jointLeft', 'jointRight', and 'jointHead' prefixes in a dictionary.
+
+    Args:
+        dict (dict): The dictionary containing the keys with the 'jointLeft', 'jointRight', and 'jointHead' prefixes.
+
+    Returns:
+        list: A list containing the keys with the maximum values for 'jointLeft', 'jointRight', and 'jointHead'.
+    """
     left_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointLeft')]
     right_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointRight')]
     head_numbers = [int(key.split('_')[1]) for key in dict if key.startswith('jointHead')]
@@ -141,54 +234,74 @@ def find_end_effectors_keys(dict):
 class Prediction(object):
 
     def __init__(self, file_path, name):
+        """
+        Initialize the PosePrediction class.
 
+        Args:
+            file_path (str): The file path to import the robot from.
+            name (str): The name of the robot.
+
+        Attributes:
+            robot (Robot): An instance of the Robot class.
+            base (float): The base distance of the robot.
+            robotName (str): The name of the robot.
+        """
         self.robot = robot.Robot(name)
         self.robot.import_robot(file_path)
         self.base = self.robot.baseDistance
         self.robotName = name
 
     def cartesian_to_spherical(self, cartesian_points):
-        # Convert Cartesian coordinates to spherical coordinates
-        r     = np.linalg.norm(cartesian_points, axis=1)                    # Radial distance
-        theta = np.arccos(cartesian_points[:, 2] / r)                       # Inclination angle
-        phi   = np.arctan2(cartesian_points[:, 1], cartesian_points[:, 0])  # Azimuth angle
+        """
+        Convert Cartesian coordinates to spherical coordinates.
 
-        # Set of points in spherical coordinates
-        # spherical_points = np.column_stack((r, theta, phi))
-        # return spherical_points
+        Parameters:
+        - cartesian_points (numpy.ndarray): Array of Cartesian coordinates with shape (N, 3).
+
+        Returns:
+        - theta (numpy.ndarray): Array of inclination angles with shape (N,).
+        - phi (numpy.ndarray): Array of azimuth angles with shape (N,).
+        """
+        r = np.linalg.norm(cartesian_points, axis=1)                    # Radial distance
+        theta = np.arccos(cartesian_points[:, 2] / r)                   # Inclination angle
+        phi = np.arctan2(cartesian_points[:, 1], cartesian_points[:, 0])  # Azimuth angle
         return theta, phi
 
-    def spherical_to_cartesian(self, spherical_points, robot):
-        r     = spherical_points[:, 0]      # Radial distance
-        theta = spherical_points[:, 1]      # Inclination angle
-        phi   = spherical_points[:, 2]      # Azimuth angle
-        # l,r,h = robot.forward_kinematics()
+    def extract_spherical_angles_from_human(self, left, right, head=[]):
+        """
+        Extracts spherical angles from the given human pose.
 
-        x = r * np.sin(theta) * np.cos(phi)
-        y = r * np.sin(theta) * np.sin(phi)
-        z = r * np.cos(theta)
+        Parameters:
+        - left: numpy array representing the left pose keypoints
+        - right: numpy array representing the right pose keypoints
+        - head: numpy array representing the head pose keypoints (optional)
 
-        # Set of points in Cartesian coordinates
-        cartesian_points = np.column_stack((x, y, z))
-        return cartesian_points
-
-    def extract_spherical_angles_from_human(self, left, right, head = []):
+        Returns:
+        - left_theta: numpy array of theta angles for the left pose keypoints
+        - left_phi: numpy array of phi angles for the left pose keypoints
+        - right_theta: numpy array of theta angles for the right pose keypoints
+        - right_phi: numpy array of phi angles for the right pose keypoints
+        - head_theta: numpy array of theta angles for the head pose keypoints
+        - head_phi: numpy array of phi angles for the head pose keypoints
+        """
         left_theta, left_phi = self.cartesian_to_spherical(np.diff(left, axis=0))
         right_theta, right_phi = self.cartesian_to_spherical(np.diff(right, axis=0))
         head_theta, head_phi = self.cartesian_to_spherical(np.diff(head, axis=0))
         return left_theta, left_phi, right_theta, right_phi, head_theta, head_phi
 
     def robot_embodiment(self, angles_left, angles_right, angles_head):
+        """
+        Calculates the forward kinematics of the robot based on the given joint angles.
 
-        # left_shoulder_pitch -> 0
-        # left_shoulder_roll --> 1
-        # left_elbow_roll -----> 2
-        # right_shoulder_pitch-> 3
-        # right_shoulder_roll -> 4
-        # right_elbow_roll ----> 5
-        # head_yaw ------------> 6
-        # head_pitch-----------> 7
+        Args:
+            angles_left (numpy.ndarray): Array of joint angles for the left side of the robot.
+            angles_right (numpy.ndarray): Array of joint angles for the right side of the robot.
+            angles_head (numpy.ndarray): Array of joint angles for the head of the robot.
 
+        Returns:
+            Tuple[List[List[float]], List[List[float]], List[List[float]]]: A tuple containing the forward kinematics
+            matrices for the left side, right side, and head of the robot, respectively.
+        """
         angles = np.concatenate((angles_left, angles_right, angles_head), axis=None)
         if self.robotName == "qt":
             l, r, h = self.robot.forward_kinematics_qt(angles)
@@ -199,21 +312,72 @@ class Prediction(object):
         return self.matrix_array_to_list_list(l), self.matrix_array_to_list_list(r), self.matrix_array_to_list_list(h)
 
     def matrix_array_to_list_list(self, vec):
+        """
+        Converts a matrix array to a list of lists.
+
+        Args:
+            vec (numpy.ndarray): The matrix array to be converted.
+
+        Returns:
+            numpy.ndarray: The converted list of lists.
+        """
         new_list = [list(i) for i in vec]
-        return np.around(np.array(new_list), decimals = 2)
+        return np.around(np.array(new_list), decimals=2)
 
     def vectorise_string(self, vec):
+        """
+        Converts a string representation of a vector into a list of floats.
+
+        Args:
+            vec (str): The string representation of the vector.
+
+        Returns:
+            list: A list of floats representing the vector.
+
+        Example:
+            >>> vectorise_string('[1.0, 2.0, 3.0]')
+            [1.0, 2.0, 3.0]
+        """
         aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
         data = np.array(aux_data.split())
         return list(data[0:3].astype(float))
 
     def vectorise_spherical_data(self, vec):
+        """
+        Converts a spherical vector into a list of float values.
+
+        Args:
+            vec (str): The spherical vector to be converted.
+
+        Returns:
+            list: A list of float values representing the spherical vector.
+
+        Example:
+            vec = "[1.0, 2.0, 3.0]"
+            result = vectorise_spherical_data(vec)
+            # Output: [1.0, 2.0, 3.0]
+        """
         aux_data = ''.join([i for i in vec if not (i=='[' or i==']' or i==',')])
         data = np.array(aux_data.split())
         #+1 for QT, human has 4 angles and QT 3
         return list(data[0:self.robot.dof_arm + 1].astype(float))
 
     def read_csv_combined(self, df, action, user):
+        """
+        Read and process a CSV file containing pose data for a specific action and user.
+
+        Args:
+            df (pandas.DataFrame): The DataFrame containing the pose data.
+            action (str): The action to filter the data by.
+            user (str): The user to filter the data by.
+
+        Returns:
+            tuple: A tuple containing four numpy arrays:
+                - left_side: An array of pose data for the left side of the body.
+                - right_side: An array of pose data for the right side of the body.
+                - head: An array of pose data for the head.
+                - time: An array of timestamps corresponding to each pose data entry.
+        """
         left_side = []
         right_side = []
         head = []
@@ -244,13 +408,28 @@ class Prediction(object):
         return np.array(left_side), np.array(right_side), np.array(head), np.array(time)
 
     def read_recorded_action_csv(self, df, action, user):
+        """
+        Read recorded action data from a CSV file.
+
+        Args:
+            df (pandas.DataFrame): The DataFrame containing the action data.
+            action (str): The action being performed.
+            user (str): The user who performed the action.
+
+        Returns:
+            tuple: A tuple containing numpy arrays of the left side, right side, head, and time data.
+
+        Raises:
+            KeyError: If the required columns are not found in the DataFrame.
+
+        """
         left_side = []
         right_side = []
         head = []
         time = []
         np_array = {'np': np, 'array': np.array}
         try:
-           for i in range(len(df)):
+            for i in range(len(df)):
                 time.append(df['timestamp'].iloc[i])
 
                 aux_arm = eval(df['left'].iloc[i], np_array)
@@ -272,6 +451,24 @@ class Prediction(object):
         return np.array(left_side), np.array(right_side), np.array(head), np.array(time)
 
     def read_training_data(self, file_name):
+        """
+        Read training data from a file and preprocess it.
+
+        Args:
+            file_name (str): The name of the file containing the training data.
+
+        Returns:
+            tuple: A tuple containing the preprocessed training data arrays. The order of the arrays is as follows:
+                - theta_left (ndarray): The vectorized spherical data for the left arm human theta angles.
+                - phi_left (ndarray): The vectorized spherical data for the left arm human phi angles.
+                - theta_right (ndarray): The vectorized spherical data for the right arm human theta angles.
+                - phi_right (ndarray): The vectorized spherical data for the right arm human phi angles.
+                - theta_head (ndarray): The vectorized spherical data for the head human theta angles.
+                - phi_head (ndarray): The vectorized spherical data for the head human phi angles.
+                - left_arm_robot (ndarray): The vectorized spherical data for the left arm robot angles.
+                - right_arm_robot (ndarray): The vectorized spherical data for the right arm robot angles.
+                - head_robot (ndarray): The vectorized spherical data for the head robot angles.
+        """
         df = self.read_file(file_name)
         theta_left = np.array([self.vectorise_spherical_data(i) for i in df['left_arm_human_theta']])
         theta_right = np.array([self.vectorise_spherical_data(i) for i in df['right_arm_human_theta']])
@@ -285,6 +482,24 @@ class Prediction(object):
         return theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot
 
     def save_mapping_csv(self, file_name, action, user, lht, lhp, hht, rht, rhp, hhp, ra):
+        """
+        Saves the mapping data to a CSV file.
+
+        Args:
+            file_name (str): The name of the CSV file.
+            action (str): The action associated with the mapping data.
+            user (str): The participant ID associated with the mapping data.
+            lht (float): The left arm human theta value.
+            lhp (float): The left arm human phi value.
+            hht (float): The head human theta value.
+            rht (float): The right arm human theta value.
+            rhp (float): The right arm human phi value.
+            hhp (float): The head human phi value.
+            ra (list): The robot arm values.
+
+        Returns:
+            None
+        """
         df = pd.read_csv(file_name + ".csv")
         for i in range(len(df)):
             if action == df['action'][i] and user == df['participant_id'][i]:
@@ -303,6 +518,14 @@ class Prediction(object):
         df.to_csv(file_name + ".csv")
 
     def create_3d_plot(self):
+        """
+        Create a 3D plot with two subplots.
+
+        Returns:
+            fig (matplotlib.figure.Figure): The figure object.
+            ax1 (matplotlib.axes._subplots.Axes3DSubplot): The first subplot.
+            ax2 (matplotlib.axes._subplots.Axes3DSubplot): The second subplot.
+        """
         fig = plt.figure(figsize=(12, 5))
         # ax1 = fig.add_subplot(121, projection='3d')
         # ax2 = fig.add_subplot(122, projection='3d')
@@ -344,6 +567,18 @@ class Prediction(object):
         return fig, ax1, ax2
 
     def plot_animation_3d(self, point_clouds_list):
+        """
+        Plot a 3D animation of point clouds.
+
+        Args:
+            point_clouds_list (list): A list of tuples, each containing 6 point clouds.
+
+        Raises:
+            ValueError: If the input data is not a list of tuples, each containing 6 point clouds.
+
+        Returns:
+            None
+        """
         if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
             raise ValueError("Invalid input data. Expecting a list of tuples, each containing 5 point clouds")
 
@@ -409,22 +644,69 @@ class Prediction(object):
         plt.show()
 
     def read_file(self, name):
+        """
+        Reads a CSV file from the './data/' directory.
+
+        Args:
+            name (str): The name of the file (without the extension).
+
+        Returns:
+            pandas.DataFrame: The contents of the CSV file as a DataFrame.
+        """
         return pd.read_csv('./data/' + name + '.csv')
 
-    def train_pytorch(self, robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs = 500):
-        # Create a custom PyTorch model class
+    def train_pytorch(self, robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, num_epochs=500):
+        """
+        Trains a PyTorch model for pose prediction.
+
+        Args:
+            robot (Robot): The robot object.
+            theta_left (ndarray): The theta values for the left arm.
+            phi_left (ndarray): The phi values for the left arm.
+            theta_right (ndarray): The theta values for the right arm.
+            phi_right (ndarray): The phi values for the right arm.
+            theta_head (ndarray): The theta values for the head.
+            phi_head (ndarray): The phi values for the head.
+            left_arm_robot (ndarray): The left arm robot data.
+            right_arm_robot (ndarray): The right arm robot data.
+            head_robot (ndarray): The head robot data.
+            num_epochs (int, optional): The number of training epochs. Defaults to 500.
+
+        Returns:
+            None
+        """
         class MultiOutputModel(nn.Module):
             def __init__(self):
+                """
+                Initializes a MultiOutputModel object.
+
+                This function sets up the layers of the model for pose prediction.
+                It creates a shared layer followed by separate layers for the left arm,
+                right arm, and head predictions.
+
+                Args:
+                    None
+
+                Returns:
+                    None
+                """
                 super(MultiOutputModel, self).__init__()
                 self.shared_layer1 = nn.Linear(20, 128)
-                # self.shared_layer2 = nn.Linear(128, 128)
                 self.left_arm_layer = nn.Linear(128, robot.dof_arm)
                 self.right_arm_layer = nn.Linear(128, robot.dof_arm)
                 self.head_layer = nn.Linear(128, 2)
 
             def forward(self, x):
+                """
+                Forward pass of the pose_prediction model.
+
+                Args:
+                    x (torch.Tensor): Input tensor.
+
+                Returns:
+                    Tuple[torch.Tensor]: Tuple containing the output tensors for the left arm, right arm, and head.
+                """
                 x = torch.relu(self.shared_layer1(x))
-                # x = torch.tanh(self.shared_layer2(x))
                 left_arm_output = self.left_arm_layer(x)
                 right_arm_output = self.right_arm_layer(x)
                 head_output = self.head_layer(x)
@@ -500,10 +782,23 @@ class Prediction(object):
         plt.ylabel('Loss')
         plt.legend()
         plt.grid()
-        # plt.savefig('nn_performace/MSELoss16-2000NAO.pdf', format='pdf')
+        # plt.savefig('nn_performace/MSELoss16-2000'+ self.robotName +'.pdf', format='pdf')
         # plt.show()
 
     def dicts_to_lists(self, left, right, head):
+        """
+        Convert dictionaries of joint positions to lists.
+
+        Args:
+            left (dict): Dictionary containing joint positions for the left side of the body.
+            right (dict): Dictionary containing joint positions for the right side of the body.
+            head (dict): Dictionary containing joint positions for the head.
+
+        Returns:
+            left_side (numpy.ndarray): Array containing joint positions for the left side of the body.
+            right_side (numpy.ndarray): Array containing joint positions for the right side of the body.
+            head_ (numpy.ndarray): Array containing joint positions for the head.
+        """
         left_side = []
         right_side = []
         head_ = []
@@ -516,6 +811,17 @@ class Prediction(object):
         return np.array(left_side), np.array(right_side), np.array(head_)
 
     def predict_pytorch(self, left_input, right_input, head_input):
+        """
+        Predicts the pose using a PyTorch model.
+
+        Args:
+            left_input (numpy.ndarray): The input data for the left arm.
+            right_input (numpy.ndarray): The input data for the right arm.
+            head_input (numpy.ndarray): The input data for the head.
+
+        Returns:
+            tuple: A tuple containing the predicted poses for the left arm, right arm, and head.
+        """
         theta_left, phi_left, theta_right, phi_right, theta_head, phi_head = self.extract_spherical_angles_from_human(left_input, right_input, head_input)
         theta_head = [0, 0]
         phi_head = [0, 0]
@@ -531,6 +837,16 @@ class Prediction(object):
         return left_arm_pred, right_arm_pred, head_pred
 
     def plot_angle_sequence(self, data_1, data_2 = []):
+        """
+        Plots the angle sequence for given data.
+
+        Args:
+            data_1 (list): List of angle data for the first set of joints.
+            data_2 (list, optional): List of angle data for the second set of joints. Defaults to [].
+
+        Returns:
+            None
+        """
         columns_1 = np.array(data_1).T
         columns_2 = np.array(data_2).T
 
@@ -571,11 +887,31 @@ class Prediction(object):
         plt.show()
 
     def group_matrix(self, data):
+        """
+        Groups the data by columns.
+
+        Args:
+            data (list): A list of arrays representing the data.
+
+        Returns:
+            list: A list of arrays, where each array contains the elements from the corresponding column of the input data.
+        """
         grouped_data = list(zip(*data))
         grouped_arrays = [np.array(group) for group in grouped_data]
         return grouped_arrays
 
-    def mat_to_dict_per_joint(self, paths_left, paths_right = [], paths_head = []):
+    def mat_to_dict_per_joint(self, paths_left, paths_right=[], paths_head=[]):
+        """
+        Convert matrices to dictionaries per joint.
+
+        Args:
+            paths_left (list): List of matrices for the left joints.
+            paths_right (list, optional): List of matrices for the right joints. Defaults to [].
+            paths_head (list, optional): List of matrices for the head joints. Defaults to [].
+
+        Returns:
+            None
+        """
         paths_left = self.group_matrix(paths_left)
         paths_right = self.group_matrix(paths_right)
         paths_head = self.group_matrix(paths_head)
@@ -588,45 +924,79 @@ class Prediction(object):
             self.robot.robotDict["jointHead_" + str(count)] = paths_head[count]
 
     def plot_3d_paths(self, paths):
-        num_points, num_paths, _ = paths.shape
-        # Calculate the number of rows and columns based on the desired layout
-        num_rows = (num_paths + 2) // 3  # Ensure there are enough rows for all paths
-        num_cols = min(num_paths, 3)
-        fig, axs = plt.subplots(num_rows, num_cols, figsize=(15, 4 * num_rows), subplot_kw={'projection': '3d'})
-        for i in range(num_paths):
-            row = i // 3
-            col = i % 3
-            # Extract X, Y, Z coordinates
-            x, y, z = paths[:, i, :].T
-            axs[row, col].scatter(x, y, z, s=10) # label=f'Joint {i}'
-            axs[row, col].plot(x, y, z, color='grey', linestyle='dashed') # label=f'Joint {i}'
-            # Highlight
-            axs[row, col].scatter(x[0], y[0], z[0], color='green', s=50, label='Start Point')
-            axs[row, col].scatter(x[-1], y[-1], z[-1], color='red', s=50, label='End Point')
-            axs[row, col].set_xlabel('X [mm]')
-            axs[row, col].set_ylabel('Y [mm]')
-            axs[row, col].set_zlabel('Z [mm]')
-            axs[row, col].set_title(f'Joint {i}')
-        handles, labels = axs[0, 0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc='lower right')
-        # Remove empty subplots
-        for i in range(num_paths, num_rows * num_cols):
-            fig.delaxes(axs.flatten()[i])
-        plt.tight_layout()
-        plt.show()
+            """
+            Plots 3D paths for each joint.
+
+            Args:
+                paths (ndarray): Array of shape (num_points, num_paths, 3) containing the X, Y, Z coordinates of the paths.
+
+            Returns:
+                None
+            """
+            num_points, num_paths, _ = paths.shape
+            # Calculate the number of rows and columns based on the desired layout
+            num_rows = (num_paths + 2) // 3  # Ensure there are enough rows for all paths
+            num_cols = min(num_paths, 3)
+            fig, axs = plt.subplots(num_rows, num_cols, figsize=(15, 4 * num_rows), subplot_kw={'projection': '3d'})
+            for i in range(num_paths):
+                row = i // 3
+                col = i % 3
+                # Extract X, Y, Z coordinates
+                x, y, z = paths[:, i, :].T
+                axs[row, col].scatter(x, y, z, s=10) # label=f'Joint {i}'
+                axs[row, col].plot(x, y, z, color='grey', linestyle='dashed') # label=f'Joint {i}'
+                # Highlight
+                axs[row, col].scatter(x[0], y[0], z[0], color='green', s=50, label='Start Point')
+                axs[row, col].scatter(x[-1], y[-1], z[-1], color='red', s=50, label='End Point')
+                axs[row, col].set_xlabel('X [mm]')
+                axs[row, col].set_ylabel('Y [mm]')
+                axs[row, col].set_zlabel('Z [mm]')
+                axs[row, col].set_title(f'Joint {i}')
+            handles, labels = axs[0, 0].get_legend_handles_labels()
+            fig.legend(handles, labels, loc='lower right')
+            # Remove empty subplots
+            for i in range(num_paths, num_rows * num_cols):
+                fig.delaxes(axs.flatten()[i])
+            plt.tight_layout()
+            plt.show()
 
     def linear_angular_mapping_gen3(self, vec):
+        """
+        Maps the given vector of angles to the range [0, 2*pi].
+
+        Args:
+            vec (numpy.ndarray): The input vector of angles.
+
+        Returns:
+            numpy.ndarray: The mapped vector of angles.
+
+        """
         new_vec = []
         for l in vec:
             new_angle_vec = np.zeros_like(l)
             for i in range(len(l)):
-                if l[i] >=  0:
+                if l[i] >= 0:
                     new_angle_vec[i] = l[i]
                 else:
                     new_angle_vec[i] = 2*np.pi + l[i]
             new_vec.append(new_angle_vec)
         return np.array(new_vec)
 
+    def plot_animation_3d_labeling(self, point_clouds_list, initial_ra):
+        """
+        Plot a 3D animation of labeled point clouds with interactive sliders and a save button.
+
+        Args:
+            point_clouds_list (list): A list of tuples, each containing 6 point clouds.
+            initial_ra (list): A list of initial angles for the sliders.
+
+        Raises:
+            ValueError: If the input data is not in the expected format.
+
+        Returns:
+            None
+        """
+        # Function code here
     def plot_animation_3d_labeling(self, point_clouds_list, initial_ra):
         limits = list(self.robot.physical_limits_left.values()) + list(self.robot.physical_limits_right.values()) + list(self.robot.physical_limits_head.values())
         if not isinstance(point_clouds_list, list) or not all(isinstance(pc, tuple) and len(pc) == 6 for pc in point_clouds_list):
@@ -671,7 +1041,6 @@ class Prediction(object):
         for slider in sliders:
             slider.on_changed(lambda val, sliders=sliders: slider_update_func(val, sliders))
 
-
         def update(frame, ra):
             ra = np.array([slider.val for slider in sliders])  # Get the current values of sliders
             points1, points2, points3, points4, points5, points6 = point_clouds_list[frame]
@@ -712,9 +1081,7 @@ class Prediction(object):
 
         # Create animation
         animation = FuncAnimation(fig, update, frames=len(point_clouds_list), fargs=(initial_ra,), interval=100, blit=True)
-
         # plt.tight_layout()
-
         plt.show()
         plt.ioff()
 

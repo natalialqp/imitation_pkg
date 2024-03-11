@@ -15,6 +15,16 @@ right_angle_sequence = []
 head_angle_sequence = []
 
 def read_action_from_file(file_path):
+    """
+    Read action data from a CSV file.
+
+    Args:
+        file_path (str): The path to the CSV file.
+
+    Returns:
+        tuple: A tuple containing three lists: left_angle_sequence, right_angle_sequence, and head_angle_sequence.
+               Each list contains a sequence of angles corresponding to the left, right, and head actions, respectively.
+    """
     df = pd.read_csv(file_path)
     time_column = df['time']
     signal_columns = df.drop(columns=['time'])
@@ -28,22 +38,33 @@ def read_action_from_file(file_path):
     return left_angle_sequence, right_angle_sequence, head_angle_sequence
 
 def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
+    """
+    Publishes the joint angles to the robot.
+
+    Args:
+        left_arm_ang_pos (list): List of joint angles for the left arm.
+        right_arm_ang_pos (list): List of joint angles for the right arm.
+        head_ang_pos (list): List of joint angles for the head.
+
+    Returns:
+        None
+    """
     # Publish angles to robot
-        rospy.loginfo("publishing motor command...")
-        try:
-            ref_head = Float64MultiArray()
-            ref_right = Float64MultiArray()
-            ref_left = Float64MultiArray()
-            ref_head.data = head_ang_pos
-            ref_right.data = right_arm_ang_pos
-            ref_left.data = left_arm_ang_pos
-            head_pub.publish(ref_head)
-            right_pub.publish(ref_right)
-            left_pub.publish(ref_left)
-            rospy.sleep(0.4)
-        except rospy.ROSInterruptException:
-            rospy.logerr("could not publish motor command!")
-        rospy.loginfo("motor command published")
+    rospy.loginfo("publishing motor command...")
+    try:
+        ref_head = Float64MultiArray()
+        ref_right = Float64MultiArray()
+        ref_left = Float64MultiArray()
+        ref_head.data = head_ang_pos
+        ref_right.data = right_arm_ang_pos
+        ref_left.data = left_arm_ang_pos
+        head_pub.publish(ref_head)
+        right_pub.publish(ref_right)
+        left_pub.publish(ref_left)
+        rospy.sleep(0.4)
+    except rospy.ROSInterruptException:
+        rospy.logerr("could not publish motor command!")
+    rospy.loginfo("motor command published")
 
 if __name__ == '__main__':
     rospy.init_node('qt_motor_command')

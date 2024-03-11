@@ -16,7 +16,20 @@ color_iter = itertools.cycle(["deepskyblue", "cornflowerblue", "darkturquoise",
                                "lightblue", "mediumturquoise", "powderblue", "skyblue"])
 
 class GaussianMixturePlotter:
-    def __init__(self, robotName, actionName, angleId, n_components=10, babbled_points = 30, covariance_type="full", max_iter=150, random_state=2):
+    def __init__(self, robotName, actionName, angleId, n_components=10, babbled_points=30, covariance_type="full", max_iter=150, random_state=2):
+        """
+        Initialize the GMPlotter object.
+
+        Args:
+            robotName (str): The name of the robot.
+            actionName (str): The name of the action.
+            angleId (int): The ID of the angle.
+            n_components (int, optional): The number of mixture components. Defaults to 10.
+            babbled_points (int, optional): The number of babbled points. Defaults to 30.
+            covariance_type (str, optional): The type of covariance. Defaults to "full".
+            max_iter (int, optional): The maximum number of iterations. Defaults to 150.
+            random_state (int, optional): The random state. Defaults to 2.
+        """
         self.n_components = n_components
         self.covariance_type = covariance_type
         self.max_iter = max_iter
@@ -27,6 +40,17 @@ class GaussianMixturePlotter:
         self.babbled_points = babbled_points
 
     def fit_gaussian_mixture(self, X):
+        """
+        Fits a Gaussian Mixture Model to the given data.
+
+        Parameters:
+        - X: array-like, shape (n_samples, n_features)
+            The input data.
+
+        Returns:
+        - gmm: GaussianMixture object
+            The fitted Gaussian Mixture Model.
+        """
         gmm = mixture.GaussianMixture(
             n_components=self.n_components,
             covariance_type=self.covariance_type,
@@ -36,6 +60,16 @@ class GaussianMixturePlotter:
         return gmm
 
     def save_gmr(self, x_smooth_range, y_smooth_range):
+        """
+        Save the Gaussian Mixture Regression (GMR) data to a CSV file.
+
+        Args:
+            x_smooth_range (numpy.ndarray): The smoothed range of x values.
+            y_smooth_range (numpy.ndarray): The smoothed range of y values.
+
+        Returns:
+            None
+        """
         file_path = "data/test_" + self.robotName + "/GMM_learned_actions/" + "GMR_" + str(self.babbled_points) + "_" + self.actionName + '.csv'
         if not os.path.isfile(file_path):
             header = 'time'
@@ -59,12 +93,38 @@ class GaussianMixturePlotter:
             np.savetxt(file_path, existing_data, delimiter=',', header=header, comments='')
 
     def smooth_curve(self, x, y, window_size=10):
-        # Apply a simple moving average to smooth the curve
+        """
+        Smooths a curve using a simple moving average.
+
+        Parameters:
+        - x (array-like): The x-coordinates of the curve.
+        - y (array-like): The y-coordinates of the curve.
+        - window_size (int): The size of the moving average window.
+
+        Returns:
+        - x_smooth (array-like): The smoothed x-coordinates.
+        - y_smooth (array-like): The smoothed y-coordinates.
+        """
         y_smooth = np.convolve(y, np.ones(window_size)/window_size, mode='valid')
         x_smooth = x[:len(y_smooth)]
         return x_smooth, y_smooth
 
     def plot_results(self, X, Y, avg_signal, means, covariances, index, title):
+        """
+        Plot the results of the Gaussian Mixture Model.
+
+        Args:
+            X (numpy.ndarray): The input data points.
+            Y (numpy.ndarray): The cluster labels for each data point.
+            avg_signal (numpy.ndarray): The average signal.
+            means (list): The means of the Gaussian components.
+            covariances (list): The covariances of the Gaussian components.
+            index (int): The index of the subplot.
+            title (str): The title of the plot.
+
+        Returns:
+            None
+        """
         splot = plt.subplot(2, 1, 1 + index)
         for i, (mean, covar, color) in enumerate(zip(means, covariances, color_iter)):
             v, w = linalg.eigh(covar)
@@ -109,11 +169,33 @@ class GaussianMixturePlotter:
         plt.legend()
 
     def impute_nan_values(self, data):
+        """
+        Imputes missing values in the given data using the mean strategy.
+
+        Parameters:
+            data (array-like): The input data with missing values.
+
+        Returns:
+            array-like: The imputed data with missing values replaced by the mean.
+
+        """
         from sklearn.impute import SimpleImputer
         imputer = SimpleImputer(strategy='mean')
         return imputer.fit_transform(data)
 
     def test_gmr(self, data, time, title, n_components=3):
+        """
+        Perform Gaussian Mixture Regression (GMR) on the given data.
+
+        Args:
+            data (numpy.ndarray): The data points.
+            time (numpy.ndarray): The corresponding time values.
+            title (str): The title for the plot.
+            n_components (int, optional): The number of Gaussian components. Defaults to 3.
+
+        Returns:
+            None
+        """
         X = np.ndarray((len(time), 2))
         X[:, 0] = time
         X[:, 1] = data
@@ -138,6 +220,17 @@ class GaussianMixturePlotter:
         self.save_gmr(X_test, Y.ravel())
 
 def arange_time_array(time, arr, chunk_size=100):
+    """
+    Rearranges the time and array data into chunks of specified size.
+
+    Args:
+        time (array-like): The time data.
+        arr (array-like): The array data.
+        chunk_size (int, optional): The size of each chunk. Defaults to 100.
+
+    Returns:
+        numpy.ndarray: A 2D array containing the rearranged time and array data.
+    """
     time = np.array(time)
     time = time.reshape(int(time.shape[0]/chunk_size), chunk_size)
     add = np.linspace(0, 0.0001, chunk_size)
@@ -149,6 +242,22 @@ def arange_time_array(time, arr, chunk_size=100):
     return np.vstack((reordered_time, reordered_list)).T
 
 def eval(time, smoothed_angles, avg_signal, babbled_points, robotName, actionName, angleId, n_components):
+    """
+    Evaluate and plot Gaussian Mixture Model (GMM) results.
+
+    Args:
+        time (array-like): Array of time values.
+        smoothed_angles (array-like): Array of smoothed angle values.
+        avg_signal (array-like): Array of average signal values.
+        babbled_points (array-like): Array of babbled points.
+        robotName (str): Name of the robot.
+        actionName (str): Name of the action.
+        angleId (str): ID of the angle.
+        n_components (int): Number of components for the GMM.
+
+    Returns:
+        None
+    """
     X = arange_time_array(time, smoothed_angles)
     title = " - " + robotName.upper() + " Joint " + angleId + " - " + actionName
     plt.figure(figsize=(10, 10))

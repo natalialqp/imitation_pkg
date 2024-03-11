@@ -13,10 +13,28 @@ import time
 class SelfExploration(object):
 
     def __init__(self, robot_name):
+        """
+        Initializes the SubscribeNode class.
+
+        Args:
+            robot_name (str): The name of the robot.
+
+        Attributes:
+            motor_babbling_recording (dict): A dictionary to store motor babbling recordings for each arm and head.
+            right_pub (rospy.Publisher): A publisher for the right arm position command.
+            left_pub (rospy.Publisher): A publisher for the left arm position command.
+            head_pub (rospy.Publisher): A publisher for the head position command.
+            current_ang_pos_arm (numpy.ndarray): An array to store the current angular positions of the arm.
+            current_ang_pos_head (numpy.ndarray): An array to store the current angular positions of the head.
+            current_tor_head (numpy.ndarray): An array to store the current torques of the head.
+            current_tor_arm (numpy.ndarray): An array to store the current torques of the arm.
+            key (str): A key for some functionality.
+            robot_name (str): The name of the robot.
+        """
         self.motor_babbling_recording = {'left': [], 'right': [], 'head': []}
-        self.right_pub = rospy.Publisher('/qt_robot/right_arm_position/command', Float64MultiArray, queue_size = 10)
-        self.left_pub = rospy.Publisher('/qt_robot/left_arm_position/command', Float64MultiArray, queue_size = 10)
-        self.head_pub = rospy.Publisher('/qt_robot/head_position/command', Float64MultiArray, queue_size = 10)
+        self.right_pub = rospy.Publisher('/qt_robot/right_arm_position/command', Float64MultiArray, queue_size=10)
+        self.left_pub = rospy.Publisher('/qt_robot/left_arm_position/command', Float64MultiArray, queue_size=10)
+        self.head_pub = rospy.Publisher('/qt_robot/head_position/command', Float64MultiArray, queue_size=10)
         self.current_ang_pos_arm = np.zeros((3))
         self.current_ang_pos_head = np.zeros((2))
         self.current_tor_head = np.zeros((2))
@@ -25,11 +43,29 @@ class SelfExploration(object):
         self.robot_name = robot_name
 
     def import_robot(self, file_path):
-        #Read robot configuration from the .yaml file
+        """
+        Imports a robot from a file.
+
+        Args:
+            file_path (str): The path to the file containing the robot data.
+
+        Returns:
+            None
+        """
         self.rob = robot.Robot(self.robot_name)
         self.rob.import_robot(file_path)
 
     def motor_babbling(self, delta_angle, sequence_len):
+        """
+        Perform motor babbling by randomly moving the robot's joints to collect joint angle data.
+
+        Parameters:
+        delta_angle (float): The maximum angle by which each joint can be randomly moved.
+        sequence_len (int): The desired length of the joint angle sequence to be collected.
+
+        Returns:
+        None
+        """
         self.joint_angle_publisher()
         waiting = 0
         for key in self.motor_babbling_recording:
@@ -55,14 +91,22 @@ class SelfExploration(object):
                     if added:
                         self.current_ang_pos_arm = new_ang_pos_arm.copy()
                 self.joint_angle_publisher()
-
             end = time.perf_counter()
             elapsed = (end - start) / 60
             print(f'Time taken {key}: {elapsed:.4f} minutes')
 
     def add_config(self, candidate_pos):
+        """
+        Adds a candidate position to the motor babbling recording if it is within the limits and not already present.
+
+        Args:
+            candidate_pos (list): The candidate position to be added.
+
+        Returns:
+            bool: True if the candidate position was successfully added, False otherwise.
+        """
         added = False
-        candidate_pos = list(np.round(candidate_pos, decimals = 2))
+        candidate_pos = list(np.round(candidate_pos, decimals=2))
         inside_limits = self.check_limits(candidate_pos)
         if inside_limits:
             if candidate_pos not in self.motor_babbling_recording[self.key]:
@@ -71,6 +115,15 @@ class SelfExploration(object):
         return added
 
     def check_limits(self, candidate_pos):
+        """
+        Check if the candidate position is within the physical limits of the robot.
+
+        Args:
+            candidate_pos (list): The candidate position to be checked.
+
+        Returns:
+            bool: True if the candidate position is within the physical limits, False otherwise.
+        """
         inside_limits = True
         if self.key == "head":
             limits = self.rob.physical_limits_head
@@ -83,8 +136,10 @@ class SelfExploration(object):
 
     def qt_joint_state_cb(self, joint_state_msg):
         '''
-        This function saves the recorded_positions taken from the robot's sensors
-        Input: joint_state_msg
+        This function saves the recorded_positions taken from the robot's sensors.
+
+        Args:
+            joint_state_msg: The joint state message containing the position and effort values.
         '''
         if 'head' in self.key:
             self.current_ang_pos_head = [joint_state_msg.position[0], joint_state_msg.position[1]]
@@ -100,6 +155,13 @@ class SelfExploration(object):
             # rospy.loginfo(self.current_ang_pos_arm)
 
     def check_torque(self):
+        """
+        Checks the torque values for different joints based on the current key.
+
+        Returns:
+            collision (bool): True if there is a collision, False otherwise.
+            collision_joints (list): List of joints that are in collision.
+        """
         #torque for HeadPitch (+) torque after force applied
         #torque for HeadYaw (+/-) in different directions -> stable is 0
         collision = False
@@ -153,6 +215,16 @@ class SelfExploration(object):
         return collision, collision_joints
 
     def random_distribution(self, delta_angle):
+        """
+        Generates a random distribution of angles based on the current key.
+
+        Args:
+            delta_angle (float): The angle increment.
+
+        Returns:
+            numpy.ndarray: An array of angles representing the random distribution.
+
+        """
         collision, joint_list = self.check_torque()
         print("COLLISION: ", collision, joint_list)
         sign = random.choice([-1, 1])
@@ -180,6 +252,15 @@ class SelfExploration(object):
         return np.array(zeros)
 
     def random_angles(self, delta_angle):
+        """
+        Generates random angles within specified limits for the robot joints.
+
+        Args:
+            delta_angle (int): The increment value for generating random angles.
+
+        Returns:
+            numpy.ndarray: An array of random angles for the robot joints.
+        """
         collision, joint_list = self.check_torque()
         zeros = []
         if "head" in self.key:
@@ -203,36 +284,61 @@ class SelfExploration(object):
         return np.array(zeros)
 
     def joint_angle_publisher(self):
-        # Publish angles to robot
-        # wait for publisher/subscriber connections
-            wtime_begin = rospy.get_time()
-            while (self_explorator.right_pub.get_num_connections() == 0):
-                rospy.loginfo("waiting for subscriber connections...")
-                if rospy.get_time() - wtime_begin > 10.0:
-                    rospy.logerr("Timeout while waiting for subscribers connection!")
-                    sys.exit()
-                rospy.sleep(1)
-            rospy.loginfo("publishing motor command...")
-            try:
-                if 'head' in self.key:
-                    ref_head = Float64MultiArray()
-                    ref_head.data = [self.current_ang_pos_head[0], self.current_ang_pos_head[1]]
-                    self_explorator.head_pub.publish(ref_head)
-                elif 'right' in self.key:
-                    ref_right = Float64MultiArray()
-                    ref_right.data = [self.current_ang_pos_arm[0], self.current_ang_pos_arm[1], self.current_ang_pos_arm[2]]
-                    self_explorator.right_pub.publish(ref_right)
-                elif 'left' in self.key:
-                    ref_left = Float64MultiArray()
-                    ref_left.data = [self.current_ang_pos_arm[0], self.current_ang_pos_arm[1], self.current_ang_pos_arm[2]]
-                    self_explorator.left_pub.publish(ref_left)
-                rospy.sleep(2)
-            except rospy.ROSInterruptException:
-                rospy.logerr("could not publish motor command!")
-            rospy.loginfo("motor command published")
+        """
+        Publishes motor commands based on the current angle positions of the joints.
+
+        This function waits for subscriber connections and then publishes motor commands to the appropriate topic
+        based on the value of the 'key' attribute. If 'key' contains 'head', the motor command is published to the
+        'head_pub' topic. If 'key' contains 'right', the motor command is published to the 'right_pub' topic. If
+        'key' contains 'left', the motor command is published to the 'left_pub' topic.
+
+        The motor command is constructed using the current angle positions of the joints stored in the
+        'current_ang_pos_head' and 'current_ang_pos_arm' attributes.
+
+        This function also includes a timeout mechanism to prevent waiting indefinitely for subscriber connections.
+
+        Raises:
+            rospy.ROSInterruptException: If there is an error while publishing the motor command.
+
+        """
+        wtime_begin = rospy.get_time()
+        while (self_explorator.right_pub.get_num_connections() == 0):
+            rospy.loginfo("waiting for subscriber connections...")
+            if rospy.get_time() - wtime_begin > 10.0:
+                rospy.logerr("Timeout while waiting for subscribers connection!")
+                sys.exit()
+            rospy.sleep(1)
+        rospy.loginfo("publishing motor command...")
+        try:
+            if 'head' in self.key:
+                ref_head = Float64MultiArray()
+                ref_head.data = [self.current_ang_pos_head[0], self.current_ang_pos_head[1]]
+                self_explorator.head_pub.publish(ref_head)
+            elif 'right' in self.key:
+                ref_right = Float64MultiArray()
+                ref_right.data = [self.current_ang_pos_arm[0], self.current_ang_pos_arm[1], self.current_ang_pos_arm[2]]
+                self_explorator.right_pub.publish(ref_right)
+            elif 'left' in self.key:
+                ref_left = Float64MultiArray()
+                ref_left.data = [self.current_ang_pos_arm[0], self.current_ang_pos_arm[1], self.current_ang_pos_arm[2]]
+                self_explorator.left_pub.publish(ref_left)
+            rospy.sleep(2)
+        except rospy.ROSInterruptException:
+            rospy.logerr("could not publish motor command!")
+        rospy.loginfo("motor command published")
 
     def execute_online(self, delta_angle, amount_of_points):
-        # wait for publisher/subscriber connections
+        """
+        Executes the online motor command by waiting for subscriber connections,
+        publishing the motor command, and handling any exceptions.
+
+        Args:
+            delta_angle (float): The delta angle for the motor command.
+            amount_of_points (int): The number of points for the motor command.
+
+        Returns:
+            None
+        """
         wtime_begin = rospy.get_time()
         while (self.right_pub.get_num_connections() == 0):
             rospy.loginfo("waiting for subscriber connections...")
