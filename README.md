@@ -10,7 +10,7 @@
 *
 -->
 
-<h1>Learning from Demonstration<sup>®</sup> Framework</h1>
+<h1>Graph-Based Learning from Demonstration Framework<sup>®</sup></h1>
 
 <a id="markdown-description" name="description"></a>
 # Description
@@ -27,26 +27,6 @@ The repository has been tested on Ubuntu 20.04.
 - [Reference](#reference)
       - [Useful Links](#useful-links)
 
-<!-- /TOC -->
-
-<a id="markdown-licensing" name="licensing"></a>
-# Licensing 
-This repository is licenced under the [BSD 3-Clause "Revised" License](./LICENSE) 
-
-<a id="markdown-role-of-google-protobuf-in-kortex-api" name="role-of-google-protobuf-in-kortex-api"></a>
-# Role of Google Protocol Buffer in Kortex API 
-
-The Kortex API uses Google Protocol Buffer message objects<sup>**[1](#useful-links)**</sup> to exchange data between client and server.  
-
-Google Protocol Buffer offers structured data objects with standard methods for each member field:  
-+ structured, nested objects
-+ basic types and collections
-+ getter/setter methods on basic types
-+ iterators, dimension and appending methods on collections
-+ many helpers (e.g. serialize/deserialize, I/O functions)
-  
-
-<a id="markdown-quick-start-howto-python" name="quick-start-howto-python"></a>
 ## Quick Start 
 
   To run the Python examples you will need to install the Python interpreter and the pip installation module.
@@ -59,5 +39,7 @@ Google Protocol Buffer offers structured data objects with standard methods for 
 #### Useful Links
 |  |  |
 | ---: | --- |
-| Kinova home page: | [https://www.kinovarobotics.com](https://www.kinovarobotics.com)|
-| Google Protocol Buffers home page: | [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers) |
+| QTrobot quick start: | [https://docs.luxai.com/docs/intro_code](https://docs.luxai.com/docs/intro_code) |
+| Kinova kortex: | [https://www.kinovarobotics.com](https://github.com/Kinovarobotics/kortex)|
+| NAO documentation: | [http://doc.aldebaran.com/2-8/family/nao_technical/index_naov6.html](http://doc.aldebaran.com/2-8/family/nao_technical/index_naov6.html)|
+| GMR repository: | [https://github.com/AlexanderFabisch/gmr](https://github.com/AlexanderFabisch/gmr)|
