@@ -23,18 +23,50 @@ The repository has been tested on Ubuntu 20.04.
 <!-- TOC -->
 
 - [Description](#description)
-- [Licensing](#licensing)
+- [Quick Start](#quickstart)
 - [Reference](#reference)
       - [Useful Links](#useful-links)
 
+## Description
+
+This repository stores the learning from demonstration framework. It focuses on the upper-body limb for the robots QTrobot, NAO and Freddy (2 Kinova arms Gen3 on a Kelo base).
+You are going to find main code in the file main.py. The one has different options to perform different steps of learning from demonstration.
+
+For the main file:
+      - Add the name of the robot (qt, nao or gen3)
+      - Define the amount of babbling points (30, 100 or 150)
+      - Select the corresponding flag to run the desired function: 
+            - explore-world: to interpolate points between collected babbling points
+            - pose-predicition: to iterate over the 12 pre-recorded actions and increase the graphs reachability 
+            - path-planning: to perform path planning for the pre-recorded actions
+            - object-in-robot-graph: to test the objects in the world
+            - read-library-paths: to read a trajectory from the trajectory library
+            - create-object: to create an object file
+For the GMR.py:
+      - Add the name of the robot (qt, nao or gen3)
+      - Define the amount of babbling points (30, 100 or 150)
+      - Select the action class
+      - Select the end_effector_dict from the yaml file of the corresponding robot
+      - Select the number of components for the GMM for sklearn
+      - In GMPlotter.py select the number of components for the gmr test_gmr(...., num_components)
+
+For motor-babbling: select the amount of points to be collected and the delta angle to babble  (default = 10)
+      - QTrobot: run the subscribe_node.py file
+      - NAO: select the option motor-babbling in nao_controller.py
+      - Freddy: select the option motor-babbling in freddy_controller.py
+
+For action reproduction on the robots:
+      - QTrobot: run the qt_action_player.py file
+      - NAO: select the option reproduce-action in nao_controller.py
+      - Freddy: select the option reproduce-action in freddy_controller.py
+      
 ## Quick Start 
 
-  To run the Python examples you will need to install the Python interpreter and the pip installation module.
-
-  Here is some general information about the Python interpreter and the pip module manager.  
-  - [Error management](./linked_md/python_error_management.md)
-  - [Examples](./api_python/examples/readme.md)
-
+  To run the Python examples you will need to install the Python3 and run the requirements.txt file.
+      - QTrobot: uses ROS Noetic, make sure to connect to the robot following the LuxAI documentation
+      - NAO: runs on Ubuntu 16, make sure to have python 2.7 an Choregraphe installed 
+      - Freddy: clone the kortex repository outside of the imitation_pkg and copy the required files, follow the instructions in freddy_controller.py
+  
 # Reference
 #### Useful Links
 |  |  |
