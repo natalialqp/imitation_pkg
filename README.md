@@ -34,6 +34,7 @@ This repository stores the learning from demonstration framework. It focuses on 
 You are going to find main code in the file main.py. The one has different options to perform different steps of learning from demonstration.
 
 For the main file:
+<li>
       + Add the name of the robot (qt, nao or gen3)
       + Define the amount of babbling points (30, 100 or 150)
       + Select the corresponding flag to run the desired function: 
@@ -43,6 +44,7 @@ For the main file:
             + object-in-robot-graph: to test the objects in the world
             + read-library-paths: to read a trajectory from the trajectory library
             + create-object: to create an object file
+ </li>
 For the GMR.py:
       + Add the name of the robot (qt, nao or gen3)
       + Define the amount of babbling points (30, 100 or 150)
