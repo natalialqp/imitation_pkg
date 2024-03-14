@@ -277,7 +277,7 @@ def eval(time, smoothed_angles, avg_signal, babbled_points, robotName, actionNam
                          0,
                          title)
 
-    plotter.test_gmr(smoothed_angles, time, title, 3)
+    plotter.test_gmr(smoothed_angles, time, title, 4)
 
 if __name__ == "__main__":
     n_samples = 100

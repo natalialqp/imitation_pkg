@@ -86,7 +86,7 @@ def plot_robot_heatmaps(robot_data, time_vector, feature_labels, cmap='viridis',
     fig.suptitle(title, fontsize=20, fontweight='bold')
     plt.savefig(f'{title}.pdf', format='pdf')
     # Show the plot
-    plt.show()
+    # plt.show()
 
 if __name__ == "__main__":
 
@@ -128,16 +128,15 @@ if __name__ == "__main__":
              [15.181, 16.762, 18.417]]
         ],
         'Freddy': [
-            [[35.306, 634.695, 517.891],
-             [86.568, 94.745, 57.675],
-             [22.714, 30.151, 23.506],
-             [9.244, 16.542, 8.351]]
-        ]
+            [[23.625, 326.525, 750.786],
+             [21.174, 114.868, 97.970],
+             [22.714, 39.327, 22.943],
+             [9.244, 21.855, 18.226]]]
     }
 
     babbled_points = [30, 100, 150]
     feature_labels = ['Initial', '1st it.', '2nd it.', '3rd it.']
-    plot_robot_heatmaps(data_iterations_time, babbled_points, feature_labels, "plasma", "Time to iterate over the Graphs in minutes")
+    # plot_robot_heatmaps(data_iterations_time, babbled_points, feature_labels, "plasma", "Time to iterate over the Graphs in minutes")
 
     QTrobot_data = np.array([[2286, 5315, 6869],
                              [4631, 6682, 8039],
@@ -147,19 +146,24 @@ if __name__ == "__main__":
                          [6722, 11335, 13283],
                          [7803, 11989, 13955],
                          [8404, 12307, 14197]])
-    Freddy_data = np.array([[20526, 56512, 44675],
-                            [412 + 1021 + 2050 + 2566 + 3059 + 3422 + 396 + 994 + 1934 + 2464 + 3128 + 3574,
-                             397 + 1393 + 4939 + 6563 + 8065 + 8943 + 382 + 1317 + 4715 + 6209 + 7625 + 8605,
-                             257 + 930 + 3486 + 4763 + 5842 + 6614 + 258 + 908 + 3298 + 4451 + 5421 + 6162],
-                            [415 + 1030 + 2089 + 2653 + 3251 + 3691 + 396 + 1012 + 1980 + 2546 + 3279 + 3782,
-                             397 + 1393 + 4953 + 6604 + 8192 + 9150 + 382 + 1318 + 4749 + 6289 + 7737 +  8769,
-                             257 + 930 + 3497 + 4796 + 5914 + 6717 + 258 + 912 + 3305 + 4485 + 5513 + 6275],
-                            [417 + 1035 + 2110 + 2710 + 3319 + 3775 + 399 + 1027 + 2002 + 2606 + 3371 + 3942,
-                             397 + 1393 + 4987 + 6658 + 8294 + 9306 + 382 + 1318 + 4761 + 6317 + 7800 + 8885,
-                             257 + 930 + 3499 + 4803 + 5921 + 6729 + 258 + 912 + 3314 + 4525 + 5562 + 6355]])
+    Freddy_data = np.array([[253 + 694 + 1195 + 1375 + 1454 + 1535 + 228 + 626 + 1100 + 1298 + 1422 + 1559,
+                             313 + 1085 + 3464 + 4164 + 4478 + 4798 + 313 + 1095 + 2877 + 3558 + 3840 + 4173,
+                             317 + 1193 + 4098 + 5106 + 5842 + 5942 + 323 + 1194 + 4531 + 5684 + 6222 + 6563],
+
+                            [260 + 718 + 1380 + 1711 + 1978 + 2254 + 239 + 675 + 1365 + 1759 + 2243 + 2673,
+                             316 + 1098 + 3589 + 4491 + 4943 + 5426 + 315 + 1102 + 3021 + 3829 + 4369 + 4945,
+                             317 + 1193 + 4186 + 5315 + 5895 + 6362 + 325 + 1197 + 4636 + 5927 + 6618 + 7128],
+
+                            [260 + 718 + 1389 + 1733 + 2012 + 2303 + 239 + 677 + 1368 + 1765 + 2271 + 2731,
+                             316 + 1098 + 3598 + 4500 + 4995 + 5503 + 315 + 1107 + 3034 + 3846 + 4409 +  4996,
+                             317 + 1193 + 4207 + 5349 + 5939 + 6436 + 325 + 1198 + 4659 + 5975 + 6709 + 7287],
+
+                            [260 + 718 + 1403 + 1744 + 2032 + 2329 + 239 + 681 + 1371 + 1776 + 2290 + 2751,
+                             316 + 1098 + 3598 + 4500 + 5023 + 5544 + 315 + 1107 + 3038 + 3855 + 4421 + 5025,
+                             317 + 1193 + 4224 + 5401 + 6010 + 6531 + 325 + 1199 + 4673 + 6011 + 6751 + 7338]])
 
 
-    plot_robot_barplots(QTrobot_data.T, "Amount of nodes collected in all Graphs for QTrobot per iteration")
-    plot_robot_barplots(NAO_data.T, "Amount of nodes collected in all Graphs for NAO per iteration")
+    # plot_robot_barplots(QTrobot_data.T, "Amount of nodes collected in all Graphs for QTrobot per iteration")
+    # plot_robot_barplots(NAO_data.T, "Amount of nodes collected in all Graphs for NAO per iteration")
     plot_robot_barplots(Freddy_data.T, "Nodes collected for all Graphs Freddy per iteration")
 

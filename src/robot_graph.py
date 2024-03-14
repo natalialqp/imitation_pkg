@@ -744,8 +744,8 @@ class Graph(object):
 
         _format_axes(ax)
         fig.tight_layout()
-        plt.savefig("data/test_"+ robotName + "/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
-        # plt.show()
+        # plt.savefig("data/test_"+ robotName + "/graphs/graphs_plots/" + self.key + "_" + robotName + "_" + nodes + ".pdf", format="pdf") #_object
+        plt.show()
 
     def find_neighbors(self, node):
         """

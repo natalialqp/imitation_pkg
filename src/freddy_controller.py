@@ -12,6 +12,8 @@ import random
 import robot
 import os
 import threading
+from math import degrees
+import pandas as pd
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
@@ -267,6 +269,56 @@ class SelfExploration(object):
             # a trajectory defined by a series of waypoints in joint space or in Cartesian space
 
             return 0 if success else 1
+        
+    def action_player(self):
+        """
+        Configures the robot by creating a connection to the device and executing motor babbling.
+
+        Args:
+            delta_angle (float): The angle by which the robot's motors will be moved during motor babbling.
+            sequence_len (int): The length of the motor babbling sequence.
+
+        Returns:
+            int: 0 if the robot configuration is successful, 1 otherwise.
+        """
+        # Import the utilities helper module
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+        import utilities
+
+        # Parse arguments
+        args = utilities.parseConnectionArguments()
+        # Create connection to the device and get the router
+        with utilities.DeviceConnection.createTcpConnection(args) as router:
+
+            # Create required services
+            base = BaseClient(router)
+            base_cyclic = BaseCyclicClient(router)
+
+            # Example core
+            success = True
+            success &= self.motor_publisher(base)
+
+            # You can also refer to the 110-Waypoints examples if you want to execute
+            # a trajectory defined by a series of waypoints in joint space or in Cartesian space
+
+            return 0 if success else 1
+
+    def read_action_from_file(self, file_path):
+        """
+        Reads action data from a CSV file and appends the angle sequences to the respective lists.
+
+        Args:
+            file_path (str): The path to the CSV file containing the action data.
+
+        Returns:
+            None
+        """
+        df = pd.read_csv(file_path)
+        for index, row in df.iterrows():
+            left_values = [degrees(row[column]) for column in self.left_columns]
+            right_values = [degrees(row[column]) for column in self.right_columns]
+            self.self.current_ang_pos_Larm.append(left_values)
+            self.self.current_ang_pos_Rarm.append(right_values)
 
 if __name__ == "__main__":
 
@@ -276,10 +328,25 @@ if __name__ == "__main__":
     delta_angle = 10
     amount_of_points = 30
 
-    self_explorator = SelfExploration(robot_name)
-    self_explorator.import_robot(file_path)
-    self_explorator.robot_config(delta_angle, amount_of_points)
+    flag = "reproduce-action"
+    # flag = "motor-babbling"
 
-    file_path = "self_exploration_freddy_" + str(amount_of_points) + "_" + self_explorator.key + ".txt"
-    with open(file_path, 'w') as file:
-        json.dump(str(self_explorator.motor_babbling_recording), file)
+    if flag == "motor-babbling":
+        self_explorator = SelfExploration(robot_name)
+        self_explorator.import_robot(file_path)
+        self_explorator.robot_config(delta_angle, amount_of_points)
+
+        file_path = "self_exploration_freddy_" + str(amount_of_points) + "_" + self_explorator.key + ".txt"
+        with open(file_path, 'w') as file:
+            json.dump(str(self_explorator.motor_babbling_recording), file)
+
+    elif flag == "reproduce-action":
+        action_reproduction = SelfExploration(robot_name)
+        action_reproduction.import_robot(file_path)
+        action_reproduction.robot_config(delta_angle, amount_of_points)
+        action = "teacup_left"
+        bps = "30"
+        dir = './data/test_nao/GMM_learned_actions/for_execution/'
+        file_name = dir + "GMR_" + bps + "_" + action + ".csv"
+        action_reproduction.read_action_from_file(file_name)
+        action_reproduction.action_player()

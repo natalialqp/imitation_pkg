@@ -231,7 +231,7 @@ if __name__ == "__main__":
     robot_name = 'nao'
     file_path = robot_name + ".yaml"
     flag = "reproduce_action"
-    # flag = "motor_babbling"
+    # flag = "motor-babbling"
 
     if flag == "reproduce_action":
         action = "teacup_left"
@@ -246,8 +246,8 @@ if __name__ == "__main__":
             action_reproduction.current_ang_pos_head = action_reproduction.head_angle_sequence[i]
             action_reproduction.joint_angle_publisher()
 
-    elif flag == "motor_babbling":
-        delta_angle = 5
+    elif flag == "motor-babbling":
+        delta_angle = 10
         amount_of_points = 150
         self_explorator = NaoManager(robot_name)
         self_explorator.import_robot(file_path)
