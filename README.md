@@ -37,33 +37,37 @@ For the main file:
 <li> Add the name of the robot (qt, nao or gen3)</li>
 <li> Define the amount of babbling points (30, 100 or 150)</li>
 <li> Select the corresponding flag to run the desired function: </li>
-<!-- TOC -->
-            + explore-world: to interpolate points between collected babbling points
-            + pose-predicition: to iterate over the 12 pre-recorded actions and increase the graphs reachability 
-            + path-planning: to perform path planning for the pre-recorded actions
-            + object-in-robot-graph: to test the objects in the world
-            + read-library-paths: to read a trajectory from the trajectory library
-            + create-object: to create an object file
- <!-- /TOC -->
+
+<ul>
+<li> explore-world: to interpolate points between collected babbling points </li>
+<li> pose-predicition: to iterate over the 12 pre-recorded actions and increase the graphs reachability </li>
+<li> path-planning: to perform path planning for the pre-recorded actions </li>
+<li> object-in-robot-graph: to test the objects in the world </li>
+<li> read-library-paths: to read a trajectory from the trajectory library </li>     
+<li> create-object: to create an object file </li>
+</ul>
  
-For the GMR.py:
+<li>For the GMR.py:</li>
+<ul>
       <li>  Add the name of the robot (qt, nao or gen3) </li>
       <li>  Define the amount of babbling points (30, 100 or 150)</li>
       <li>  Select the action class</li>
       <li>  Select the end_effector_dict from the yaml file of the corresponding robot</li>
       <li>  Select the number of components for the GMM for sklearn </li>
       <li>  In GMPlotter.py select the number of components for the gmr test_gmr(...., num_components)</li>
-
-For motor-babbling: select the amount of points to be collected and the delta angle to babble  (default = 10)
+</ul>
+<li>For motor-babbling: select the amount of points to be collected and the delta angle to babble  (default = 10)</li>
+<ul>
       <li>  QTrobot: run the subscribe_node.py file</li>
       <li>  NAO: select the option motor-babbling in nao_controller.py</li>
       <li>  Freddy: select the option motor-babbling in freddy_controller.py</li>
-
-For action reproduction on the robots:
+</ul>
+<li>For action reproduction on the robots:</li>
+<ul>
       <li>  QTrobot: run the qt_action_player.py file</li>
       <li>  NAO: select the option reproduce-action in nao_controller.py</li>
       <li>  Freddy: select the option reproduce-action in freddy_controller.py</li>
-      
+ </ul>     
 <a id="quickstart" name="quickstart"></a>      
 ## Quick Start 
 
