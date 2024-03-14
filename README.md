@@ -34,6 +34,8 @@ This repository stores the learning from demonstration framework. It focuses on 
 
 You are going to find main code in the file main.py. The one has different options to perform different steps of learning from demonstration.
 
+The results are placed in the folder data. Where the sub-folder test_qt, test_nao and test_gen3 contain self-exploration files, objects ,paths, graphs and trajectory libraries.
+
 For the main file:
 <li> Add the name of the robot (qt, nao or gen3)</li>
 <li> Define the amount of babbling points (30, 100 or 150)</li>
@@ -44,10 +46,10 @@ For the main file:
 <li> pose-predicition: to iterate over the 12 pre-recorded actions and increase the graphs reachability </li>
 <li> path-planning: to perform path planning for the pre-recorded actions </li>
 <li> object-in-robot-graph: to test the objects in the world </li>
-<li> read-library-paths: to read a trajectory from the trajectory library </li>     
+<li> read-library-paths: to read a trajectory from the trajectory library </li>
 <li> create-object: to create an object file </li>
 </ul>
- 
+
 <li>For the GMR.py:</li>
 <ul>
       <li>  Add the name of the robot (qt, nao or gen3) </li>
@@ -68,15 +70,17 @@ For the main file:
       <li>  QTrobot: run the qt_action_player.py file</li>
       <li>  NAO: select the option reproduce-action in nao_controller.py</li>
       <li>  Freddy: select the option reproduce-action in freddy_controller.py</li>
- </ul>     
-<a id="quickstart" name="quickstart"></a>      
+ </ul>
+
+<a id="quickstart" name="quickstart"></a>
 <h1> Quick Start </h1>
 
   To run the Python examples you will need to install the Python3 and run the requirements.txt file</li>
       <li>  QTrobot: uses ROS Noetic, make sure to connect to the robot following the LuxAI documentation</li>
       <li>  NAO: runs on Ubuntu 16, make sure to have python 2.7 an Choregraphe installed </li>
       <li>  Freddy: clone the kortex repository outside of the imitation_pkg and copy the required files, follow the instructions in freddy_controller.py</li>
-   
+
+
 <h1> Reference </h1>
 #### Useful Links
 |  |  |
