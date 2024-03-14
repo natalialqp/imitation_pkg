@@ -28,9 +28,10 @@ The repository has been tested on Ubuntu 20.04.
       - [Useful Links](#useful-links)
 
 <a id="description" name="description"></a>
-## Description
+<h1> Description</h1>
 
 This repository stores the learning from demonstration framework. It focuses on the upper-body limb for the robots QTrobot, NAO and Freddy (2 Kinova arms Gen3 on a Kelo base).
+
 You are going to find main code in the file main.py. The one has different options to perform different steps of learning from demonstration.
 
 For the main file:
@@ -69,16 +70,14 @@ For the main file:
       <li>  Freddy: select the option reproduce-action in freddy_controller.py</li>
  </ul>     
 <a id="quickstart" name="quickstart"></a>      
-## Quick Start 
+<h1> Quick Start </h1>
 
   To run the Python examples you will need to install the Python3 and run the requirements.txt file</li>
       <li>  QTrobot: uses ROS Noetic, make sure to connect to the robot following the LuxAI documentation</li>
       <li>  NAO: runs on Ubuntu 16, make sure to have python 2.7 an Choregraphe installed </li>
       <li>  Freddy: clone the kortex repository outside of the imitation_pkg and copy the required files, follow the instructions in freddy_controller.py</li>
-
-
-<a id="reference" name="reference"></a>   
-# Reference
+   
+<h1> Reference </h1>
 #### Useful Links
 |  |  |
 | ---: | --- |
