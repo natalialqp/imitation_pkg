@@ -326,7 +326,7 @@ if __name__ == "__main__":
     file_path = "robot_configuration_files/" + robot_name + ".yaml"
 
     delta_angle = 10
-    amount_of_points = 30
+    amount_of_points = 150
 
     flag = "reproduce-action"
     # flag = "motor-babbling"
@@ -344,8 +344,8 @@ if __name__ == "__main__":
         action_reproduction = SelfExploration(robot_name)
         action_reproduction.import_robot(file_path)
         action_reproduction.robot_config(delta_angle, amount_of_points)
-        action = "teacup_left"
-        bps = "30"
+        action = "dance"
+        bps = "150"
         dir = './data/test_nao/GMM_learned_actions/for_execution/'
         file_name = dir + "GMR_" + bps + "_" + action + ".csv"
         action_reproduction.read_action_from_file(file_name)

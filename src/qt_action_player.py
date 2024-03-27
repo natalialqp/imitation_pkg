@@ -61,15 +61,15 @@ def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
         head_pub.publish(ref_head)
         right_pub.publish(ref_right)
         left_pub.publish(ref_left)
-        rospy.sleep(0.4)
+        rospy.sleep(0.5)
     except rospy.ROSInterruptException:
         rospy.logerr("could not publish motor command!")
     rospy.loginfo("motor command published")
 
 if __name__ == '__main__':
     rospy.init_node('qt_motor_command')
-    action = "teacup_left"
-    bps = "30"
+    action = "dance"
+    bps = "150"
     dir = './data/test_qt/GMM_learned_actions/for_execution/'
     # dir = './data/old_test_qt/GMM_learned_actions/'
     file_name = dir + "GMR_" + bps + "_" + action + ".csv"

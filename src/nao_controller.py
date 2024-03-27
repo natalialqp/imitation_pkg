@@ -13,7 +13,7 @@ import pandas as pd
 from math import degrees
 
 class NaoManager(object):
-    def __init__(self, robot_name):
+    def __init__(self, robot_name, robotIp):
         """
         Initializes the NaoController object.
 
@@ -46,6 +46,7 @@ class NaoManager(object):
         self.left_angle_sequence = []
         self.right_angle_sequence = []
         self.head_angle_sequence = []
+ 	self.motionProxy = ALProxy("ALMotion", robotIp, 9559)
 
     def import_robot(self, file_path):
         """
@@ -99,9 +100,8 @@ class NaoManager(object):
             Returns:
                 None
             """
-            PORT = 9559
             try:
-                self.motionProxy = ALProxy("ALMotion", robotIP, PORT)
+                self.motionProxy = ALProxy("ALMotion", self.robotIP, self.PORT)
             except Exception as e:
                 print("Could not create proxy to ALMotion")
                 print ("Error was: ", e)
@@ -199,7 +199,7 @@ class NaoManager(object):
         TargetAngles = [ x * motion.TO_RAD for x in TargetAngles]
         MaxSpeedFraction = 0.2
         self.motionProxy.angleInterpolationWithSpeed(name, TargetAngles, MaxSpeedFraction)
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     def read_action_from_file(self, file_path):
         """
@@ -234,11 +234,11 @@ if __name__ == "__main__":
     # flag = "motor-babbling"
 
     if flag == "reproduce_action":
-        action = "teacup_left"
-        bps = "30"
+        action = "dance"
+        bps = "150"
         dir = './data/test_nao/GMM_learned_actions/for_execution/'
         file_name = dir + "GMR_" + bps + "_" + action + ".csv"
-        action_reproduction = NaoManager(robot_name)
+        action_reproduction = NaoManager(robot_name, robotIp)
         action_reproduction.read_action_from_file(file_name)
         for i in range(len(action_reproduction.left_angle_sequence)):
             action_reproduction.current_ang_pos_Larm = action_reproduction.left_angle_sequence[i]
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     elif flag == "motor-babbling":
         delta_angle = 10
         amount_of_points = 150
-        self_explorator = NaoManager(robot_name)
+        self_explorator = NaoManager(robot_name, robotIp)
         self_explorator.import_robot(file_path)
         self_explorator.motor_babbling(robotIp, delta_angle, amount_of_points)
         file_path = "self_exploration_nao_" + str(amount_of_points) + ".txt"
