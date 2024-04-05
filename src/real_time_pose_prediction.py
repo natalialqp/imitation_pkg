@@ -92,7 +92,7 @@ class SpeechManager(object):
     def recognize_speech(self):
         """
         Recognizes speech using a speech recognition proxy.
-        
+
         This function continuously listens for speech input using a speech recognition proxy.
         It waits for a response and assigns it to the `resp` attribute of the object.
         The last recognized command is stored in the `last_cmd` attribute.

@@ -462,8 +462,6 @@ class Robot(object):
         head_distances = [np.linalg.norm(self.headDistance[i]) for i in self.headDistance]
         return left_distances, right_distances, head_distances
 
-import numpy as np
-
 def linear_angular_mapping_gen3(vec):
     """
     Maps the elements of the input vector to a new vector based on a linear-angular mapping.
@@ -495,8 +493,9 @@ if __name__ == "__main__":
         # angles = np.array( [6.283185307179586, 0.08539816, 4.204237027179586, 5.588849777179586, 6.283185307179586, 6.283185307179586, 6.283185307179586,
         #                     6.283185307179586, 5.4977871471795865, 5.351358157179586, 4.8236190171795865, 6.283185307179586, 6.283185307179586, 6.283185307179586])
         # angles = linear_angular_mapping_gen3(angles)
-        angles = np.deg2rad(np.array([0, 0, 200, 60, 120, 20, 0,
-                                      0, 0, 180, 0, 360, 130, 0]))
+        angles = np.deg2rad(np.array([0, 0, 40, 90, 120, 30, 0,
+                                      0, 0, 40, 120, -120, -10, 0]))
+        angles = linear_angular_mapping_gen3(angles)
         print(angles)
         pos_left, pos_right, pos_head = myRobot.forward_kinematics_gen3(angles)
         left.append(pos_left)

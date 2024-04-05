@@ -1,0 +1,52 @@
+# Name of the robot qt, nao, gen3
+robot-name: "qt"
+
+# Amount of babbling points (30,100, 150) or your own number
+babbling-points: 150
+
+# Iteration id for after babbling
+iteration-id: 1
+
+# Quality of the graph d_min in mm (qt and nao: 15, gen3: 50) or your own value
+minimum-distance: 15
+
+# Workspace of the robot, the values are in mm
+low-edge-qt: [-450, -450, 100]
+high-edge-qt: [450, 450, 700]
+
+low-edge-nao: [-300, -350, -200]
+high-edge-nao: [300, 350, 400]
+
+low-edge-gen3: [-500, -1200, 100]
+high-edge-gen3: [1100, 1200, 1700]
+
+# To create or read an object, you need to specify the object name
+obstacle-name: "object_1"
+
+# Squared object/obstacle edges, the values are in mm
+low-edge-obstacle: [0, 0, 0]
+high-edge-obstacle: [10, 20, 30]
+
+# pre-recorded actions, always add a user id (integer) and a name to the actions (string)
+actions-names: ['teacup', 'teapot', 'spoon', 'ladle', 'shallow_plate', 'dinner_plate', 'knife', 'fork', 'salt_shaker', 'sugar_bowl', 'mixer', 'pressure_cooker']
+users-id: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+# Neural network parameters
+epochs: 1000
+
+# New action (not in pre-recorded actions)
+read-new-action: False
+new-action-name: ["new_action_name"]
+users-id-new-action: [21]
+
+#read a trajectory (already calculated) for an action from the pre-recorded actions (or new actions) for a specific user
+trajectory-id: "5spoon"
+
+#Desired functions to execute
+#"path-planning"
+#"pose-predicition"
+#"explore-world"
+#"object-in-robot-graph"
+#"read-library-paths"
+#"create-object"
+function-name: "explore-world"

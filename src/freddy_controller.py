@@ -176,7 +176,7 @@ class SelfExploration(object):
                 new_angle_vec[i] = 360 + vec[i]
         return new_angle_vec
 
-    def motor_publisher(self, base):
+    def motor_publisher(self, base_1, base_2):
         """
         Publishes motor commands to control the robot's movement.
 
@@ -186,41 +186,62 @@ class SelfExploration(object):
         Returns:
             None
         """
-        action = Base_pb2.Action()
-        action.name = "Example angular action movement"
-        action.application_data = ""
-        actuator_count = base.GetActuatorCount()
+        action_1 = Base_pb2.Action()
+        action_1.name = "Example angular action movement"
+        action_1.application_data = ""
+
+        action_2 = Base_pb2.Action()
+        action_2.name = "Example angular action movement"
+        action_2.application_data = ""
+
+        actuator_count = base_1.GetActuatorCount()
         n_dof = actuator_count.count
         locked_joints = [0]
 
-        if self.key == "left":
-            angles = self.current_ang_pos_Larm
-        elif self.key == "right":
-            angles = self.current_ang_pos_Rarm
+        angles_1 = self.current_ang_pos_Larm
+        angles_2 = self.current_ang_pos_Rarm
+        # if self.key == "left":
+        #     angles = self.current_ang_pos_Larm
+        # elif self.key == "right":
+        #     angles = self.current_ang_pos_Rarm
 
         # Lock joints
         for i in locked_joints:
-            angles[i] = 0
+            angles_1[i] = 0
+            angles_2[i] = 0
 
-        angles = self.robot_range(angles)
+        angles_1 = self.robot_range(angles_1)
+        angles_2 = self.robot_range(angles_2)
 
         for joint_id, val in enumerate(range(n_dof)):
-            joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
-            joint_angle.joint_identifier = joint_id
-            joint_angle.value = angles[joint_id]
+            joint_angle_1 = action_1.reach_joint_angles.joint_angles.joint_angles.add()
+            joint_angle_1.joint_identifier = joint_id
+            joint_angle_1.value = angles_1[joint_id]
+
+            joint_angle_2 = action_2.reach_joint_angles.joint_angles.joint_angles.add()
+            joint_angle_2.joint_identifier = joint_id
+            joint_angle_2.value = angles_2[joint_id]
 
         e = threading.Event()
-        notification_handle = base.OnNotificationActionTopic(
+        notification_handle = base_1.OnNotificationActionTopic(
+            self.check_for_end_or_abort(e),
+            Base_pb2.NotificationOptions()
+        )
+
+        e = threading.Event()
+        notification_handle = base_2.OnNotificationActionTopic(
             self.check_for_end_or_abort(e),
             Base_pb2.NotificationOptions()
         )
 
         # print("Executing action")
-        base.ExecuteAction(action)
+        base_1.ExecuteAction(action_1)
+        base_2.ExecuteAction(action_2)
 
         # print("Waiting for movement to finish ...")
         finished = e.wait(TIMEOUT_DURATION)
-        base.Unsubscribe(notification_handle)
+        base_1.Unsubscribe(notification_handle)
+        base_2.Unsubscribe(notification_handle)
 
     def check_for_end_or_abort(self, e):
         """Return a closure checking for END or ABORT notifications
@@ -251,7 +272,8 @@ class SelfExploration(object):
         # Import the utilities helper module
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
         import utilities
-
+        ip_1 = "192.168.1.10"
+        ip_2 = "192.168.1.12"
         # Parse arguments
         args = utilities.parseConnectionArguments()
         # Create connection to the device and get the router
@@ -269,7 +291,7 @@ class SelfExploration(object):
             # a trajectory defined by a series of waypoints in joint space or in Cartesian space
 
             return 0 if success else 1
-        
+
     def action_player(self):
         """
         Configures the robot by creating a connection to the device and executing motor babbling.
@@ -285,18 +307,27 @@ class SelfExploration(object):
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
         import utilities
 
+        ip_1 = "192.168.1.10"
+        ip_2 = "192.168.1.12"
+
         # Parse arguments
-        args = utilities.parseConnectionArguments()
+        args_1 = utilities.parseConnectionArguments(ip=ip_1)
+        args_2 = utilities.parseConnectionArguments(ip=ip_2)
         # Create connection to the device and get the router
-        with utilities.DeviceConnection.createTcpConnection(args) as router:
+        with utilities.DeviceConnection.createTcpConnection(args_1) as router_1:
+            with utilities.DeviceConnection.createTcpConnection(args_2) as router_2:
 
-            # Create required services
-            base = BaseClient(router)
-            base_cyclic = BaseCyclicClient(router)
+                # Create required services
+                base_1 = BaseClient(router_1)
+                base_cyclic_1 = BaseCyclicClient(router_1)
 
-            # Example core
-            success = True
-            success &= self.motor_publisher(base)
+                # Create required services
+                base_2 = BaseClient(router_2)
+                base_cyclic_2 = BaseCyclicClient(router_2)
+
+                # Example core
+                success = True
+                success &= self.motor_publisher(base_1, base_2)
 
             # You can also refer to the 110-Waypoints examples if you want to execute
             # a trajectory defined by a series of waypoints in joint space or in Cartesian space
