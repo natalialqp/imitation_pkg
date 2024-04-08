@@ -9,7 +9,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from gmr import MVN, GMM, plot_error_ellipses
+from gmr import GMM, plot_error_ellipses
 plt.rcParams.update({'font.size': 18})
 
 color_iter = itertools.cycle(["deepskyblue", "cornflowerblue", "darkturquoise",
@@ -19,6 +19,7 @@ class GaussianMixturePlotter:
     def __init__(self, robotName, actionName, angleId, n_components=10, babbled_points=30, covariance_type="full", max_iter=150, random_state=2):
         """
         Initialize the GMPlotter object.
+        This class is used to fit, interpolate and plot the results of the Gaussian Mixture Models and Gaussian Mixture Regression.
 
         Args:
             robotName (str): The name of the robot.
@@ -241,7 +242,7 @@ def arange_time_array(time, arr, chunk_size=100):
     reordered_list = arr.reshape(-1).tolist()
     return np.vstack((reordered_time, reordered_list)).T
 
-def eval(time, smoothed_angles, avg_signal, babbled_points, robotName, actionName, angleId, n_components):
+def eval(time, smoothed_angles, avg_signal, babbled_points, robotName, actionName, angleId, n_components, n_clusters):
     """
     Evaluate and plot Gaussian Mixture Model (GMM) results.
 
@@ -277,7 +278,7 @@ def eval(time, smoothed_angles, avg_signal, babbled_points, robotName, actionNam
                          0,
                          title)
 
-    plotter.test_gmr(smoothed_angles, time, title, 4)
+    plotter.test_gmr(smoothed_angles, time, title, n_clusters)
 
 if __name__ == "__main__":
     n_samples = 100
@@ -288,4 +289,4 @@ if __name__ == "__main__":
         x = i * step
         X[i, 0] = x + np.random.normal(0, 0.1)
         X[i, 1] = 3.0 * (np.sin(x) + np.random.normal(0, 0.2))
-    eval(X, n_components=5)
+    eval(X, n_components=5, n_clusters=5)

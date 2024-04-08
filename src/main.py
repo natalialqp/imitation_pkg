@@ -5,6 +5,9 @@ import yaml
 from tqdm import tqdm
 import pose_prediction
 import path_planning
+import GMR
+import reading_actions as RA
+import os
 
 plt.rcParams.update({'font.size': 18})
 
@@ -154,7 +157,7 @@ if __name__ == "__main__":
         if read_new_action:
             actions_names = config["new-action-name"]
             users_id = config["users-id-new-action"]
-            df = pose_predictor.read_file("/QT_recordings/human/" + actions_names[0])
+            df = pose_predictor.read_file("/" + robotName + "_recordings/human/" + actions_names[0])
 
         for user in tqdm(users_id):
             for action in actions_names:
@@ -243,3 +246,95 @@ if __name__ == "__main__":
             angles_old_path = planner.robot_graphs[key].dict_of_dep_to_dict_of_lists(angle_dep_old_path[key])
             # planner.robot_graphs[key].plot_dict_of_dependencies(angles_old_path, angles_new_path)
             planner.plotPath(key, np.asarray(dict_pose[key]), np.asarray(new_path[key]))
+
+    elif function == "gaussian-mixture-regression":
+
+        num_components = config["num-components"]
+        action = config["trajectory-name"]
+        num_clusters = config["num-clusters"]
+        lib_dict = {}
+        t_x_left = []
+        t_y_left = []
+        t_z_left = []
+        left_side_with_time = []
+        right_side_with_time = []
+        head_with_time = []
+        end_effector_dict = planner.end_effectors_keys
+        file_path = "./robot_configuration_files/"+ robotName + ".yaml"
+        pose_predictor = pose_prediction.Prediction(file_path, robotName)
+
+        # For old actions
+        if not read_new_action:
+            df = pose_predictor.read_file("combined_actions")
+        # For new actions
+        else:
+            df = pose_predictor.read_file("/" + robotName + "_recordings/human/" + actions_names[0])
+        dict_pose_vec_left = []
+        dict_pose_vec_right = []
+        dict_pose_vec_head = []
+        angles_left_with_time = []
+        angles_right_with_time = []
+        angles_head_with_time = []
+        for key in end_effector_dict:
+            lib_dict[key] = GMR.read_library_from_file(key, robotName, babblingPoints)
+        for user in users_id:
+            # For old actions
+            if not read_new_action:
+                _, _, _, timestamps = pose_predictor.read_csv_combined(df, action, user)
+            # For new actions
+            else:
+                _, _, _, timestamps = pose_predictor.read_recorded_action_csv(df, action, user)
+            cumulative_time = GMR.extract_time(timestamps)
+            dict_pose = GMR.extract_action_from_library(str(user) + action, lib_dict)
+            cartesian_left_vec = dict_pose[end_effector_dict[0]]
+            cartesian_right_vec = dict_pose[end_effector_dict[1]]
+            if robotName != "gen3":
+                cartesian_head_vec = dict_pose[end_effector_dict[2]]
+            dep_dict = GMR.extract_angles_from_library(str(user) + action, lib_dict)
+            jointLeft_vectors = GMR.extract_vectors(dep_dict[end_effector_dict[0]], robotName)
+            jointRight_vectors = GMR.extract_vectors(dep_dict[end_effector_dict[1]], robotName)
+            if robotName != "gen3":
+                jointHead_vectors = GMR.extract_vectors(dep_dict[end_effector_dict[2]])
+            if len(cumulative_time) > 1:
+                aux_left = GMR.add_time_to_angles(cartesian_left_vec, cumulative_time)
+                aux_right = GMR.add_time_to_angles(cartesian_right_vec, cumulative_time)
+                if robotName != "gen3":
+                    aux_head = GMR.add_time_to_angles(cartesian_head_vec, cumulative_time)
+                aux_left_angles = GMR.add_time_to_angles(jointLeft_vectors, cumulative_time)
+                aux_right_angles = GMR.add_time_to_angles(jointRight_vectors, cumulative_time)
+                if robotName != "gen3":
+                    aux_head_angles = GMR.add_time_to_angles(jointHead_vectors, cumulative_time)
+                angles_left_with_time.append(aux_left_angles)
+                angles_right_with_time.append(aux_right_angles)
+                if robotName != "gen3":
+                    angles_head_with_time.append(aux_head_angles)
+                t_x_left.append(GMR.extract_axis(aux_left, "x"))
+                t_y_left.append(GMR.extract_axis(aux_left, "y"))
+                t_z_left.append(GMR.extract_axis(aux_left, "z"))
+                left_side_with_time.append(aux_left)
+                right_side_with_time.append(aux_right)
+                if robotName != "gen3":
+                    head_with_time.append(aux_head)
+            dict_pose_vec_left.append(jointLeft_vectors)
+            dict_pose_vec_right.append(jointRight_vectors)
+            if robotName != "gen3":
+                dict_pose_vec_head.append(jointHead_vectors)
+        # print("angles_left_with_time: ", angles_left_with_time)
+        # plot_angles_vs_time(angles_left_with_time)
+        # plot_angles_vs_time(angles_right_with_time)
+        # plot_angles_vs_time(angles_head_with_time)
+        # plot_3d_paths(left_side_with_time, "Left EE")
+        # plot_3d_paths(right_side_with_time, "Right EE")
+        # plot_3d_paths(head_with_time, "Head EE")
+        GMR.gmm_for_limb(angles_left_with_time, robotName, action + "", "left_", babblingPoints, num_components, num_clusters)
+        GMR.gmm_for_limb(angles_right_with_time, robotName, action + "", "right_", babblingPoints, num_components, num_clusters)
+        if robotName != "gen3":
+            GMR.gmm_for_limb(angles_head_with_time, robotName, action + "", "head_", babblingPoints, num_components, num_clusters)
+
+        dir = 'data/test_' + robotName + '/GMM_learned_actions/'
+        csv_file_path = os.listdir(dir)
+        for name in csv_file_path:
+            if name != "for_execution":
+                analyzer = RA.SignalAnalyzer(dir + name)
+                analyzer.analyze_signals()
+                analyzer.save_results(dir, name)

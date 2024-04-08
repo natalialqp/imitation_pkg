@@ -3,9 +3,14 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
 class RobotSimulation:
+    """
+    A class to simulate the position of a robot in 3D space.
+    This class creates an animation of the robot's position using the `matplotlib` library.
+    """
+
     def __init__(self, list1, list2, list3):
         """
-        Initialize the SimulatePosition class.
+        Initialize the RobotSimulation class.
 
         Args:
             list1 (list): The first list.

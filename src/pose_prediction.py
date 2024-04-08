@@ -232,6 +232,18 @@ def find_end_effectors_keys(dict):
     return [max_left, max_right, max_head]
 
 class Prediction(object):
+    """
+    Class for performing pose prediction.
+
+    This class provides methods for converting Cartesian coordinates to spherical coordinates,
+    extracting spherical angles from a given human pose, calculating the forward kinematics of a robot
+    based on joint angles, and reading and processing pose data from CSV files.
+
+    Attributes:
+        robot (Robot): An instance of the Robot class.
+        base (float): The base distance of the robot.
+        robotName (str): The name of the robot.
+    """
 
     def __init__(self, file_path, name):
         """
@@ -676,6 +688,20 @@ class Prediction(object):
             None
         """
         class MultiOutputModel(nn.Module):
+            """
+            A class representing a multi-output model for pose prediction.
+
+            This model consists of a shared layer followed by separate layers for predicting
+            the pose of the left arm, right arm, and head (in they exist). It takes an input tensor and produces
+            output tensors for each of the pose predictions.
+
+            Attributes:
+                shared_layer1 (nn.Linear): The shared layer of the model.
+                left_arm_layer (nn.Linear): The layer for predicting the pose of the left arm.
+                right_arm_layer (nn.Linear): The layer for predicting the pose of the right arm.
+                head_layer (nn.Linear): The layer for predicting the pose of the head.
+            """
+
             def __init__(self):
                 """
                 Initializes a MultiOutputModel object.

@@ -372,7 +372,7 @@ def reshape_array(time, arr, max_length=1000):
     arr = np.vstack((time, arr))
     return arr.T #[:, 0:2]
 
-def gmm_for_limb(angles_with_time, robotName, action, limb, babbled_points, num_components=6):
+def gmm_for_limb(angles_with_time, robotName, action, limb, babbled_points, num_components=5, num_clusters=3):
     """
     Fits a Gaussian Mixture Model (GMM) to the given angles with time data for a specific limb of a robot.
 
@@ -383,14 +383,14 @@ def gmm_for_limb(angles_with_time, robotName, action, limb, babbled_points, num_
     - limb (str): Name of the limb.
     - babbled_points (int): Number of babbled points.
     - num_components (int, optional): Number of components in the GMM. Default is 5.
-
+    - num_clusters (int, optional): Number of components in the GMR. Default is 3.
     Returns:
     None
     """
     for i in range(1, angles_with_time[0].shape[0]):
         variable_to_fit = extract_angle_vec(angles_with_time, i)
         time, smoothed_angles, avg_signal = plot_axis_vs_time(variable_to_fit, str(i)) #7093, 7093
-        eval(time, smoothed_angles, avg_signal, str(babbled_points), robotName, action, limb + str(i), num_components)
+        eval(time, smoothed_angles, avg_signal, str(babbled_points), robotName, action, limb + str(i), num_components, num_clusters)
 
 if __name__ == "__main__":
     """

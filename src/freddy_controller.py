@@ -14,6 +14,7 @@ import os
 import threading
 from math import degrees
 import pandas as pd
+import yaml
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
@@ -22,10 +23,25 @@ from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
 
+def read_yaml_file(file_path):
+    """
+    Reads a YAML file and returns the data as a dictionary.
+
+    Args:
+        file_path (str): The path to the YAML file.
+
+    Returns:
+        dict: The data read from the YAML file.
+    """
+    with open(file_path, 'r') as file:
+        data = yaml.safe_load(file)
+    return data
+
 class SelfExploration(object):
     def __init__(self, robot_name):
         """
         Initialize the FreddyController class.
+        This class is used to control the robot's movements/actions and perform motor babbling.
 
         Parameters:
         - robot_name (str): The name of the robot.
@@ -258,7 +274,7 @@ class SelfExploration(object):
                 e.set()
         return check
 
-    def robot_config(self, delta_angle, sequence_len):
+    def robot_config(self, delta_angle, sequence_len, ip_1, ip_2):
         """
         Configures the robot by creating a connection to the device and executing motor babbling.
 
@@ -272,8 +288,6 @@ class SelfExploration(object):
         # Import the utilities helper module
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
         import utilities
-        ip_1 = "192.168.1.10"
-        ip_2 = "192.168.1.12"
         # Parse arguments
         args = utilities.parseConnectionArguments()
         # Create connection to the device and get the router
@@ -292,7 +306,7 @@ class SelfExploration(object):
 
             return 0 if success else 1
 
-    def action_player(self):
+    def action_player(self, ip_1, ip_2):
         """
         Configures the robot by creating a connection to the device and executing motor babbling.
 
@@ -306,9 +320,6 @@ class SelfExploration(object):
         # Import the utilities helper module
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
         import utilities
-
-        ip_1 = "192.168.1.10"
-        ip_2 = "192.168.1.12"
 
         # Parse arguments
         args_1 = utilities.parseConnectionArguments(ip=ip_1)
@@ -352,32 +363,30 @@ class SelfExploration(object):
             self.self.current_ang_pos_Rarm.append(right_values)
 
 if __name__ == "__main__":
+    config = read_yaml_file("config.yaml")
+    robotName = config["robot-name"]
+    babblingPoints = config["babbling-points"]
+    delta = config["minimum-distance"]
+    robotIp_1 = config["gen3-ip-1"]
+    robotIp_2 = config["gen3-ip-2"]
+    functionName = config["function-name"]
+    action = config["action-name"]
+    file_path = "robot_configuration_files/" + robotName + ".yaml"
 
-    robot_name = 'gen3'
-    file_path = "robot_configuration_files/" + robot_name + ".yaml"
-
-    delta_angle = 10
-    amount_of_points = 150
-
-    flag = "reproduce-action"
-    # flag = "motor-babbling"
-
-    if flag == "motor-babbling":
-        self_explorator = SelfExploration(robot_name)
+    if functionName == "motor-babbling":
+        self_explorator = SelfExploration(robotName)
         self_explorator.import_robot(file_path)
-        self_explorator.robot_config(delta_angle, amount_of_points)
+        self_explorator.robot_config(delta, babblingPoints, robotIp_1, robotIp_2)
 
-        file_path = "self_exploration_freddy_" + str(amount_of_points) + "_" + self_explorator.key + ".txt"
+        file_path = "self_exploration_freddy_" + str(babblingPoints) + "_" + self_explorator.key + ".txt"
         with open(file_path, 'w') as file:
             json.dump(str(self_explorator.motor_babbling_recording), file)
 
-    elif flag == "reproduce-action":
-        action_reproduction = SelfExploration(robot_name)
+    elif functionName == "reproduce-action":
+        action_reproduction = SelfExploration(robotName)
         action_reproduction.import_robot(file_path)
-        action_reproduction.robot_config(delta_angle, amount_of_points)
-        action = "dance"
-        bps = "150"
-        dir = './data/test_nao/GMM_learned_actions/for_execution/'
-        file_name = dir + "GMR_" + bps + "_" + action + ".csv"
+        action_reproduction.robot_config(delta, babblingPoints)
+        dir = './data/test_' + robotName + '/GMM_learned_actions/for_execution/'
+        file_name = dir + "GMR_" + str(babblingPoints) + "_" + action + ".csv"
         action_reproduction.read_action_from_file(file_name)
-        action_reproduction.action_player()
+        action_reproduction.action_player(robotIp_1, robotIp_2)

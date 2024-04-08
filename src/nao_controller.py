@@ -10,7 +10,22 @@ import random
 import robot
 import motion
 import pandas as pd
+import yaml
 from math import degrees
+
+def read_yaml_file(file_path):
+    """
+    Reads a YAML file and returns the data as a dictionary.
+
+    Args:
+        file_path (str): The path to the YAML file.
+
+    Returns:
+        dict: The data read from the YAML file.
+    """
+    with open(file_path, 'r') as file:
+        data = yaml.safe_load(file)
+    return data
 
 class NaoManager(object):
     def __init__(self, robot_name, robotIp):
@@ -46,7 +61,7 @@ class NaoManager(object):
         self.left_angle_sequence = []
         self.right_angle_sequence = []
         self.head_angle_sequence = []
- 	self.motionProxy = ALProxy("ALMotion", robotIp, 9559)
+        self.motionProxy = ALProxy("ALMotion", robotIp, 9559)
 
     def import_robot(self, file_path):
         """
@@ -221,24 +236,24 @@ class NaoManager(object):
             self.head_angle_sequence.append(head_values)
 
 if __name__ == "__main__":
-    robotIp = "192.168.0.101"
+    config = read_yaml_file("config.yaml")
+    robotName = config["robot-name"]
+    babblingPoints = config["babbling-points"]
+    delta = config["minimum-distance"]
+    robotIp = config["nao-ip"]
+    functionName = config["function-name"]
+    action = config["action-name"]
 
     if len(sys.argv) <= 1:
         print ("Usage python almotion_angleinterpolationreactif.py robotIP (optional default: 127.0.0.1)")
     else:
         robotIp = sys.argv[1]
 
-    robot_name = 'nao'
-    file_path = robot_name + ".yaml"
-    flag = "reproduce_action"
-    # flag = "motor-babbling"
-
-    if flag == "reproduce_action":
-        action = "dance"
-        bps = "150"
-        dir = './data/test_nao/GMM_learned_actions/for_execution/'
-        file_name = dir + "GMR_" + bps + "_" + action + ".csv"
-        action_reproduction = NaoManager(robot_name, robotIp)
+    file_path = robotName + ".yaml"
+    if functionName == "reproduce_action":
+        dir = "./data/test_" + robotName + "/GMM_learned_actions/for_execution/"
+        file_name = dir + "GMR_" + str(babblingPoints) + "_" + action + ".csv"
+        action_reproduction = NaoManager(robotName, robotIp)
         action_reproduction.read_action_from_file(file_name)
         for i in range(len(action_reproduction.left_angle_sequence)):
             action_reproduction.current_ang_pos_Larm = action_reproduction.left_angle_sequence[i]
@@ -246,12 +261,10 @@ if __name__ == "__main__":
             action_reproduction.current_ang_pos_head = action_reproduction.head_angle_sequence[i]
             action_reproduction.joint_angle_publisher()
 
-    elif flag == "motor-babbling":
-        delta_angle = 10
-        amount_of_points = 150
-        self_explorator = NaoManager(robot_name, robotIp)
+    elif functionName == "motor-babbling":
+        self_explorator = NaoManager(robotName, robotIp)
         self_explorator.import_robot(file_path)
-        self_explorator.motor_babbling(robotIp, delta_angle, amount_of_points)
-        file_path = "self_exploration_nao_" + str(amount_of_points) + ".txt"
+        self_explorator.motor_babbling(robotIp, delta, babblingPoints)
+        file_path = "self_exploration_" + robotName + "_" + str(babblingPoints) + ".txt"
         with open(file_path, 'w') as file:
             json.dump(str(self_explorator.motor_babbling_recording), file)

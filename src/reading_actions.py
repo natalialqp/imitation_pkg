@@ -6,6 +6,7 @@ class SignalAnalyzer:
     def __init__(self, csv_file_path):
         """
         Initialize the ReadingActions object.
+        This class reads the data from a CSV file and analyzes the signals to detect noise on the signal direction.
 
         Parameters:
         csv_file_path (str): The file path of the CSV file containing the data.

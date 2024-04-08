@@ -5,6 +5,28 @@ import simulate_position
 from scipy.spatial.transform import Rotation as R
 
 class Robot(object):
+    """
+    Represents the robot as such as an object.
+    This class contains methods to import robot configuration data from a YAML file,
+    calculate the forward kinematics of the robot, and convert the position vectors of
+    the robot's joints to a dictionary representation.
+
+    Attributes:
+        robot: The robot object.
+        baseAngles: List of base angles.
+        baseDistance: List of base distances.
+        leftArmAngles: List of left arm angles.
+        rightArmAngles: List of right arm angles.
+        headAngles: List of head angles.
+        leftArmDistance: List of left arm distances.
+        rightArmDistance: List of right arm distances.
+        headDistance: List of head distances.
+        physical_limits_left: List of physical limits for the left arm.
+        physical_limits_right: List of physical limits for the right arm.
+        physical_limits_head: List of physical limits for the head.
+        robotDict: Dictionary containing robot information.
+        robotName: The name of the robot.
+    """
 
     def __init__(self, robotName):
         """

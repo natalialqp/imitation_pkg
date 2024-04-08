@@ -15,6 +15,7 @@ from sensor_msgs.msg import JointState
 from visualization_msgs.msg import MarkerArray, Marker
 from graph_plot import PathPlanning
 import pandas as pd
+from main import read_yaml_file
 
 head_pub = rospy.Publisher('/qt_robot/head_position/command', Float64MultiArray, queue_size=10)
 right_pub = rospy.Publisher('/qt_robot/right_arm_position/command', Float64MultiArray, queue_size = 10)
@@ -31,6 +32,10 @@ robot_head_rec = []
 rospy.sleep(1.0)
 
 class SkeletonMarkers(object):
+    """
+    Class not used in the current implementation.
+    """
+
     def __init__(self, id, skeleton_frame_id):
         """
         Initializes an instance of the RealTimePosePrediction class.
@@ -58,9 +63,16 @@ class SkeletonMarkers(object):
         self.right_leg_marker = self.get_marker(id_pad + 4)
 
 class SpeechManager(object):
+    """
+    A class that manages speech recognition and synthesis.
+
+    This class provides methods to start speech recognition, recognize speech input,
+    and respond accordingly based on the recognized speech.
+    """
+
     def __init__(self):
         """
-        Initializes the RealTimePosePrediction class.
+        Initializes the SpeechManager class.
 
         This function sets up the necessary service proxies for speech recognition and speech synthesis.
         It also initializes the options for speech recognition and sets the initial speech message.
@@ -131,27 +143,28 @@ class SpeechManager(object):
         return
 
 class HumanSkeleton(object):
+    """
+    Represents a human skeleton and provides methods for real-time pose prediction.
+
+    Attributes:
+        nuitrack_skeleton_topic (str): The topic for receiving skeleton data from Nuitrack.
+        cam_base_link_translation (list): The translation values for the camera base link.
+        skeleton_frame_id (str): The frame ID for the skeleton data.
+        cam_base_link_rot (list): The rotation values for the camera base link.
+        pose_predictor: The pose predictor object.
+        planner: The planner object.
+        delta (int): The delta value.
+        cam_base_link_tf (numpy.ndarray): The homogeneous transform matrix for the camera base link.
+        skeleton_sub: The subscriber object for receiving skeleton data.
+    """
+
     def __init__(self, pose_predictor, planner):
         """
-        Initializes the RealTimePosePrediction class.
+        Initializes the HumanSkeleton class.
 
         Args:
             pose_predictor: The pose predictor object.
             planner: The planner object.
-
-        Attributes:
-            nuitrack_skeleton_topic (str): The topic for receiving skeleton data from Nuitrack.
-            cam_base_link_translation (list): The translation values for the camera base link.
-            skeleton_frame_id (str): The frame ID for the skeleton data.
-            cam_base_link_rot (list): The rotation values for the camera base link.
-            pose_predictor: The pose predictor object.
-            planner: The planner object.
-            delta (int): The delta value.
-            cam_base_link_tf (numpy.ndarray): The homogeneous transform matrix for the camera base link.
-            skeleton_sub: The subscriber object for receiving skeleton data.
-
-        Returns:
-            None
         """
         self.nuitrack_skeleton_topic = rospy.get_param('~nuitrack_skeleton_topic',
                                                        '/qt_nuitrack_app/skeletons')
@@ -171,7 +184,6 @@ class HumanSkeleton(object):
 
         This function subscribes to the Nuitrack skeleton topic and captures the skeletons
         for further processing.
-
         """
         self.skeleton_sub = rospy.Subscriber(self.nuitrack_skeleton_topic,
                                              Skeletons,
@@ -179,13 +191,13 @@ class HumanSkeleton(object):
         rospy.sleep(0.5)
 
     def stop(self):
-            """
-            Stops the skeleton subscription.
+        """
+        Stops the skeleton subscription.
 
-            Unregisters the skeleton subscriber if it is not None.
-            """
-            if self.skeleton_sub is not None:
-                self.skeleton_sub.unregister()
+        Unregisters the skeleton subscriber if it is not None.
+        """
+        if self.skeleton_sub is not None:
+            self.skeleton_sub.unregister()
 
     def save_action(self, action_name, action):
         """
@@ -194,9 +206,6 @@ class HumanSkeleton(object):
         Parameters:
         - action_name (str): The name of the action.
         - action (list): The action data to be saved.
-
-        Returns:
-        None
         """
         action_df = pd.DataFrame(action)
         action_df.to_csv("data/QT_recordings/" + action_name + ".csv", index=False)
@@ -204,10 +213,9 @@ class HumanSkeleton(object):
     def capture_skeletons(self, skeleton_collection_msg):
         """
         Captures and processes skeleton data from a skeleton collection message.
+
         Args:
             skeleton_collection_msg (SkeletonCollectionMsg): The skeleton collection message containing the skeleton data.
-        Returns:
-            None
         """
         cartesian_left_vec = []
         cartesian_right_vec = []
@@ -265,10 +273,12 @@ class HumanSkeleton(object):
     def find_end_effector_angles(self, left_arm_pred, right_arm_pred, head_pred):
         """
         Finds the angles of the end effectors for the left arm, right arm, and head based on the given predictions.
+
         Parameters:
         - left_arm_pred (dict): Predicted values for the left arm.
         - right_arm_pred (dict): Predicted values for the right arm.
         - head_pred (dict): Predicted values for the head.
+
         Returns:
         - angles_left (list): List of angles for the left arm end effectors.
         - angles_right (list): List of angles for the right arm end effectors.
@@ -315,7 +325,7 @@ def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
         rospy.logerr("could not publish motor command!")
     rospy.loginfo("motor command published")
 
-def initialise():
+def initialise(robotName, babblingPoints, epochs):
     """
     Initializes the pose predictor and planner for real-time pose prediction.
 
@@ -323,26 +333,29 @@ def initialise():
         pose_predictor (Prediction): The pose predictor object.
         planner (PathPlanning): The planner object.
     """
-    robotName = "qt"
-    file_path = "./robot_configuration_files/" +robotName + ".yaml"
+    file_path = "./robot_configuration_files/" + robotName + ".yaml"
     planner = PathPlanning(file_path)
     pose_predictor = pose_prediction.Prediction(file_path, robotName)
-    babbling_points = str(30)
-    planner.fill_robot_graphs(babbling_points)
+    planner.fill_robot_graphs(babblingPoints)
 
     #NN TRAINING
     file_name = "robot_angles_" + robotName
     theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot = pose_predictor.read_training_data(file_name)
-    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, 1000)
+    pose_predictor.train_pytorch(pose_predictor.robot, theta_left, phi_left, theta_right, phi_right, theta_head, phi_head, left_arm_robot, right_arm_robot, head_robot, epochs)
     return pose_predictor, planner
 
 if __name__ == '__main__':
+    config = read_yaml_file("config.yaml")
+    robotName = config["robot-name"]
+    babblingPoints = config["babbling-points"]
+    epochs = config["epochs"]
+
     rospy.init_node('real_time_pose_estimation_node')
     rospy.loginfo("real_time_pose_estimation_node started!")
     # speech = SpeechManager()
     # speech.start_recognition()
 
-    pose_predictor, planner = initialise()
+    pose_predictor, planner = initialise(robotName, babblingPoints, epochs)
     skeleton = HumanSkeleton(pose_predictor, planner)
     while not rospy.is_shutdown():
         skeleton.start()

@@ -5,6 +5,33 @@ import ast
 plt.rcParams.update({'font.size': 20})
 
 class Graph(object):
+    """
+    Represents a graph data structure.
+
+    This class provides methods to add nodes and edges to the graph, perform graph operations,
+    and visualize the graph in a 3D plot for the world.
+
+    Attributes:
+        G (nx.Graph): The underlying NetworkX graph object.
+
+    Methods:
+        add_nodes: Add nodes to the graph.
+        add_one_node: Adds a single node to the graph.
+        list_to_string: Converts a list of numbers to a string representation.
+        get_nodes_as_string: Returns a list of nodes in the graph as strings.
+        add_one_edge: Adds a single edge to the graph.
+        add_edges: Add edges to the graph.
+        has_edge: Check if there is an edge between two nodes in the graph.
+        read_object_from_file: Reads an object graph from a file and adds it to the main graph.
+        save_object_to_file: Save the graph object to a file.
+        save_graph_to_file: Save the graph to a file in GraphML format.
+        read_graph_from_file: Reads a graph from a file and adds its nodes and edges to the graph object.
+        search: Search for a path between the initial node and the goal node using a specified algorithm.
+        get_nodes: Returns a list of nodes in the graph.
+        get_edges: Returns the edges of the graph.
+        plot_graph: Plots a 3D graph of the world with nodes, edges, and an optional trajectory.
+    """
+
     def __init__(self):
         """
         Initializes a new instance of the WorldGraph class.

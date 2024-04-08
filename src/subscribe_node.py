@@ -9,8 +9,25 @@ import robot
 import os
 import random
 import time
+from main import read_yaml_file
 
 class SelfExploration(object):
+    """
+    Class for performing self-exploration of a robot.
+    This class provides methods for importing a robot, performing motor babbling, and checking torque values of the robot's joints.
+
+    Attributes:
+        motor_babbling_recording (dict): A dictionary to store motor babbling recordings for each arm and head.
+        right_pub (rospy.Publisher): A publisher for the right arm position command.
+        left_pub (rospy.Publisher): A publisher for the left arm position command.
+        head_pub (rospy.Publisher): A publisher for the head position command.
+        current_ang_pos_arm (numpy.ndarray): An array to store the current angular positions of the arm.
+        current_ang_pos_head (numpy.ndarray): An array to store the current angular positions of the head.
+        current_tor_head (numpy.ndarray): An array to store the current torques of the head.
+        current_tor_arm (numpy.ndarray): An array to store the current torques of the arm.
+        key (str): A key for some functionality.
+        robot_name (str): The name of the robot.
+    """
 
     def __init__(self, robot_name):
         """
@@ -354,19 +371,22 @@ class SelfExploration(object):
         rospy.loginfo("motor command published")
 
 if __name__ == '__main__':
+    config = read_yaml_file("config.yaml")
+    robotName = config["robot-name"]
+    babblingPoints = config["babbling-points"]
+    #delta recommended 5
+    delta = config["minimum-distance"]
+
     rospy.init_node('self_exploration')
     rospy.loginfo("started!")
 
     directory = os.getcwd()
-    robot_name = 'qt'
-    file_path = directory  + "/robot_configuration_files/" + robot_name + ".yaml"
+    file_path = directory  + "/robot_configuration_files/" + robotName + ".yaml"
 
-    delta_angle = 5
-    amount_of_points = 150
-    self_explorator = SelfExploration(robot_name)
+    self_explorator = SelfExploration(robotName)
     self_explorator.import_robot(file_path)
-    self_explorator.execute_online(delta_angle, amount_of_points)
+    self_explorator.execute_online(delta, babblingPoints)
 
-    file_path = directory  + "/data/test_qt/self_exploration/self_exploration_qt_" + str(amount_of_points) + ".txt"
+    file_path = directory  + "/data/test_" + robotName + "/self_exploration/self_exploration_qt_" + str(babblingPoints) + ".txt"
     with open(file_path, 'w') as file:
         json.dump(str(self_explorator.motor_babbling_recording), file)

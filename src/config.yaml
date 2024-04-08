@@ -42,6 +42,26 @@ users-id-new-action: [21]
 #read a trajectory (already calculated) for an action from the pre-recorded actions (or new actions) for a specific user
 trajectory-id: "5spoon"
 
+#Gaussian Mixtures Regression parameters
+#Number of components in the Gaussian Mixture Model
+num-components: 5
+#Number of components in the Gaussian Mixture Regression
+num-clusters: 3
+trajectory-name: "spoon"
+
+#NAO parameters for reproducing a trajectory or babble with nao_controller.py
+#NAO's IP address
+nao-ip: "192.168.0.101"
+
+#Freddy parameters for reproducing a trajectory or babble with freddy_controller.py
+#Freddy's IP address
+gen3-ip-1: "192.168.1.10"
+gen3-ip-2: "192.168.1.12"
+
+#Action desired to reproduce on the robot, QTrobot, NAO or Gen3
+action-name: "spoon"
+
+
 #Desired functions to execute
 #"path-planning"
 #"pose-predicition"
@@ -49,4 +69,6 @@ trajectory-id: "5spoon"
 #"object-in-robot-graph"
 #"read-library-paths"
 #"create-object"
+#"reproduce_action"
+#"motor-babbling"
 function-name: "explore-world"

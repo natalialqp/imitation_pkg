@@ -12,6 +12,20 @@ from math import radians
 plt.rcParams.update({"font.size": 20})
 
 class Graph(object):
+    """
+    A class representing a graph used for robot manipulation planning.
+
+    This class provides methods to manipulate and analyze the graph, such as adding nodes and edges,
+    setting attributes, performing searches, and finding shortest paths.
+
+    Attributes:
+        G (nx.Graph): The graph object.
+        n_dependecies (int): The number of dependencies.
+        objects_in_world (dict): A dictionary of objects in the world.
+        key (str): The key for the object.
+        nodes_id (int): The ID of the nodes.
+    """
+
     def __init__(self, n_dependecies, key):
         """
         Initializes a RobotGraph object.

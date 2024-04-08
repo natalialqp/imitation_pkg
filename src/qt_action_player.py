@@ -5,6 +5,7 @@ import rospy
 from std_msgs.msg import Float64MultiArray
 import pandas as pd
 from math import degrees
+from main import read_yaml_file
 
 left_columns = ['left_1', 'left_2', 'left_3']
 right_columns = ['right_1', 'right_2', 'right_3']
@@ -67,12 +68,14 @@ def joint_angle_publisher(left_arm_ang_pos, right_arm_ang_pos, head_ang_pos):
     rospy.loginfo("motor command published")
 
 if __name__ == '__main__':
+    config = read_yaml_file("config.yaml")
+    robotName = config["robot-name"]
+    babblingPoints = config["babbling-points"]
+    action = config["action-name"]
+
     rospy.init_node('qt_motor_command')
-    action = "dance"
-    bps = "150"
-    dir = './data/test_qt/GMM_learned_actions/for_execution/'
-    # dir = './data/old_test_qt/GMM_learned_actions/'
-    file_name = dir + "GMR_" + bps + "_" + action + ".csv"
+    dir = './data/test_' + robotName + '/GMM_learned_actions/for_execution/'
+    file_name = dir + "GMR_" + babblingPoints + "_" + action + ".csv"
     # file_name = dir + "qt_sugar_bowl_for_execution.csv"
     # create a publisher
     left_pub = rospy.Publisher('/qt_robot/left_arm_position/command', Float64MultiArray, queue_size=1)

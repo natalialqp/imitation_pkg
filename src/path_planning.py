@@ -17,6 +17,8 @@ class PathPlanning:
     def __init__(self, robotName, delta=15):
         """
         Initializes the GraphPlot object.
+        This class is used to perform creation of the world, search, recognition and plot graphs for the robot and the world.
+        Used for path planning and trajectory approximation in the robot's world.
 
         Args:
             delta (int): The length parameter for the graph.
