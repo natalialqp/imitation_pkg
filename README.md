@@ -36,6 +36,10 @@ You are going to find main code in the file main.py. The one has different optio
 
 The results are placed in the folder data. Where the sub-folder test_qt, test_nao and test_gen3 contain self-exploration files (babbling files), objects/obstacles to add in the world, paths and trajectories generated for pre-recorded actions, robot's joint's graphs and plots.
 
+
+<a id="Config" name="Configuration"></a>
+<h1> Configuration and Setup</h1>
+
 For the config.yaml file please fill the following details:
 <lu>
 <li> Add the name of the robot (qt, nao or gen3) or your own</li>
@@ -64,9 +68,11 @@ num-clusters </li>
 </li>
 <li> Specify the action that needs to be reproduced on the robot (NAO, QTrobot or Freddy) in action-name
 </li>
-<li> Select the corresponding function to run the main.py file: </li>
 
+<a id="Application" name="Application"></a>
+<h1> Application</h1>
 
+<li> Depending on your application, select the corresponding function to run the main.py file: </li>
 <ul>
 <li>"path-planning": To calculate the path planning of the robot arms or limbs. The planning takes place in the workspace of the robot (each joit graph)</li>
 <li>"pose-predicition": Iterates over the actions and the users and predicts the pose of the robot, calculates posible new nodes inside the robot's graph and updates the graph and the path library</li>
