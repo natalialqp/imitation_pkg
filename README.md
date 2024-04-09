@@ -37,6 +37,7 @@ You are going to find main code in the file main.py. The one has different optio
 The results are placed in the folder data. Where the sub-folder test_qt, test_nao and test_gen3 contain self-exploration files (babbling files), objects/obstacles to add in the world, paths and trajectories generated for pre-recorded actions, robot's joint's graphs and plots.
 
 For the config.yaml file please fill the following details:
+<lu>
 <li> Add the name of the robot (qt, nao or gen3) or your own</li>
 <li> Define the amount of babbling points (30, 100 or 150) or your own</li>
 <li> The iteration-id indicate which iteration over the pre-recorded actions is performed. This value is only required in order to keep track of the saved plots.  </li>
@@ -47,7 +48,7 @@ For the config.yaml file please fill the following details:
 <li> For the pre-recorded actions the actions-names are defined. To include a new action, make sure to add it to the combined_actions_*.csv, human_pose*.csv and robot_angles_*.csv files with its respective used id</li>
 <li> users-id for the pre-recorded actions go from 1 to 20, make sure to start the count from 21 for new actions and users </li>
 <li> The amount of epochs used to train the Neural Network to learn robot angles from human skeleton angles </li>
-
+</lu>
 <li> To read a new action change the value of read-new-action to True, the default is False to read pre-recorded actions</li>
 <li> For any new action specify the name: new-action-name </li>
 <li> users-id-new-action can take any integer value exepting 1 to 20</li>
@@ -65,6 +66,7 @@ num-clusters </li>
 </li>
 <li> Select the corresponding function to run the main.py file: </li>
 
+
 <ul>
 <li>"path-planning": To calculate the path planning of the robot arms or limbs. The planning takes place in the workspace of the robot (each joit graph)</li>
 <li>"pose-predicition": Iterates over the actions and the users and predicts the pose of the robot, calculates posible new nodes inside the robot's graph and updates the graph and the path library</li>
@@ -74,6 +76,7 @@ num-clusters </li>
 <li>"read-library-paths": Read the existing trajectories from the library and adjust (performs path planning) the trajectory according to the inclusion of a new obstacle/object in the robot's workspace</li>
 <li>"gaussian-mixture-regression": Calculates the GMR of the actions and stores the GMR trajectories in a file ready to be used by the robot</li>
 </ul>
+
 
 <li>For action reproduction on the robots:</li>
 <ul>
@@ -91,7 +94,8 @@ num-clusters </li>
 
 
 <h1> Reference </h1>
-#### Useful Links
+
+Useful Links
 
 |  |  |
 | ---: | --- |
