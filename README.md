@@ -30,47 +30,56 @@ The repository has been tested on Ubuntu 20.04.
 <a id="description" name="description"></a>
 <h1> Description</h1>
 
-This repository stores the learning from demonstration framework. It focuses on the upper-body limb for the robots QTrobot, NAO and Freddy (2 Kinova arms Gen3 on a Kelo base).
+This repository stores a learning from demonstration framework. It focuses on the upper-body limb for the robots QTrobot, NAO and Freddy (2 Kinova arms Gen3 on a Kelo base), any other humanoid robot can be added following the instruccions.
 
 You are going to find main code in the file main.py. The one has different options to perform different steps of learning from demonstration.
 
-The results are placed in the folder data. Where the sub-folder test_qt, test_nao and test_gen3 contain self-exploration files, objects ,paths, graphs and trajectory libraries.
+The results are placed in the folder data. Where the sub-folder test_qt, test_nao and test_gen3 contain self-exploration files (babbling files), objects/obstacles to add in the world, paths and trajectories generated for pre-recorded actions, robot's joint's graphs and plots.
 
-For the main file:
-<li> Add the name of the robot (qt, nao or gen3)</li>
-<li> Define the amount of babbling points (30, 100 or 150)</li>
-<li> Select the corresponding flag to run the desired function: </li>
+For the config.yaml file please fill the following details:
+<li> Add the name of the robot (qt, nao or gen3) or your own</li>
+<li> Define the amount of babbling points (30, 100 or 150) or your own</li>
+<li> The iteration-id indicate which iteration over the pre-recorded actions is performed. This value is only required in order to keep track of the saved plots.  </li>
+<li> minimum-distance is the quality of the graph d_min in mm </li>
+<li> low-edge-* and high-edge-* are oposite edges of a squared workspace for a robot, the values are in mm. To add a new robot, add the robot-name and the desired world </li>
+<li> obstacle-name refers to a obstacle/object that needs to be created or incorporated into the robot's workspace </li>
+<li> low-edge-* and high-edge-* are oposite edges of a squared object/obstacle wished to be added into the robot's workspace </li>
+<li> For the pre-recorded actions the actions-names are defined. To include a new action, make sure to add it to the combined_actions_*.csv, human_pose*.csv and robot_angles_*.csv files with its respective used id</li>
+<li> users-id for the pre-recorded actions go from 1 to 20, make sure to start the count from 21 for new actions and users </li>
+<li> The amount of epochs used to train the Neural Network to learn robot angles from human skeleton angles </li>
+
+<li> To read a new action change the value of read-new-action to True, the default is False to read pre-recorded actions</li>
+<li> For any new action specify the name: new-action-name </li>
+<li> users-id-new-action can take any integer value exepting 1 to 20</li>
+<li> To read a trajectory, the name of it is the userId+actionName: for example "5spoon"
+</li>
+<li> The number of components in the Gaussian Mixture Model is num-components</li>
+<li> Number of components in the Gaussian Mixture Regression using the gmr library
+num-clusters </li>
+<li> To perform GMR and GMM the trajectory-name has to be specified</li>
+<li> In order to use NAO, the nao-ip: "192.168.0.101" has to be adjusted
+</li>
+<li> In order to use Freddy, make sure to adjust the IP address of both arms or one arm, make sure to set left and right as ip-1 and ip-2 
+</li>
+<li> Specify the action that needs to be reproduced on the robot (NAO, QTrobot or Freddy) in action-name
+</li>
+<li> Select the corresponding function to run the main.py file: </li>
 
 <ul>
-<li> explore-world: to interpolate points between collected babbling points </li>
-<li> pose-predicition: to iterate over the 12 pre-recorded actions and increase the graphs reachability </li>
-<li> path-planning: to perform path planning for the pre-recorded actions </li>
-<li> object-in-robot-graph: to test the objects in the world </li>
-<li> read-library-paths: to read a trajectory from the trajectory library </li>
-<li> create-object: to create an object file </li>
+<li>"path-planning": To calculate the path planning of the robot arms or limbs. The planning takes place in the workspace of the robot (each joit graph)</li>
+<li>"pose-predicition": Iterates over the actions and the users and predicts the pose of the robot, calculates posible new nodes inside the robot's graph and updates the graph and the path library</li>
+<li>"explore-world": Reads the babbling points explored with the physical robot and calculates the forward kinematics of the robot to update the robot's graph, interpolates nodes in beetween babbling points and updates the stores the joint's graphs</li>
+<li>"create-object": Creates an object/obstacle with the specified edges and stores it on a file</li>
+<li>"object-in-robot-graph": Reads the object/obstacle from a file and stores it on a graph, calculates the overlap between the object and the robot's graph and updates the robot's graph removing the overlapped nodes</li>
+<li>"read-library-paths": Read the existing trajectories from the library and adjust (performs path planning) the trajectory according to the inclusion of a new obstacle/object in the robot's workspace</li>
+<li>"gaussian-mixture-regression": Calculates the GMR of the actions and stores the GMR trajectories in a file ready to be used by the robot</li>
 </ul>
 
-<li>For the GMR.py:</li>
-<ul>
-      <li>  Add the name of the robot (qt, nao or gen3) </li>
-      <li>  Define the amount of babbling points (30, 100 or 150)</li>
-      <li>  Select the action class</li>
-      <li>  Select the end_effector_dict from the yaml file of the corresponding robot</li>
-      <li>  Select the number of components for the GMM for sklearn </li>
-      <li>  In GMPlotter.py select the number of components for the gmr test_gmr(...., num_components)</li>
-</ul>
-<li>For motor-babbling: select the amount of points to be collected and the delta angle to babble  (default = 10)</li>
-<ul>
-      <li>  QTrobot: run the subscribe_node.py file</li>
-      <li>  NAO: select the option motor-babbling in nao_controller.py</li>
-      <li>  Freddy: select the option motor-babbling in freddy_controller.py</li>
-</ul>
 <li>For action reproduction on the robots:</li>
 <ul>
-      <li>  QTrobot: run the qt_action_player.py file</li>
-      <li>  NAO: select the option reproduce-action in nao_controller.py</li>
-      <li>  Freddy: select the option reproduce-action in freddy_controller.py</li>
- </ul>
+<li> "reproduce-action": Reproduces the action on the robot, make sure to specify the robot's name and the action name</li>
+<li> "motor-babbling": Babble with the robot, make sure to specify the robot's name and the amount of babbling points</li>
+</ul>
 
 <a id="quickstart" name="quickstart"></a>
 <h1> Quick Start </h1>
