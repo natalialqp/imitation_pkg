@@ -1,15 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import world_graph
-import robot_graph
 from scipy.spatial import KDTree
-import robot
 import json
 from tqdm import tqdm
 from scipy.spatial import cKDTree
 from sklearn.metrics import mean_squared_error
 import copy
-import simulate_position
+
+import utils.world_graph as world_graph
+import utils.robot_graph as robot_graph
+import utils.simulate_position as simulate_position
+import utils.robot as robot
 
 plt.rcParams.update({'font.size': 18})
 

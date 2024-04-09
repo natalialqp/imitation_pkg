@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pose_prediction
 from scipy.signal import savgol_filter
 import json
-from sklearn.model_selection import train_test_split
-from GMPlotter import eval
+
+from utils.GMPlotter import eval
+import utils.pose_prediction as pose_prediction
 
 def plot_3d_paths(trajectories, title):
     """

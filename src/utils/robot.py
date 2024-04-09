@@ -1,8 +1,9 @@
 import numpy as np
 import yaml
-from homogeneous_transformation import HT
-import simulate_position
 from scipy.spatial.transform import Rotation as R
+
+from utils.homogeneous_transformation import HT
+import utils.simulate_position as simulate_position
 
 class Robot(object):
     """

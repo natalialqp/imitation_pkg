@@ -1,20 +1,17 @@
 #!/usr/bin/env python
-import sys
-import time
 import threading
 import rospy
+import numpy as np
+import pandas as pd
+
 from qt_nuitrack_app.msg import Skeletons
 from migrave_skeleton_tools.tf_utils import TFUtils
 from migrave_skeleton_tools_ros.skeleton_utils import JointUtils
 from qt_robot_interface.srv import speech_say, speech_recognize
-
-import pose_prediction
-import numpy as np
 from std_msgs.msg import Float64MultiArray
-from sensor_msgs.msg import JointState
-from visualization_msgs.msg import MarkerArray, Marker
-from graph_plot import PathPlanning
-import pandas as pd
+
+from utils.path_planning import PathPlanning
+import utils.pose_prediction as pose_prediction
 from main import read_yaml_file
 
 head_pub = rospy.Publisher('/qt_robot/head_position/command', Float64MultiArray, queue_size=10)

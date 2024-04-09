@@ -250,7 +250,7 @@ if __name__ == "__main__":
         robotIp = sys.argv[1]
 
     file_path = robotName + ".yaml"
-    if functionName == "reproduce_action":
+    if functionName == "reproduce-action":
         dir = "./data/test_" + robotName + "/GMM_learned_actions/for_execution/"
         file_name = dir + "GMR_" + str(babblingPoints) + "_" + action + ".csv"
         action_reproduction = NaoManager(robotName, robotIp)

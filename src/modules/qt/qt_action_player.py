@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-
-import sys
 import rospy
 from std_msgs.msg import Float64MultiArray
 import pandas as pd

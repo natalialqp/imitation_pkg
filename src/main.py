@@ -1,13 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import world_graph
 import yaml
 from tqdm import tqdm
-import pose_prediction
-import path_planning
-import GMR
-import reading_actions as RA
 import os
+
+import utils.world_graph as world_graph
+import utils.pose_prediction as pose_prediction
+import utils.path_planning as path_planning
+import utils.GMR as GMR
+import utils.reading_actions as RA
 
 plt.rcParams.update({'font.size': 18})
 
@@ -75,14 +76,14 @@ if __name__ == "__main__":
 
     elif function == "object-in-robot-graph":
         # Define parameter of the world and create one with cubic structure according to the robot, chech yaml files
-        object = planner.createObject(lowEdge_obstacle, highEdge_obstacle)
+        # object = planner.createObject(lowEdge_obstacle, highEdge_obstacle)
         object = world_graph.Graph()
         object.read_object_from_file(planner.robotName, obstacle_name)
         _, object_nodes = planner.find_object_in_world(object)
         for key in planner.robot_graphs:
             planner.robot_graphs[key].read_graph_from_file(key, planner.robotName)
             planner.robot_graphs[key].new_object_in_world(object_nodes, obstacle_name)
-            planner.robot_graphs[key].remove_object_from_world(obstacle_name)
+            # planner.robot_graphs[key].remove_object_from_world(obstacle_name)
 
     elif function == "reproduce-action":
         #reading an action and reproducing
@@ -140,9 +141,7 @@ if __name__ == "__main__":
 
     elif function == "pose-predicition":
         # Define parameter of the world and create one with cubic structure according to the robot, chech yaml files
-        lowEdge = np.array([-500, -1200, 100])
-        highEdge = np.array([1100, 1200, 1700])
-        planner.createWorldCubes(lowEdge, highEdge)
+        planner.createWorldCubes(lowEdge_robot, highEdge_robot)
 
         file_path = "./robot_configuration_files/"+ planner.robotName + ".yaml"
         pose_predictor = pose_prediction.Prediction(file_path, planner.robotName)

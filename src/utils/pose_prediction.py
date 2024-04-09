@@ -2,17 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas as pd
-import robot
 from matplotlib.widgets import Slider, Button
+from scipy.spatial import KDTree
+import json
+import time
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
-import robot_graph
-from scipy.spatial import KDTree
-import json
-import time
+
+import utils.robot_graph as robot_graph
 import torch.optim.lr_scheduler as lr_scheduler
+import utils.robot as robot
 
 plt.rcParams.update({'font.size': 10})
 

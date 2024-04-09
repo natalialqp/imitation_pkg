@@ -5,10 +5,11 @@ from std_msgs.msg import Float64MultiArray
 from sensor_msgs.msg import JointState
 import numpy as np
 import json
-import robot
 import os
 import random
 import time
+
+import utils.robot as robot
 from main import read_yaml_file
 
 class SelfExploration(object):
