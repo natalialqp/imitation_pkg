@@ -23,7 +23,7 @@ The repository has been tested on Ubuntu 20.04.
 <!-- TOC -->
 
 - [Description](#description)
-- [Configuration](#config)
+- [Configuration and Setup](#config)
 - [Application](#application)
 - [Quick Start](#quickstart)
 - [Reference](#reference)
@@ -69,7 +69,7 @@ The results are placed in the folder data. Where the sub-folder test_qt, test_na
 <h1> Application</h1>
 
 <li> Depending on your application, select the corresponding function to run the main.py file: </li>
-<ul>
+<lu>
       <li>"path-planning": To calculate the path planning of the robot arms or limbs. The planning takes place in the workspace of the robot (each joit graph)</li>
       <li>"pose-predicition": Iterates over the actions and the users and predicts the pose of the robot, calculates posible new nodes inside the robot's graph and updates the graph and               the path library</li>
       <li>"explore-world": Reads the babbling points explored with the physical robot and calculates the forward kinematics of the robot to update the robot's graph, interpolates nodes in             beetween babbling points and updates the stores the joint's graphs</li>
@@ -77,11 +77,11 @@ The results are placed in the folder data. Where the sub-folder test_qt, test_na
       <li>"object-in-robot-graph": Reads the object/obstacle from a file and stores it on a graph, calculates the overlap between the object and the robot's graph and updates the robot's             graph removing the overlapped nodes</li>
       <li>"read-library-paths": Read the existing trajectories from the library and adjust (performs path planning) the trajectory according to the inclusion of a new obstacle/object in               the robot's workspace</li>
       <li>"gaussian-mixture-regression": Calculates the GMR of the actions and stores the GMR trajectories in a file ready to be used by the robot</li>
-</ul>
+</lu>
 
 
 <li>For action reproduction on the robots:</li>
-<ul>
+<lu>
       <li> "reproduce-action": Reproduces the action on the robot, make sure to specify the robot's name and the action name</li>
       <li> "motor-babbling": Babble with the robot, make sure to specify the robot's name and the amount of babbling points</li>
       <li> In order to use NAO, the nao-ip: "192.168.0.101" has to be adjusted
@@ -90,15 +90,16 @@ The results are placed in the folder data. Where the sub-folder test_qt, test_na
       </li>
       <li> Specify the action that needs to be reproduced on the robot (NAO, QTrobot or Freddy) in action-name
       </li>
-</ul>
+</lu>
 
 <a id="quickstart" name="quickstart"></a>
 <h1> Quick Start </h1>
-
-  To run the Python examples you will need to install the Python3 and run the requirements.txt file</li>
+  <li>To run the Python examples you will need to install the Python3 and run the requirements.txt file</li>
+  <lu>
       <li>  QTrobot: uses ROS Noetic, make sure to connect to the robot following the LuxAI documentation</li>
       <li>  NAO: runs on Ubuntu 16, make sure to have python 2.7 an Choregraphe installed </li>
       <li>  Freddy: clone the kortex repository outside of the imitation_pkg and copy the required files, follow the instructions in freddy_controller.py</li>
+  </lu>
 <h1> Reference </h1>
 
 Useful Links
