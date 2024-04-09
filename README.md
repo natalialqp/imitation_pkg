@@ -40,7 +40,7 @@ The results are placed in the folder data. Where the sub-folder test_qt, test_na
 <a id="Config" name="Configuration"></a>
 <h1> Configuration and Setup</h1>
 
-For the config.yaml file please fill the following details:
+<li>For the config.yaml file please fill the following details:</li>
 <lu>
 <li> Add the name of the robot (qt, nao or gen3) or your own</li>
 <li> Define the amount of babbling points (30, 100 or 150) or your own</li>
@@ -62,12 +62,6 @@ For the config.yaml file please fill the following details:
 <li> Number of components in the Gaussian Mixture Regression using the gmr library
 num-clusters </li>
 <li> To perform GMR and GMM the trajectory-name has to be specified</li>
-<li> In order to use NAO, the nao-ip: "192.168.0.101" has to be adjusted
-</li>
-<li> In order to use Freddy, make sure to adjust the IP address of both arms or one arm, make sure to set left and right as ip-1 and ip-2 
-</li>
-<li> Specify the action that needs to be reproduced on the robot (NAO, QTrobot or Freddy) in action-name
-</li>
 
 <a id="Application" name="Application"></a>
 <h1> Application</h1>
@@ -88,7 +82,14 @@ num-clusters </li>
 <ul>
 <li> "reproduce-action": Reproduces the action on the robot, make sure to specify the robot's name and the action name</li>
 <li> "motor-babbling": Babble with the robot, make sure to specify the robot's name and the amount of babbling points</li>
+<li> In order to use NAO, the nao-ip: "192.168.0.101" has to be adjusted
+</li>
+<li> In order to use Freddy, make sure to adjust the IP address of both arms or one arm, make sure to set left and right as ip-1 and ip-2 
+</li>
+<li> Specify the action that needs to be reproduced on the robot (NAO, QTrobot or Freddy) in action-name
+</li>
 </ul>
+
 
 <a id="quickstart" name="quickstart"></a>
 <h1> Quick Start </h1>
