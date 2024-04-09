@@ -83,6 +83,7 @@ For the main file:
 
 <h1> Reference </h1>
 #### Useful Links
+
 |  |  |
 | ---: | --- |
 | QTrobot quick start: | [https://docs.luxai.com/docs/intro_code](https://docs.luxai.com/docs/intro_code) |
